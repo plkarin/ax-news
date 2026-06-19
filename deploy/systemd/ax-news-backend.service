@@ -1,0 +1,19 @@
+[Unit]
+Description=AX-NEWS FastAPI Backend
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=cbrain
+Group=cbrain
+WorkingDirectory=/opt/ax-news/backend
+EnvironmentFile=/opt/ax-news/backend/.env
+ExecStart=/opt/ax-news/backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/var/log/ax-news/backend.log
+StandardError=append:/var/log/ax-news/backend.log
+
+[Install]
+WantedBy=multi-user.target

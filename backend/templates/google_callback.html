@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Signing in...</title>
+<style nonce="{{ csp_nonce }}">
+body{background:#0a0a0f;color:#e8f4ff;font-family:system-ui;
+  display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+.msg{text-align:center;opacity:.7;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="msg">Signing in, please wait...</div>
+<script nonce="{{ csp_nonce }}">
+  var d = new Date();
+  d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+  document.cookie = "ax_session={{ session_token }}; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+  setTimeout(function() {
+    if (document.cookie.indexOf('ax_session') !== -1) {
+      window.location.href = '/';
+    } else {
+      document.cookie = "ax_session={{ session_token }}; path=/; SameSite=Lax";
+      setTimeout(function() { window.location.href = '/'; }, 200);
+    }
+  }, 100);
+</script>
+</body>
+</html>

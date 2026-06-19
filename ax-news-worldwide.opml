@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+<head><title>AX-NEWS — Technology Worldwide Feed Library</title></head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ARTIFICIAL INTELLIGENCE
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="AI" title="AI">
+  <!-- Global leaders -->
+  <outline type="rss" text="OpenAI Blog" xmlUrl="https://openai.com/blog/rss.xml"/>
+  <outline type="rss" text="Anthropic News" xmlUrl="https://www.anthropic.com/news/rss.xml"/>
+  <outline type="rss" text="Google DeepMind" xmlUrl="https://deepmind.google/blog/rss.xml"/>
+  <outline type="rss" text="Meta AI Blog" xmlUrl="https://ai.meta.com/blog/rss/"/>
+  <outline type="rss" text="Hugging Face Blog" xmlUrl="https://huggingface.co/blog/feed.xml"/>
+  <outline type="rss" text="MIT Technology Review AI" xmlUrl="https://www.technologyreview.com/feed/"/>
+  <outline type="rss" text="The Gradient" xmlUrl="https://thegradient.pub/rss/"/>
+  <outline type="rss" text="Import AI Newsletter" xmlUrl="https://importai.substack.com/feed"/>
+  <outline type="rss" text="BAIR Blog" xmlUrl="https://bair.berkeley.edu/blog/feed.xml"/>
+  <outline type="rss" text="AssemblyAI Research" xmlUrl="https://www.assemblyai.com/blog/rss/"/>
+  <outline type="rss" text="Weights &amp; Biases Blog" xmlUrl="https://wandb.ai/fully-connected/rss.xml"/>
+  <outline type="rss" text="Towards Data Science" xmlUrl="https://towardsdatascience.com/feed"/>
+  <outline type="rss" text="Distill.pub" xmlUrl="https://distill.pub/rss.xml"/>
+  <outline type="rss" text="The AI Beat (VentureBeat)" xmlUrl="https://venturebeat.com/category/ai/feed/"/>
+  <outline type="rss" text="AI Business" xmlUrl="https://aibusiness.com/rss.xml"/>
+  <outline type="rss" text="NVIDIA AI Blog" xmlUrl="https://blogs.nvidia.com/blog/category/deep-learning/feed/"/>
+  <outline type="rss" text="Google AI Blog" xmlUrl="https://blog.research.google/feeds/posts/default"/>
+  <outline type="rss" text="Microsoft AI Blog" xmlUrl="https://blogs.microsoft.com/ai/feed/"/>
+  <outline type="rss" text="Amazon Science Blog" xmlUrl="https://www.amazon.science/index.rss"/>
+  <!-- Asia AI -->
+  <outline type="rss" text="Baidu Research (EN)" xmlUrl="http://research.baidu.com/Blog/rss"/>
+  <outline type="rss" text="Asian Scientist" xmlUrl="https://www.asianscientist.com/feed/?x=1"/>
+  <outline type="rss" text="AI Times (Korea)" xmlUrl="https://www.aitimes.com/rss/allArticle.xml"/>
+  <!-- Europe AI -->
+  <outline type="rss" text="The Alan Turing Institute" xmlUrl="https://www.turing.ac.uk/news/rss.xml"/>
+  <outline type="rss" text="INRIA (EN)" xmlUrl="https://www.inria.fr/en/rss.xml"/>
+  <!-- Research -->
+  <outline type="rss" text="arXiv cs.AI" xmlUrl="https://rss.arxiv.org/rss/cs.AI"/>
+  <outline type="rss" text="arXiv cs.LG" xmlUrl="https://rss.arxiv.org/rss/cs.LG"/>
+  <outline type="rss" text="arXiv cs.CL" xmlUrl="https://rss.arxiv.org/rss/cs.CL"/>
+  <outline type="rss" text="arXiv cs.CV" xmlUrl="https://rss.arxiv.org/rss/cs.CV"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEMICONDUCTORS & CHIPS
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Semiconductors" title="Semiconductors">
+  <!-- Industry analysis -->
+  <outline type="rss" text="SemiAnalysis" xmlUrl="https://semianalysis.com/feed/"/>
+  <outline type="rss" text="SemiWiki" xmlUrl="https://semiwiki.com/feed/"/>
+  <outline type="rss" text="Semiconductor Engineering" xmlUrl="https://semiengineering.com/feed/"/>
+  <outline type="rss" text="EE Times" xmlUrl="https://www.eetimes.com/feed/"/>
+  <outline type="rss" text="EE Times Asia" xmlUrl="https://www.eetimes.com/category/asia/feed/"/>
+  <outline type="rss" text="EE Times Europe" xmlUrl="https://www.eenewseurope.com/en/news/feed"/>
+  <outline type="rss" text="IEEE Spectrum" xmlUrl="https://feeds.feedburner.com/IeeeSpectrum"/>
+  <outline type="rss" text="AnandTech" xmlUrl="https://www.anandtech.com/rss/"/>
+  <outline type="rss" text="Tom's Hardware" xmlUrl="https://www.tomshardware.com/feeds/all"/>
+  <outline type="rss" text="ServeTheHome" xmlUrl="https://www.servethehome.com/feed/"/>
+  <!-- Asia focus -->
+  <outline type="rss" text="DigiTimes Daily" xmlUrl="https://www.digitimes.com/rss/daily.xml"/>
+  <outline type="rss" text="TrendForce" xmlUrl="https://www.trendforce.com/rss"/>
+  <outline type="rss" text="DIGITIMES Asia" xmlUrl="https://www.digitimes.com/rss/news.xml"/>
+  <outline type="rss" text="Nikkei Asia Tech" xmlUrl="https://asia.nikkei.com/rss/feed/nar"/>
+  <outline type="rss" text="iTnews Asia" xmlUrl="https://www.itnews.asia/RSS/rss.ashx"/>
+  <outline type="rss" text="Korea JoongAng Daily Tech" xmlUrl="https://koreajoongangdaily.joins.com/rss/600100.xml"/>
+  <!-- Research -->
+  <outline type="rss" text="arXiv cs.AR (Hardware)" xmlUrl="https://rss.arxiv.org/rss/cs.AR"/>
+  <outline type="rss" text="TechXplore Semiconductors" xmlUrl="https://techxplore.com/rss-feed/semiconductors-news/"/>
+  <!-- Market intelligence -->
+  <outline type="rss" text="IC Insights" xmlUrl="https://www.icinsights.com/news/feed/rss/"/>
+  <outline type="rss" text="The Information (chips)" xmlUrl="https://www.theinformation.com/feed"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CYBERSECURITY
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Cybersecurity" title="Cybersecurity">
+  <!-- Global -->
+  <outline type="rss" text="Krebs on Security" xmlUrl="https://krebsonsecurity.com/feed/"/>
+  <outline type="rss" text="Schneier on Security" xmlUrl="https://www.schneier.com/blog/atom.xml"/>
+  <outline type="rss" text="Dark Reading" xmlUrl="https://www.darkreading.com/rss/all.xml"/>
+  <outline type="rss" text="The Hacker News" xmlUrl="https://feeds.feedburner.com/TheHackersNews"/>
+  <outline type="rss" text="BleepingComputer" xmlUrl="https://www.bleepingcomputer.com/feed/"/>
+  <outline type="rss" text="SANS ISC" xmlUrl="https://isc.sans.edu/rssfeed.xml"/>
+  <outline type="rss" text="CISA Alerts" xmlUrl="https://www.cisa.gov/cybersecurity-advisories/all.xml"/>
+  <outline type="rss" text="NIST NVD CVE" xmlUrl="https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml"/>
+  <outline type="rss" text="Sophos News" xmlUrl="https://news.sophos.com/en-us/feed/"/>
+  <outline type="rss" text="Malwarebytes Labs" xmlUrl="https://blog.malwarebytes.com/feed/"/>
+  <outline type="rss" text="Recorded Future" xmlUrl="https://www.recordedfuture.com/feed"/>
+  <outline type="rss" text="Threatpost" xmlUrl="https://threatpost.com/feed/"/>
+  <outline type="rss" text="SecurityWeek" xmlUrl="https://feeds.feedburner.com/securityweek"/>
+  <outline type="rss" text="Naked Security (Sophos)" xmlUrl="https://nakedsecurity.sophos.com/feed/"/>
+  <outline type="rss" text="Google Project Zero" xmlUrl="https://googleprojectzero.blogspot.com/feeds/posts/default"/>
+  <outline type="rss" text="Talos Intelligence" xmlUrl="https://blog.talosintelligence.com/feeds/posts/default"/>
+  <outline type="rss" text="Crowdstrike Blog" xmlUrl="https://www.crowdstrike.com/blog/feed/"/>
+  <outline type="rss" text="Mandiant Blog" xmlUrl="https://www.mandiant.com/resources/blog/rss.xml"/>
+  <!-- Europe -->
+  <outline type="rss" text="ENISA (EU)" xmlUrl="https://www.enisa.europa.eu/media/news-items/RSS"/>
+  <outline type="rss" text="NCSC UK" xmlUrl="https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml"/>
+  <!-- Asia Pacific -->
+  <outline type="rss" text="CyberScoop Asia" xmlUrl="https://cyberscoop.com/feed/"/>
+  <outline type="rss" text="ZDNet Security" xmlUrl="https://www.zdnet.com/topic/security/rss.xml"/>
+  <!-- Research -->
+  <outline type="rss" text="arXiv cs.CR (Crypto/Security)" xmlUrl="https://rss.arxiv.org/rss/cs.CR"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CLOUD & INFRASTRUCTURE
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Cloud_Infrastructure" title="Cloud_Infrastructure">
+  <outline type="rss" text="AWS News Blog" xmlUrl="https://aws.amazon.com/blogs/aws/feed/"/>
+  <outline type="rss" text="Google Cloud Blog" xmlUrl="https://cloudblog.withgoogle.com/rss/"/>
+  <outline type="rss" text="Azure Blog" xmlUrl="https://azure.microsoft.com/en-us/blog/feed/"/>
+  <outline type="rss" text="Cloudflare Blog" xmlUrl="https://blog.cloudflare.com/rss/"/>
+  <outline type="rss" text="Netflix Tech Blog" xmlUrl="https://netflixtechblog.com/feed"/>
+  <outline type="rss" text="Uber Engineering" xmlUrl="https://eng.uber.com/feed/"/>
+  <outline type="rss" text="LinkedIn Engineering" xmlUrl="https://engineering.linkedin.com/blog.rss.html"/>
+  <outline type="rss" text="Dropbox Tech Blog" xmlUrl="https://dropbox.tech/feed"/>
+  <outline type="rss" text="Stripe Engineering" xmlUrl="https://stripe.com/blog/feed.rss"/>
+  <outline type="rss" text="Notion Engineering" xmlUrl="https://www.notion.so/blog/rss.xml"/>
+  <outline type="rss" text="The New Stack" xmlUrl="https://thenewstack.io/feed/"/>
+  <outline type="rss" text="InfoQ Cloud" xmlUrl="https://www.infoq.com/cloud-computing/rss"/>
+  <!-- Asia Cloud -->
+  <outline type="rss" text="Alibaba Cloud Blog" xmlUrl="https://www.alibabacloud.com/blog/feed.xml"/>
+  <outline type="rss" text="Tencent Cloud Blog" xmlUrl="https://cloud.tencent.com/developer/column/feed/rss"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DEVOPS & SRE
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="DevOps_SRE" title="DevOps_SRE">
+  <outline type="rss" text="Kubernetes Blog" xmlUrl="https://kubernetes.io/feed.xml"/>
+  <outline type="rss" text="HashiCorp Blog" xmlUrl="https://www.hashicorp.com/blog/feed.xml"/>
+  <outline type="rss" text="Martin Fowler" xmlUrl="https://martinfowler.com/feed.atom"/>
+  <outline type="rss" text="InfoQ DevOps" xmlUrl="https://www.infoq.com/devops/rss"/>
+  <outline type="rss" text="Atlassian Blog" xmlUrl="https://www.atlassian.com/blog/feed"/>
+  <outline type="rss" text="GitLab Blog" xmlUrl="https://about.gitlab.com/atom.xml"/>
+  <outline type="rss" text="GitHub Blog" xmlUrl="https://github.blog/feed/"/>
+  <outline type="rss" text="Docker Blog" xmlUrl="https://www.docker.com/blog/feed/"/>
+  <outline type="rss" text="Red Hat Blog" xmlUrl="https://www.redhat.com/en/rss/blog"/>
+  <outline type="rss" text="Grafana Blog" xmlUrl="https://grafana.com/blog/news.xml"/>
+  <outline type="rss" text="SRE Weekly" xmlUrl="https://sreweekly.com/feed/"/>
+  <outline type="rss" text="High Scalability" xmlUrl="http://highscalability.com/blog/rss.xml"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SOFTWARE ENGINEERING & OPEN SOURCE
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Software_Engineering" title="Software_Engineering">
+  <outline type="rss" text="Hacker News Front Page" xmlUrl="https://hnrss.org/frontpage?points=100"/>
+  <outline type="rss" text="lobste.rs" xmlUrl="https://lobste.rs/rss"/>
+  <outline type="rss" text="Stack Overflow Blog" xmlUrl="https://stackoverflow.blog/feed/"/>
+  <outline type="rss" text="O'Reilly Radar" xmlUrl="https://www.oreilly.com/radar/feed.xml"/>
+  <outline type="rss" text="The Morning Paper" xmlUrl="https://blog.acolyer.org/feed/"/>
+  <outline type="rss" text="Joel on Software" xmlUrl="https://www.joelonsoftware.com/feed/"/>
+  <outline type="rss" text="Paul Graham Essays" xmlUrl="http://www.paulgraham.com/rss.html"/>
+  <outline type="rss" text="Mozilla Hacks" xmlUrl="https://hacks.mozilla.org/feed/"/>
+  <outline type="rss" text="Smashing Magazine" xmlUrl="https://www.smashingmagazine.com/feed/"/>
+  <outline type="rss" text="CSS-Tricks" xmlUrl="https://css-tricks.com/feed/"/>
+  <outline type="rss" text="arXiv cs.SE (Software)" xmlUrl="https://rss.arxiv.org/rss/cs.SE"/>
+  <outline type="rss" text="arXiv cs.PL (Programming)" xmlUrl="https://rss.arxiv.org/rss/cs.PL"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HARDWARE & CONSUMER ELECTRONICS
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Hardware" title="Hardware">
+  <outline type="rss" text="Tom's Hardware" xmlUrl="https://www.tomshardware.com/feeds/all"/>
+  <outline type="rss" text="AnandTech" xmlUrl="https://www.anandtech.com/rss/"/>
+  <outline type="rss" text="Ars Technica Hardware" xmlUrl="https://arstechnica.com/gadgets/feed/"/>
+  <outline type="rss" text="The Verge Hardware" xmlUrl="https://www.theverge.com/rss/index.xml"/>
+  <outline type="rss" text="Engadget" xmlUrl="https://www.engadget.com/rss.xml"/>
+  <outline type="rss" text="Gizmodo" xmlUrl="https://gizmodo.com/rss"/>
+  <outline type="rss" text="Wired Gear" xmlUrl="https://www.wired.com/feed/category/gear/latest/rss"/>
+  <outline type="rss" text="GSMArena" xmlUrl="https://www.gsmarena.com/rss-news-reviews.php3"/>
+  <outline type="rss" text="NotebookCheck" xmlUrl="https://www.notebookcheck.net/News.37.0.html?no_cache=1&amp;type=rss"/>
+  <!-- Asia hardware news -->
+  <outline type="rss" text="IT Home (EN Mirror)" xmlUrl="https://www.ithome.com/rss/"/>
+  <outline type="rss" text="MyDrivers (via RSS)" xmlUrl="https://www.mydrivers.com/rss/rss.aspx"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ROBOTICS & AUTOMATION
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Robotics_Automation" title="Robotics_Automation">
+  <outline type="rss" text="IEEE Spectrum Robotics" xmlUrl="https://spectrum.ieee.org/feeds/topic/robotics.rss"/>
+  <outline type="rss" text="MIT News Robotics" xmlUrl="https://news.mit.edu/topic/robotics/rss"/>
+  <outline type="rss" text="Robotics Business Review" xmlUrl="https://www.roboticsbusinessreview.com/feed/"/>
+  <outline type="rss" text="The Robot Report" xmlUrl="https://www.therobotreport.com/feed/"/>
+  <outline type="rss" text="Automation World" xmlUrl="https://www.automationworld.com/rss.xml"/>
+  <outline type="rss" text="Boston Dynamics Blog" xmlUrl="https://bostondynamics.com/blog/feed/"/>
+  <outline type="rss" text="arXiv cs.RO (Robotics)" xmlUrl="https://rss.arxiv.org/rss/cs.RO"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     QUANTUM COMPUTING
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Quantum_Computing" title="Quantum_Computing">
+  <outline type="rss" text="IBM Quantum Blog" xmlUrl="https://research.ibm.com/blog/rss"/>
+  <outline type="rss" text="Google Quantum AI" xmlUrl="https://quantumai.google/blog/rss"/>
+  <outline type="rss" text="Quantum Computing Report" xmlUrl="https://quantumcomputingreport.com/feed/"/>
+  <outline type="rss" text="The Quantum Insider" xmlUrl="https://thequantuminsider.com/feed/"/>
+  <outline type="rss" text="arXiv quant-ph" xmlUrl="https://rss.arxiv.org/rss/quant-ph"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BIOTECH & MEDTECH
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Biotech_Medtech" title="Biotech_Medtech">
+  <outline type="rss" text="MIT Technology Review Biotech" xmlUrl="https://www.technologyreview.com/feed/"/>
+  <outline type="rss" text="STAT News" xmlUrl="https://www.statnews.com/feed/"/>
+  <outline type="rss" text="BioPharma Dive" xmlUrl="https://www.biopharmadive.com/feeds/news/"/>
+  <outline type="rss" text="Fierce Biotech" xmlUrl="https://www.fiercebiotech.com/rss/news"/>
+  <outline type="rss" text="MedCity News" xmlUrl="https://medcitynews.com/feed/"/>
+  <outline type="rss" text="arXiv cs.NE (Neural/Bio)" xmlUrl="https://rss.arxiv.org/rss/cs.NE"/>
+  <outline type="rss" text="Nature Biotechnology" xmlUrl="https://www.nature.com/nbt.rss"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SPACE & AEROSPACE TECH
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Space_Aerospace" title="Space_Aerospace">
+  <outline type="rss" text="SpaceNews" xmlUrl="https://spacenews.com/feed/"/>
+  <outline type="rss" text="NASA News" xmlUrl="https://www.nasa.gov/news-release/feed/"/>
+  <outline type="rss" text="SpaceX" xmlUrl="https://www.spacex.com/rss/updates"/>
+  <outline type="rss" text="Ars Technica Space" xmlUrl="https://arstechnica.com/science/feed/"/>
+  <outline type="rss" text="IEEE Aerospace" xmlUrl="https://spectrum.ieee.org/feeds/topic/aerospace.rss"/>
+  <outline type="rss" text="NASASpaceFlight" xmlUrl="https://www.nasaspaceflight.com/feed/"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ENERGY & GREEN TECH
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Energy_GreenTech" title="Energy_GreenTech">
+  <outline type="rss" text="CleanTechnica" xmlUrl="https://cleantechnica.com/feed/"/>
+  <outline type="rss" text="Electrek" xmlUrl="https://electrek.co/feed/"/>
+  <outline type="rss" text="PV Magazine" xmlUrl="https://www.pv-magazine.com/feed/"/>
+  <outline type="rss" text="Canary Media" xmlUrl="https://www.canarymedia.com/rss.xml"/>
+  <outline type="rss" text="Energy Monitor" xmlUrl="https://www.energymonitor.ai/feed/"/>
+  <outline type="rss" text="Heatmap News" xmlUrl="https://heatmap.news/rss"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TELECOM & 5G/6G
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Telecom_5G" title="Telecom_5G">
+  <outline type="rss" text="Light Reading" xmlUrl="https://www.lightreading.com/rss_simple.asp"/>
+  <outline type="rss" text="Telecoms.com" xmlUrl="https://telecoms.com/feed/"/>
+  <outline type="rss" text="RCR Wireless News" xmlUrl="https://www.rcrwireless.com/feed"/>
+  <outline type="rss" text="TelecomTV" xmlUrl="https://www.telecomtv.com/rss/"/>
+  <outline type="rss" text="5G Americas" xmlUrl="https://www.5gamericas.org/feed/"/>
+  <!-- Asia telecom -->
+  <outline type="rss" text="CommsUpdate (Asia)" xmlUrl="https://www.commsupdate.com/feed/"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TECH MARKET, VC & STARTUPS
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Tech_Market" title="Tech_Market">
+  <!-- Global -->
+  <outline type="rss" text="TechCrunch" xmlUrl="https://techcrunch.com/feed/"/>
+  <outline type="rss" text="Stratechery" xmlUrl="https://stratechery.com/feed/"/>
+  <outline type="rss" text="Crunchbase News" xmlUrl="https://news.crunchbase.com/feed/"/>
+  <outline type="rss" text="CB Insights" xmlUrl="https://www.cbinsights.com/research/feed/"/>
+  <outline type="rss" text="The Information" xmlUrl="https://www.theinformation.com/feed"/>
+  <outline type="rss" text="Protocol" xmlUrl="https://www.protocol.com/feeds/feed.rss"/>
+  <outline type="rss" text="Wired Business" xmlUrl="https://www.wired.com/feed/category/business/latest/rss"/>
+  <outline type="rss" text="Fortune Tech" xmlUrl="https://fortune.com/section/technology/feed/"/>
+  <outline type="rss" text="Fast Company Tech" xmlUrl="https://www.fastcompany.com/technology/rss"/>
+  <!-- Asia startups -->
+  <outline type="rss" text="KrASIA (Asia tech)" xmlUrl="https://kr.asia/feed"/>
+  <outline type="rss" text="Tech in Asia" xmlUrl="https://www.techinasia.com/feed"/>
+  <outline type="rss" text="e27 Asia" xmlUrl="https://e27.co/index_wp.php/feed"/>
+  <outline type="rss" text="YourStory (India)" xmlUrl="https://yourstory.com/feed"/>
+  <outline type="rss" text="Entrackr (India)" xmlUrl="https://entrackr.com/feed/"/>
+  <outline type="rss" text="StartupBlink" xmlUrl="https://www.startupblink.com/blog/feed"/>
+  <!-- Latin America -->
+  <outline type="rss" text="TechCrunch LatAm" xmlUrl="https://techcrunch.com/tag/latin-america/feed/"/>
+  <outline type="rss" text="Contxto (LatAm)" xmlUrl="https://contxto.com/feed/"/>
+  <!-- Africa -->
+  <outline type="rss" text="Disrupt Africa" xmlUrl="https://disrupt-africa.com/feed/"/>
+  <outline type="rss" text="TechCabal (Africa)" xmlUrl="https://techcabal.com/feed/"/>
+  <outline type="rss" text="Techpoint Africa" xmlUrl="https://techpoint.africa/feed/"/>
+  <!-- Middle East -->
+  <outline type="rss" text="Wamda (MENA)" xmlUrl="https://www.wamda.com/rss"/>
+  <!-- Europe -->
+  <outline type="rss" text="Sifted (EU startups)" xmlUrl="https://sifted.eu/rss"/>
+  <outline type="rss" text="EU-Startups" xmlUrl="https://www.eu-startups.com/feed/"/>
+  <!-- Oceania -->
+  <outline type="rss" text="StartupDaily (AU)" xmlUrl="https://www.startupdaily.net/feed/"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GEOPOLITICS & TECH POLICY
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Geopolitics_TechPolicy" title="Geopolitics_TechPolicy">
+  <outline type="rss" text="CSIS Technology" xmlUrl="https://www.csis.org/rss.xml"/>
+  <outline type="rss" text="Lawfare" xmlUrl="https://www.lawfareblog.com/rss.xml"/>
+  <outline type="rss" text="War on the Rocks" xmlUrl="https://warontherocks.com/feed/"/>
+  <outline type="rss" text="CSET Georgetown" xmlUrl="https://cset.georgetown.edu/feed/"/>
+  <outline type="rss" text="ChinaTalk" xmlUrl="https://chinatalk.substack.com/feed"/>
+  <outline type="rss" text="The Diplomat Tech" xmlUrl="https://thediplomat.com/feed/"/>
+  <outline type="rss" text="Council on Foreign Relations" xmlUrl="https://www.cfr.org/rss/rss_cfr_content.xml"/>
+  <outline type="rss" text="Nikkei Asia" xmlUrl="https://asia.nikkei.com/rss/feed/nar"/>
+  <outline type="rss" text="South China Morning Post Tech" xmlUrl="https://www.scmp.com/rss/5/feed"/>
+  <outline type="rss" text="The Wire China" xmlUrl="https://www.thewirechina.com/feed/"/>
+  <outline type="rss" text="Techonomy" xmlUrl="https://techonomy.com/feed/"/>
+  <outline type="rss" text="Rest of World" xmlUrl="https://restofworld.org/feed/latest/"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESEARCH PAPERS
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Research_Papers" title="Research_Papers">
+  <outline type="rss" text="arXiv cs.AI" xmlUrl="https://rss.arxiv.org/rss/cs.AI"/>
+  <outline type="rss" text="arXiv cs.LG" xmlUrl="https://rss.arxiv.org/rss/cs.LG"/>
+  <outline type="rss" text="arXiv cs.DC (Distributed)" xmlUrl="https://rss.arxiv.org/rss/cs.DC"/>
+  <outline type="rss" text="arXiv cs.CR (Security)" xmlUrl="https://rss.arxiv.org/rss/cs.CR"/>
+  <outline type="rss" text="arXiv cs.AR (Architecture)" xmlUrl="https://rss.arxiv.org/rss/cs.AR"/>
+  <outline type="rss" text="arXiv cs.RO (Robotics)" xmlUrl="https://rss.arxiv.org/rss/cs.RO"/>
+  <outline type="rss" text="arXiv quant-ph" xmlUrl="https://rss.arxiv.org/rss/quant-ph"/>
+  <outline type="rss" text="Nature Technology" xmlUrl="https://www.nature.com/subjects/technology.rss"/>
+  <outline type="rss" text="Science Magazine Tech" xmlUrl="https://www.science.org/action/showFeed?type=axatoc&amp;feed=rss&amp;jc=science"/>
+  <outline type="rss" text="ACM Tech News" xmlUrl="https://technews.acm.org/rss.xml"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AI YOUTUBE CHANNELS
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="AI_YouTube" title="AI_YouTube">
+  <outline type="rss" text="Yannic Kilcher" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCZHmQk67mSJgfCCTn7xBfew"/>
+  <outline type="rss" text="Two Minute Papers" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg"/>
+  <outline type="rss" text="AI Explained" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCtAipjABiQD3qjlEl1T5VpA"/>
+  <outline type="rss" text="Andrej Karpathy" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ"/>
+  <outline type="rss" text="Lex Fridman" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA"/>
+  <outline type="rss" text="3Blue1Brown" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAg"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CYBER YOUTUBE CHANNELS
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Cyber_YouTube" title="Cyber_YouTube">
+  <outline type="rss" text="John Hammond" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCVeW9qkBjo3zosnqUbG7CFw"/>
+  <outline type="rss" text="LiveOverflow" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UClcE-kVhqyiHCcjYwcpfj9w"/>
+  <outline type="rss" text="Hak5" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UC3s0BtrBJpwNDaflRSoiieQ"/>
+  <outline type="rss" text="NetworkChuck" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UC9x0AN7BWHpCDHSm9NiJFJQ"/>
+</outline>
+
+<!-- ═══════════════════════════════════════════════════════════
+     QUANT FINANCE & FINTECH
+     ═══════════════════════════════════════════════════════════ -->
+<outline text="Quant_Finance" title="Quant_Finance">
+  <outline type="rss" text="Quantocracy" xmlUrl="https://quantocracy.com/feed/"/>
+  <outline type="rss" text="QuantStart" xmlUrl="https://www.quantstart.com/articles/rss/"/>
+  <outline type="rss" text="Alpha Architect" xmlUrl="https://alphaarchitect.com/feed/"/>
+  <outline type="rss" text="Finextra" xmlUrl="https://www.finextra.com/rss/headlines.aspx"/>
+  <outline type="rss" text="FintechFutures" xmlUrl="https://www.fintechfutures.com/feed/"/>
+  <outline type="rss" text="The Block (Crypto/Fintech)" xmlUrl="https://www.theblock.co/rss.xml"/>
+</outline>
+
+</body>
+</opml>
+

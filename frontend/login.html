@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AX-NEWS — Sign In</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#0a0a0f; --surface:#111118; --border:#1e1e2e;
+      --accent:#4d9fff; --text:#e8f4ff; --muted:#4a7aa8;
+      --error:#ff4d6d; --success:#00e676;
+    }
+    html, body { height:100%; background:var(--bg); color:var(--text);
+      font-family:-apple-system,'Segoe UI',system-ui,sans-serif; }
+    body { display:flex; align-items:center; justify-content:center;
+      min-height:100vh; padding:20px; }
+    .card { background:var(--surface); border:1px solid var(--border);
+      border-radius:12px; padding:40px 36px; width:100%; max-width:420px;
+      box-shadow:0 8px 32px rgba(0,0,0,.4); }
+    .logo { text-align:center; margin-bottom:6px; }
+    .logo-text { font-size:2rem; font-weight:900; letter-spacing:3px;
+      background:linear-gradient(135deg,var(--accent),#00d4ff);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; }
+    .logo-sub { font-size:.72rem; color:#8ab4d4; letter-spacing:1.5px;
+      text-transform:uppercase; margin-top:4px; }
+    .divider { height:1px; background:var(--border); margin:24px 0; }
+    .tabs { display:flex; gap:0; margin-bottom:24px;
+      border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .tab { flex:1; padding:10px; text-align:center; cursor:pointer;
+      font-size:.82rem; font-weight:600; color:#8ab4d4;
+      background:transparent; border:none; transition:all .2s; }
+    .tab.active { background:var(--accent); color:#fff; }
+    .field { margin-bottom:16px; }
+    label { display:block; font-size:.75rem; font-weight:600;
+      letter-spacing:1px; text-transform:uppercase;
+      color:#8ab4d4; margin-bottom:6px; }
+    input[type=text], input[type=password], input[type=email] {
+      width:100%; padding:11px 14px;
+      background:var(--bg); border:1px solid var(--border);
+      border-radius:8px; color:var(--text); font-size:.9rem; outline:none;
+      transition:border-color .2s; }
+    input:focus { border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(77,159,255,.12); }
+    .btn { width:100%; padding:13px; border:none; border-radius:8px;
+      font-size:.88rem; font-weight:700; letter-spacing:.5px;
+      text-transform:uppercase; cursor:pointer; transition:opacity .2s; }
+    .btn-primary { background:linear-gradient(135deg,#0047ff,var(--accent));
+      color:#fff; margin-top:4px; }
+    .btn-primary:hover { opacity:.9; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-google {
+      background:#fff; color:#333; border:1px solid #ddd;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      margin-bottom:16px; }
+    .btn-google:hover { background:#f5f5f5; }
+    .btn-google svg { width:18px; height:18px; flex-shrink:0; }
+    .or-divider { display:flex; align-items:center; gap:12px;
+      margin:16px 0; color:#8ab4d4; font-size:.75rem; }
+    .or-divider::before, .or-divider::after {
+      content:''; flex:1; height:1px; background:var(--border); }
+    .msg { display:none; border-radius:6px; padding:10px 14px;
+      font-size:.82rem; margin-bottom:14px; text-align:center; }
+    .msg.error { display:block; background:rgba(255,77,109,.12);
+      border:1px solid rgba(255,77,109,.3); color:var(--error); }
+    .msg.success { display:block; background:rgba(0,230,118,.1);
+      border:1px solid rgba(0,230,118,.3); color:var(--success); }
+    .panel { display:none; }
+    .panel.active { display:block; }
+  </style>
+<meta name="robots" content="noindex, follow">
+<meta name="description" content="Sign in to AX-NEWS — Global Tech Intelligence Feed. Access real-time AI, semiconductor, cybersecurity and geopolitics news from 200+ sources.">
+</head>
+<body>
+<main role="main" aria-label="Sign in to AX-NEWS">
+<div class="card">
+  <div class="logo" style="text-align:center;margin-bottom:6px">
+    <img src="/logo.png" alt="AXIOM" style="height:80px;width:auto;object-fit:contain;margin-bottom:8px">
+    <div class="logo-sub" style="font-size:.72rem;color:#8ab4d4;letter-spacing:1.5px;text-transform:uppercase">Global Tech Intelligence</div>
+  </div>
+  <div class="divider"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Sign In</button>
+    <button class="tab" onclick="switchTab('register')">Register</button>
+  </div>
+
+  <div id="msgBox" class="msg"></div>
+
+  <!-- LOGIN PANEL -->
+  <div id="loginPanel" class="panel active">
+    <button class="btn btn-google" onclick="googleLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+    <div class="or-divider">or</div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter username" autofocus>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password">
+    </div>
+    <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Sign In</button>
+  </div>
+
+  <!-- REGISTER PANEL -->
+  <div id="registerPanel" class="panel">
+    <button class="btn btn-google" onclick="googleLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Sign up with Google
+    </button>
+    <div class="or-divider">or</div>
+    <div class="field">
+      <label>Username *</label>
+      <input type="text" id="regUser" placeholder="Choose a username">
+    </div>
+    <div class="field">
+      <label>Email <span style="color:var(--muted);font-size:.7rem">(optional — for verification)</span></label>
+      <input type="email" id="regEmail" placeholder="your@email.com">
+    </div>
+    <div class="field">
+      <label>Password *</label>
+      <input type="password" id="regPass" placeholder="Min. 8 characters">
+    </div>
+    <button class="btn btn-primary" id="regBtn" onclick="doRegister()">Create Account</button>
+  </div>
+</div>
+</main>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) =>
+    t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginPanel').classList.toggle('active', tab==='login');
+  document.getElementById('registerPanel').classList.toggle('active', tab==='register');
+  showMsg('', '');
+}
+
+function showMsg(text, type) {
+  const box = document.getElementById('msgBox');
+  box.className = 'msg' + (type ? ' ' + type : '');
+  box.textContent = text;
+  if (!type) box.style.display = 'none';
+}
+
+function googleLogin() {
+  window.location.href = '/api/auth/google';
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  if (!username || !password) {
+    showMsg('Please enter username and password.', 'error'); return;
+  }
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  showMsg('', '');
+  try {
+    const res = await fetch('/api/auth/login', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    if (res.ok) { window.location.href = '/'; }
+    else {
+      const d = await res.json().catch(()=>({}));
+      showMsg(d.detail || 'Invalid credentials.', 'error');
+      btn.disabled = false; btn.textContent = 'Sign In';
+    }
+  } catch(e) {
+    showMsg('Connection error. Please try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('regUser').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+  const btn = document.getElementById('regBtn');
+  if (!username || !password) {
+    showMsg('Username and password are required.', 'error'); return;
+  }
+  if (password.length < 8) {
+    showMsg('Password must be at least 8 characters.', 'error'); return;
+  }
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  showMsg('', '');
+  try {
+    const res = await fetch('/api/auth/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, email, password})
+    });
+    const d = await res.json().catch(()=>({}));
+    if (res.ok) {
+      showMsg(d.message || 'Account created! You can now sign in.', 'success');
+      setTimeout(() => switchTab('login'), 2000);
+    } else {
+      showMsg(d.detail || 'Registration failed.', 'error');
+    }
+    btn.disabled = false; btn.textContent = 'Create Account';
+  } catch(e) {
+    showMsg('Connection error. Please try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Create Account';
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const loginActive = document.getElementById('loginPanel').classList.contains('active');
+  if (loginActive) doLogin(); else doRegister();
+});
+
+if (new URLSearchParams(location.search).get('verified')) {
+  showMsg('Email verified! You can now sign in.', 'success');
+}
+if (new URLSearchParams(location.search).get('pending')) {
+  showMsg('Your account is pending admin approval. You will be notified once approved.', 'success');
+}
+</script>
+</body>
+</html>

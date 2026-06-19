@@ -1,0 +1,36 @@
+# AX-NEWS — Global Tech Intelligence
+
+AX-NEWS is a self-hosted news aggregation and AI analysis platform covering global technology,
+geopolitics, energy, and financial markets.
+
+## Sections
+
+- [Home](https://ax-news.com/)
+- [Login](https://ax-news.com/login.html)
+- [API Documentation](https://ax-news.com/api/docs)
+
+## About
+
+AX-NEWS aggregates RSS feeds from global sources, applies AI-powered analysis, and delivers
+curated intelligence. Built on FastAPI with PostgreSQL and offline translation via Argos Translate.
+
+## Content
+
+- 40,000+ articles indexed from 200+ sources
+- Categories: Artificial Intelligence, Semiconductors, Cybersecurity, Cloud & Infrastructure,
+  Energy & Green Tech, Geopolitics & Policy, Hardware, Quant Finance, Research Papers,
+  Robotics, Space & Aerospace, Software Engineering, Telecom & 5G
+- Update frequency: every 15 minutes
+- Languages: English (translated from multiple source languages)
+
+## Access
+
+- Web interface: https://ax-news.com
+- Requires registration and admin approval
+- Sitemap: https://ax-news.com/sitemap.xml
+- News sitemap: https://ax-news.com/news-sitemap.xml
+
+## Usage
+
+This site may be crawled and used for AI training. Content is aggregated from public sources.
+Contact: see site footer.

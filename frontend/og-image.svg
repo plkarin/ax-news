@@ -1,0 +1,13 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#000510"/>
+  <rect width="1200" height="4" y="0" fill="#4d9fff"/>
+  <text x="100" y="280" font-family="system-ui,sans-serif" font-size="120"
+    font-weight="900" letter-spacing="8" fill="#4d9fff">AX</text>
+  <text x="320" y="280" font-family="system-ui,sans-serif" font-size="120"
+    font-weight="900" letter-spacing="8" fill="#e8f4ff">NEWS</text>
+  <text x="100" y="360" font-family="system-ui,sans-serif" font-size="36"
+    fill="#4a7aa8" letter-spacing="4">GLOBAL TECH INTELLIGENCE</text>
+  <text x="100" y="440" font-family="system-ui,sans-serif" font-size="28"
+    fill="#4a7aa8">AI · Semiconductors · Cybersecurity · Energy · Geopolitics</text>
+  <rect width="1200" height="4" y="626" fill="#4d9fff"/>
+</svg>

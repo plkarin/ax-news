@@ -1,0 +1,122 @@
+limit_req_zone $binary_remote_addr zone=ax_login:10m rate=5r/m;
+limit_req_zone $binary_remote_addr zone=ax_api:10m rate=60r/m;
+
+server {
+    listen 80 default_server;
+    server_name _;
+
+    root /opt/ax-news/frontend;
+    index index.html;
+
+    # Security headers (CSP is injected per-request by FastAPI with nonce)
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" always;
+
+    # Error pages — served as static files (internal only)
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /404.html { internal; root /opt/ax-news/frontend; }
+    location = /50x.html { internal; root /opt/ax-news/frontend; }
+
+    location /api/auth/login {
+        limit_req zone=ax_login burst=3 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" always;
+    }
+
+    location /api/ {
+        limit_req zone=ax_api burst=30 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 120s;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" always;
+    }
+
+    # HTML pages — proxy to FastAPI for per-request CSP nonce injection
+    location ~* \.html$ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 30s;
+    }
+
+    location ~* \.(css|js)$ {
+        expires 1h;
+        add_header Cache-Control "public, must-revalidate";
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # robots.txt — serve static file
+    location = /robots.txt {
+        root /opt/ax-news/frontend;
+        add_header Content-Type "text/plain; charset=utf-8";
+        expires 1d;
+    }
+
+    # llms.txt — serve static file for AI agent accessibility
+    location = /llms.txt {
+        root /opt/ax-news/frontend;
+        add_header Content-Type "text/plain; charset=utf-8";
+        expires 7d;
+    }
+
+    # sitemap.xml — proxy to FastAPI backend
+    location = /sitemap.xml {
+        proxy_pass http://127.0.0.1:8000/sitemap.xml;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Content-Type "application/xml; charset=utf-8";
+    }
+
+    # sitemap.rss — return 404 (old sitemap no longer valid)
+    location = /sitemap.rss {
+        return 404;
+    }
+
+    # news-sitemap.xml — proxy to FastAPI backend
+    location = /news-sitemap.xml {
+        proxy_pass http://127.0.0.1:8000/news-sitemap.xml;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        add_header Content-Type "application/xml; charset=utf-8";
+    }
+
+    # Cache static assets (WebP included)
+    location ~* \.(css|js|svg|png|jpg|jpeg|gif|ico|woff|woff2|webp)$ {
+        root /opt/ax-news/frontend;
+        expires 7d;
+        add_header Cache-Control "public, immutable";
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Root and SPA fallback — proxy to FastAPI
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 30s;
+    }
+
+    access_log /var/log/nginx/ax-news.access.log;
+    error_log  /var/log/nginx/ax-news.error.log;
+}

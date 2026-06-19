@@ -1,0 +1,13 @@
+[Unit]
+Description=AX-NEWS Translation Worker (standalone)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=cbrain
+Environment=HOME=/opt/ax-news/.argos-home
+ExecStart=/opt/ax-news/backend/venv/bin/python3 /opt/ax-news/translate-standalone.py
+StandardOutput=append:/var/log/ax-news/translate.log
+StandardError=append:/var/log/ax-news/translate.log
+MemoryMax=1G
+TimeoutStartSec=300

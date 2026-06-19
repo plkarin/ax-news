@@ -1,0 +1,7 @@
+[Unit]
+Description=AX-NEWS nightly images 2AM
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+[Install]
+WantedBy=timers.target

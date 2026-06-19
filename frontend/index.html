@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AX-NEWS — Global Tech Intelligence Feed</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="description" content="AX-NEWS — Global tech intelligence feed. Real-time news on AI, semiconductors, cybersecurity, energy and geopolitics from 200+ sources worldwide.">
+  <meta name="keywords" content="tech news, AI news, semiconductor news, cybersecurity, artificial intelligence, machine learning, chip industry, tech intelligence">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="author" content="AX-NEWS">
+  <meta name="language" content="English">
+  <meta property="og:title" content="AX-NEWS — Global Tech Intelligence">
+  <meta property="og:description" content="Real-time tech news from 200+ sources. AI, semiconductors, cybersecurity and more.">
+  <meta property="og:url" content="https://ax-news.com">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://ax-news.com/og-image.png">
+  <meta property="og:site_name" content="AX-NEWS">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AX-NEWS — Global Tech Intelligence">
+  <meta name="twitter:description" content="Real-time tech news from 200+ sources.">
+  <meta name="twitter:image" content="https://ax-news.com/og-image.png">
+  <link rel="canonical" href="https://ax-news.com/">
+  <meta name="theme-color" content="#000510">
+  <link rel="stylesheet" href="style.css">
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AX-NEWS",
+    "description": "Global tech intelligence feed — AI, semiconductors, cybersecurity, energy and more from 200+ sources worldwide.",
+    "url": "https://ax-news.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://ax-news.com/?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AX-NEWS",
+      "url": "https://ax-news.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://ax-news.com/favicon.svg"
+      }
+    }
+  }
+  </script>
+</head>
+<body>
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">AX-NEWS — Global Tech Intelligence Feed: AI, Semiconductors, Cybersecurity News</h1>
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="logo"><img src="/logo.png" alt="AXIOM" style="height:36px;width:auto;object-fit:contain;vertical-align:middle"></div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="feed">Feed</button>
+        <button class="nav-btn" data-view="knowledge">Knowledge</button>
+      </nav>
+      <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
+    </div>
+    <div class="header-right">
+      <div class="theme-switcher">
+        <div class="theme-dot active" data-theme="dark" title="Dark"></div>
+        <div class="theme-dot" data-theme="light" title="Light"></div>
+        <div class="theme-dot" data-theme="green" title="Green"></div>
+        <div class="theme-dot" data-theme="blue" title="Blue"></div>
+        <div class="theme-dot" data-theme="purple" title="Purple"></div>
+      </div>
+      <span class="user-name" id="headerUser"></span>
+      <a href="/profile.html" class="header-link">Profile</a>
+      <a href="/admin.html" class="header-link admin" id="adminLink" style="display:none">Admin</a>
+      <button class="logout-btn" id="logoutBtn">Sign out</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Search articles…" autocomplete="off" class="search-input">
+      </div>
+      <div id="categoryTree"></div>
+    </aside>
+
+    <main class="main" id="mainContent">
+      <!-- Feed view -->
+      <div id="feedView">
+        <div id="articleGrid" class="article-grid"></div>
+        <div id="scrollSentinel" style="height:60px;display:flex;align-items:center;
+          justify-content:center;color:var(--muted);font-size:.8rem;padding:20px 0"></div>
+      </div>
+      <!-- Entity detail view -->
+      <div id="entityView" style="display:none"></div>
+      <!-- Knowledge view -->
+      <div id="knowledgeView" style="display:none">
+        <div class="knowledge-header">
+          <h2 class="section-title">Knowledge Base</h2>
+          <span id="knowledgeCount" class="muted"></span>
+        </div>
+        <div id="knowledgeList"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Article modal -->
+<div id="modal" style="display:none" class="modal">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-box">
+    <div class="modal-article">
+      <button class="modal-close" id="modalClose">✕ Close</button>
+      <div id="modalContent"></div>
+    </div>
+    <div class="modal-chat">
+      <div class="chat-header">⬡ AI Assistant</div>
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="chat-input-area">
+        <textarea id="chatInput" placeholder="Ask about this article…" disabled></textarea>
+        <button id="chatSend" disabled>Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

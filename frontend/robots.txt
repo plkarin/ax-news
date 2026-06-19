@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /profile.html
+Disallow: /tv.html
+
+Sitemap: https://ax-news.com/sitemap.xml
+Sitemap: https://ax-news.com/news-sitemap.xml
