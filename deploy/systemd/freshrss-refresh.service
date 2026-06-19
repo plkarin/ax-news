@@ -1,0 +1,12 @@
+[Unit]
+Description=FreshRSS feed actualization
+After=freshrss.service
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/php8.3 /var/www/freshrss/cli/actualize-user.php --user Pierre
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=freshrss-refresh

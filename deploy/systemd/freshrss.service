@@ -1,0 +1,19 @@
+[Unit]
+Description=FreshRSS PHP built-in server (local RSS aggregator)
+After=network.target
+Documentation=https://github.com/FreshRSS/FreshRSS
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/freshrss/p
+ExecStart=/usr/bin/php8.3 -S 127.0.0.1:8082 -t /var/www/freshrss/p
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=freshrss
+
+[Install]
+WantedBy=multi-user.target

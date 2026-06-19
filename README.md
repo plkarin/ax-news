@@ -6,7 +6,7 @@ Live at [ax-news.com](https://ax-news.com)
 
 ## Features
 
-- Real-time news aggregation via FreshRSS backend
+- Real-time news aggregation via **self-hosted FreshRSS** (co-located, 208 feeds)
 - Automatic translation (Argos Translate, fully offline, no API costs)
 - AI-powered sentiment scoring and entity extraction (static Bayesian model, zero LLM cost)
 - Admin-approved user registration + Google OAuth SSO
@@ -22,6 +22,7 @@ Live at [ax-news.com](https://ax-news.com)
 - **Frontend:** Vanilla JS, no framework, no build step
 - **Translation:** Argos Translate (offline, 14 languages)
 - **Reverse proxy:** Nginx + HAProxy (TLS termination)
+- **RSS aggregator:** FreshRSS (local, PHP 8.3 built-in server on 127.0.0.1:8082)
 - **Process management:** systemd services + timers
 
 ## Architecture
@@ -42,8 +43,8 @@ Internet → Cloudflare → HAProxy (TLS) → Nginx → FastAPI (uvicorn, 2 work
 - Ubuntu 24.04 LTS
 - PostgreSQL 16
 - Python 3.12
+- PHP 8.3 + extensions (installed by `deploy/install-freshrss.sh`)
 - Nginx
-- FreshRSS instance (for article ingestion)
 - Claude Code CLI authenticated (for the AI chat feature — no API key needed for Pro subscribers)
 
 ### Installation
@@ -68,6 +69,9 @@ sudo systemctl enable --now ax-news-backend
 sudo systemctl enable --now ax-news-sync.timer
 sudo systemctl enable --now ax-news-translate.timer
 sudo systemctl enable --now ax-news-dedup.timer
+
+# Install and start local FreshRSS (208 feeds, auto-refresh every 15 min)
+sudo FRESHRSS_USER=Pierre FRESHRSS_PASS=yourpassword deploy/install-freshrss.sh
 ```
 
 ## Environment variables

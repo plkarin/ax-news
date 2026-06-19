@@ -1,0 +1,12 @@
+[Unit]
+Description=FreshRSS feed refresh every 15 minutes
+Requires=freshrss.service
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=15min
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

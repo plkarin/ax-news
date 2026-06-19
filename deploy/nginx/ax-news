@@ -108,6 +108,23 @@ server {
         add_header X-Content-Type-Options "nosniff" always;
     }
 
+    # FreshRSS — PHP scripts (regex wins over plain /news prefix below)
+    location ~ ^/news(?<freshrss_script>/[^?]*\.php)(?<freshrss_pathinfo>/[^?]*)?$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /var/www/freshrss/p$freshrss_script;
+        fastcgi_param PATH_INFO $freshrss_pathinfo;
+        fastcgi_param REQUEST_URI $request_uri;
+        fastcgi_read_timeout 30;
+    }
+    # FreshRSS — static assets (no ^~ so regex above can match PHP files)
+    location /news {
+        alias /var/www/freshrss/p;
+        index index.php;
+        try_files $uri $uri/ =404;
+    }
+
     # Root and SPA fallback — proxy to FastAPI
     location / {
         proxy_pass http://127.0.0.1:8000;
