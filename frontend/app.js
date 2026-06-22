@@ -182,13 +182,26 @@ function selectCategory(cat) {
   loadArticles(true);
 }
 
+// ── Flag images ───────────────────────────────────────────────────
+function flagImg(countryCode, size = 20) {
+  if (!countryCode || countryCode === 'GLOBAL') {
+    return `<span class="flag-global" title="Global">🌐</span>`;
+  }
+  const code = countryCode.toLowerCase();
+  return `<img src="https://flagcdn.com/${size}x${Math.round(size*0.75)}/${code}.png"
+               srcset="https://flagcdn.com/${size*2}x${Math.round(size*1.5)}/${code}.png 2x"
+               alt="${esc(countryCode)}" title="${esc(countryCode)}"
+               class="flag-icon" loading="lazy"
+               onerror="this.style.display='none'">`;
+}
+
 // ── Badges ────────────────────────────────────────────────────────
 function buildBadges(article) {
   const parts = [];
 
   if (article.country_code) {
-    const flag = COUNTRY_FLAGS[article.country_code] || '🌐';
-    parts.push(`<span class="badge badge-country">${flag} ${esc(article.country_code)}</span>`);
+    const code = article.country_code;
+    parts.push(`<span class="badge badge-country">${flagImg(code, 16)} ${esc(code !== 'GLOBAL' ? code : '')}</span>`);
   }
 
   if (article.entities && article.entities.length) {
@@ -416,8 +429,8 @@ async function openArticle(articleId) {
   const contentHtml = formatContent(article.content_raw);
   const entities = typeof article.entities === 'string'
     ? JSON.parse(article.entities || '[]') : (article.entities || []);
-  const flag = article.country_code && article.country_code !== 'GLOBAL'
-    ? (COUNTRY_FLAGS[article.country_code] || '🌐') + ' ' + article.country_code : '';
+  const flag = article.country_code
+    ? `${flagImg(article.country_code, 16)} ${esc(article.country_code !== 'GLOBAL' ? article.country_code : '')}` : '';
 
   document.getElementById('articleModal')?.remove();
 
@@ -604,6 +617,181 @@ async function deleteKnowledge(id, btn) {
   catch(e) { toast('Failed to delete',true); }
 }
 
+// ── Architecture ──────────────────────────────────────────────────
+async function loadArchitecture() {
+  const content = document.getElementById('architectureContent');
+  const statsLine = document.getElementById('archStatsLine');
+  if (!content) return;
+  content.innerHTML = '<div class="muted" style="padding:20px">Loading...</div>';
+  try {
+    const data = await api('/architecture');
+    const { docs, sources, stats, tech_stack } = data;
+
+    if (statsLine) {
+      statsLine.textContent = `📊 ${stats.total_articles.toLocaleString()} articles · 🌐 ${stats.total_sources} sources · ✅ ${stats.translated.toLocaleString()} translated`;
+    }
+
+    // Section icons
+    const sectionIcons = {
+      overview: '🏗️', network: '🌐', haproxy: '🔒',
+      ratelimit: '🚦', translation: '🌍', security: '🛡️'
+    };
+
+    const docsHtml = docs.map(d => `
+      <div class="arch-card">
+        <div class="arch-card-label">${sectionIcons[d.section] || '📄'} ${esc(d.section)}</div>
+        <div class="arch-card-title">${esc(d.title)}</div>
+        <div class="arch-card-body">${esc(d.content)}</div>
+      </div>
+    `).join('');
+
+    // Tech stack badges (GitHub shields.io style, rendered locally)
+    const stackByCategory = {};
+    (tech_stack || []).forEach(t => {
+      if (!stackByCategory[t.category]) stackByCategory[t.category] = [];
+      stackByCategory[t.category].push(t);
+    });
+    const badgesHtml = Object.entries(stackByCategory).map(([cat, items]) => `
+      <div style="margin-bottom:14px">
+        <div class="arch-badge-cat">${esc(cat)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${items.map(t => `
+            <img src="https://img.shields.io/badge/${encodeURIComponent(t.name)}-${t.badge_color}?style=for-the-badge${t.badge_logo ? '&logo='+t.badge_logo+'&logoColor=white' : ''}"
+                 alt="${esc(t.name)}" style="height:24px;border-radius:4px">
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    // Source stats table
+    const sourcesRows = sources.map(s => {
+      const pct = s.article_count > 0 ? Math.round((s.translated_count / s.article_count) * 100) : 0;
+      const statusIcon = pct === 100 ? '✅' : pct >= 50 ? '🟡' : '🔴';
+      return `
+        <tr>
+          <td style="padding:8px 12px;font-size:.82rem">${esc(s.feed_source)}</td>
+          <td style="padding:8px 12px;font-size:.82rem;text-align:right">${s.article_count.toLocaleString()}</td>
+          <td style="padding:8px 12px;font-size:.82rem;text-align:right">${statusIcon} ${pct}%</td>
+          <td style="padding:8px 12px;font-size:.78rem;color:var(--muted)">${s.last_ingested ? timeAgo(s.last_ingested) : '—'}</td>
+        </tr>`;
+    }).join('');
+
+    content.innerHTML = `
+      <div class="arch-vibe-banner">
+        🤖 <strong>Built entirely with Claude Code</strong> — running directly on ax-lab05, this entire site (backend, frontend, infra config, and every bug fix) was built through conversational "vibe coding". No manual code was hand-typed.
+      </div>
+
+      <div class="arch-grid">${docsHtml}</div>
+
+      <div class="arch-section-title">📐 Infrastructure Diagram</div>
+      <div class="arch-diagram-wrap">${buildArchDiagram()}</div>
+
+      <div class="arch-section-title">🧰 Tech Stack</div>
+      <div class="arch-card" style="padding:20px 24px">${badgesHtml}</div>
+
+      <div class="arch-section-title">📡 Live Source Statistics</div>
+      <div class="arch-card" style="padding:20px 24px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">
+              <th style="padding:8px 12px;text-align:left">Source</th>
+              <th style="padding:8px 12px;text-align:right">Articles</th>
+              <th style="padding:8px 12px;text-align:right">Translated</th>
+              <th style="padding:8px 12px;text-align:left">Last Update</th>
+            </tr>
+          </thead>
+          <tbody>${sourcesRows}</tbody>
+        </table>
+      </div>
+    `;
+  } catch(e) {
+    content.innerHTML = '<div class="muted" style="padding:20px;color:var(--error,#ff4d6d)">⚠️ Failed to load architecture data.</div>';
+  }
+}
+
+function buildArchDiagram() {
+  return `
+<svg viewBox="0 0 1000 480" style="width:100%;height:auto;max-width:1000px" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4d9fff"/>
+    </marker>
+  </defs>
+  <style>
+    .node-box { fill:#111118; stroke:#1e1e2e; stroke-width:1.5; rx:10; }
+    .node-label { fill:#e8f4ff; font-family:system-ui,sans-serif; font-size:13px; font-weight:700; text-anchor:middle; }
+    .node-sub { fill:#4a7aa8; font-family:system-ui,sans-serif; font-size:10px; text-anchor:middle; }
+    .flow-line { stroke:#4d9fff; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    .zone-label { fill:#4a7aa8; font-family:system-ui,sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  </style>
+
+  <!-- Internet -->
+  <rect x="40" y="30" width="140" height="60" class="node-box"/>
+  <text x="110" y="55" class="node-label">🌐 Internet</text>
+  <text x="110" y="72" class="node-sub">Users worldwide</text>
+
+  <!-- Cloudflare -->
+  <rect x="240" y="30" width="160" height="60" class="node-box" stroke="#f38020"/>
+  <text x="320" y="55" class="node-label">☁️ Cloudflare</text>
+  <text x="320" y="72" class="node-sub">DNS + Proxy (orange)</text>
+
+  <!-- HAProxy -->
+  <rect x="460" y="30" width="180" height="70" class="node-box" stroke="#106DA9"/>
+  <text x="550" y="52" class="node-label">🔒 HAProxy</text>
+  <text x="550" y="68" class="node-sub">TLS A+ · 88.190.8.43</text>
+  <text x="550" y="82" class="node-sub">Rate limit 500r/10s</text>
+
+  <!-- Nginx -->
+  <rect x="700" y="30" width="160" height="70" class="node-box" stroke="#009639"/>
+  <text x="780" y="52" class="node-label">🔁 Nginx</text>
+  <text x="780" y="68" class="node-sub">ax-lab05:80</text>
+  <text x="780" y="82" class="node-sub">CSP · Rate limit</text>
+
+  <!-- FastAPI -->
+  <rect x="700" y="160" width="160" height="70" class="node-box" stroke="#009688"/>
+  <text x="780" y="182" class="node-label">⚡ FastAPI</text>
+  <text x="780" y="198" class="node-sub">uvicorn :8000</text>
+  <text x="780" y="212" class="node-sub">2 workers</text>
+
+  <!-- PostgreSQL -->
+  <rect x="700" y="290" width="160" height="60" class="node-box" stroke="#4169E1"/>
+  <text x="780" y="315" class="node-label">🗄️ PostgreSQL</text>
+  <text x="780" y="332" class="node-sub">61K+ articles</text>
+
+  <!-- Argos worker -->
+  <rect x="460" y="290" width="180" height="70" class="node-box" stroke="#00897B"/>
+  <text x="550" y="312" class="node-label">🌍 Argos Translate</text>
+  <text x="550" y="328" class="node-sub">Standalone process</text>
+  <text x="550" y="342" class="node-sub">MemoryMax=1G</text>
+
+  <!-- FreshRSS -->
+  <rect x="240" y="290" width="160" height="70" class="node-box" stroke="#ff9800"/>
+  <text x="320" y="312" class="node-label">📰 FreshRSS</text>
+  <text x="320" y="328" class="node-sub">ax-lab04</text>
+  <text x="320" y="342" class="node-sub">200+ RSS sources</text>
+
+  <!-- Claude Code -->
+  <rect x="40" y="290" width="160" height="70" class="node-box" stroke="#D97757"/>
+  <text x="120" y="312" class="node-label">🤖 Claude Code</text>
+  <text x="120" y="328" class="node-sub">cbrain subprocess</text>
+  <text x="120" y="342" class="node-sub">Admin chat + vibe coding</text>
+
+  <!-- Flow lines -->
+  <path d="M180,60 L240,60" class="flow-line"/>
+  <path d="M400,60 L460,60" class="flow-line"/>
+  <path d="M640,65 L700,65" class="flow-line"/>
+  <path d="M780,100 L780,160" class="flow-line"/>
+  <path d="M780,230 L780,290" class="flow-line"/>
+  <path d="M700,195 L640,310" class="flow-line"/>
+  <path d="M460,325 L400,325" class="flow-line"/>
+  <path d="M240,325 L200,325" class="flow-line"/>
+  <path d="M780,260 Q900,260 900,195 Q900,160 860,180" class="flow-line" stroke-dasharray="4,3"/>
+
+  <text x="500" y="410" class="zone-label">🏠 Homelab — ax-lab04 / ax-lab05 / ax-haproxy (192.168.1.0/24)</text>
+  <rect x="40" y="270" width="820" height="100" fill="none" stroke="#1e1e2e" stroke-width="1" stroke-dasharray="6,4" rx="8"/>
+</svg>`;
+}
+
 // ── Sync ──────────────────────────────────────────────────────────
 async function syncFeed() {
   const btn=document.getElementById('syncBtn');
@@ -617,14 +805,161 @@ async function syncFeed() {
   btn.disabled=false; btn.textContent='⟳ Sync';
 }
 
+// ── Metrics ───────────────────────────────────────────────────────
+let metricsPollTimer = null;
+
+function startMetricsPolling() {
+  stopMetricsPolling();
+  metricsPollTimer = setInterval(loadMetrics, 45000);
+}
+function stopMetricsPolling() {
+  if (metricsPollTimer) { clearInterval(metricsPollTimer); metricsPollTimer = null; }
+}
+
+function fmtBytes(gb) {
+  return gb >= 1 ? `${gb.toFixed(1)} GB` : `${(gb*1024).toFixed(0)} MB`;
+}
+function fmtUptime(hours) {
+  if (hours < 24) return `${hours.toFixed(1)}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${(hours % 24).toFixed(0)}h`;
+}
+function gaugeColor(pct) {
+  if (pct < 50) return '#00e676';
+  if (pct < 80) return '#ffb800';
+  return '#ff4d6d';
+}
+
+function buildGauge(label, pct, sublabel) {
+  const color = gaugeColor(pct);
+  const circumference = 2 * Math.PI * 42;
+  const offset = circumference - (pct / 100) * circumference;
+  return `
+    <div class="metric-gauge">
+      <svg viewBox="0 0 100 100" width="110" height="110">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#1e1e2e" stroke-width="8"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="${color}" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+          transform="rotate(-90 50 50)" style="transition:stroke-dashoffset .5s ease"/>
+        <text x="50" y="48" text-anchor="middle" font-size="20" font-weight="800" fill="#e8f4ff">${pct.toFixed(0)}%</text>
+        <text x="50" y="64" text-anchor="middle" font-size="8" fill="#4a7aa8">${esc(sublabel||'')}</text>
+      </svg>
+      <div class="metric-gauge-label">${esc(label)}</div>
+    </div>`;
+}
+
+function buildSparkline(data, color) {
+  if (!data || data.length < 2) return '<div class="muted" style="font-size:.75rem">Collecting data...</div>';
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const w = 280, h = 50;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / range) * h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `
+    <svg viewBox="0 0 ${w} ${h}" width="100%" height="50" preserveAspectRatio="none">
+      <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2"/>
+    </svg>`;
+}
+
+async function loadMetrics() {
+  const content = document.getElementById('metricsContent');
+  const refreshLine = document.getElementById('metricsRefreshLine');
+  if (!content) return;
+  try {
+    const m = await api('/metrics');
+
+    if (refreshLine) refreshLine.textContent = `🔄 Updated ${new Date().toLocaleTimeString()} · auto-refresh 45s`;
+
+    content.innerHTML = `
+      <div class="metrics-gauges">
+        ${buildGauge('CPU', m.cpu.percent, `${m.cpu.count} cores`)}
+        ${buildGauge('Memory', m.memory.percent, fmtBytes(m.memory.used_gb))}
+        ${buildGauge('Disk', m.disk.percent, fmtBytes(m.disk.used_gb))}
+      </div>
+
+      <div class="metrics-grid">
+        <div class="arch-card">
+          <div class="arch-card-label">🖥️ CPU</div>
+          <div class="metric-row"><span>Current</span><strong>${m.cpu.percent.toFixed(1)}%</strong></div>
+          <div class="metric-row"><span>Min / Max (history)</span><strong>${m.cpu.min_history}% / ${m.cpu.max_history}%</strong></div>
+          <div class="metric-row"><span>Load avg (1/5/15min)</span><strong>${m.cpu.load_avg_1} / ${m.cpu.load_avg_5} / ${m.cpu.load_avg_15}</strong></div>
+          <div class="metric-row"><span>Cores</span><strong>${m.cpu.count}</strong></div>
+          ${buildSparkline(m.history.cpu, '#4d9fff')}
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-label">🧠 Memory</div>
+          <div class="metric-row"><span>Used / Total</span><strong>${fmtBytes(m.memory.used_gb)} / ${fmtBytes(m.memory.total_gb)}</strong></div>
+          <div class="metric-row"><span>Available</span><strong>${fmtBytes(m.memory.available_gb)}</strong></div>
+          <div class="metric-row"><span>Min / Max (history)</span><strong>${m.memory.min_history}% / ${m.memory.max_history}%</strong></div>
+          <div class="metric-row"><span>Swap used</span><strong>${fmtBytes(m.memory.swap_used_gb)} / ${fmtBytes(m.memory.swap_total_gb)}</strong></div>
+          ${buildSparkline(m.history.mem, '#a855f7')}
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-label">💾 Disk</div>
+          <div class="metric-row"><span>Used / Total</span><strong>${fmtBytes(m.disk.used_gb)} / ${fmtBytes(m.disk.total_gb)}</strong></div>
+          <div class="metric-row"><span>Free</span><strong>${fmtBytes(m.disk.free_gb)}</strong></div>
+          <div class="metric-row"><span>Read / Write (cumulative)</span><strong>${m.disk.read_mb.toFixed(0)} MB / ${m.disk.write_mb.toFixed(0)} MB</strong></div>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-label">📡 Network</div>
+          <div class="metric-row"><span>Send rate</span><strong>${m.network.sent_rate_kb.toFixed(1)} KB/s</strong></div>
+          <div class="metric-row"><span>Receive rate</span><strong>${m.network.recv_rate_kb.toFixed(1)} KB/s</strong></div>
+          <div class="metric-row"><span>Total sent</span><strong>${m.network.total_sent_gb.toFixed(2)} GB</strong></div>
+          <div class="metric-row"><span>Total received</span><strong>${m.network.total_recv_gb.toFixed(2)} GB</strong></div>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-label">⚙️ FastAPI Process</div>
+          <div class="metric-row"><span>RSS Memory</span><strong>${m.process.rss_mb.toFixed(0)} MB</strong></div>
+          <div class="metric-row"><span>Virtual Memory</span><strong>${m.process.vms_mb.toFixed(0)} MB</strong></div>
+          <div class="metric-row"><span>App uptime</span><strong>${fmtUptime(m.process.uptime_seconds/3600)}</strong></div>
+          <div class="metric-row"><span>DB pool (used/free)</span><strong>${m.db.pool_size - m.db.pool_free}/${m.db.pool_size}</strong></div>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-label">🐧 System</div>
+          <div class="metric-row"><span>Hostname</span><strong>${esc(m.system.hostname)}</strong></div>
+          <div class="metric-row"><span>System uptime</span><strong>${fmtUptime(m.system.uptime_hours)}</strong></div>
+        </div>
+
+        <div class="arch-card" style="grid-column:1/-1">
+          <div class="arch-card-label">📰 Application Stats (live from DB)</div>
+          <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:8px">
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.total_articles.toLocaleString()}</div><div class="metric-stat-l">Total articles</div></div>
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.last_hour}</div><div class="metric-stat-l">Last hour</div></div>
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.last_24h.toLocaleString()}</div><div class="metric-stat-l">Last 24h</div></div>
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.pending_translation}</div><div class="metric-stat-l">Pending translation</div></div>
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.total_users}</div><div class="metric-stat-l">Total users</div></div>
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.pending_approvals}</div><div class="metric-stat-l">Pending approvals</div></div>
+            <div class="metric-stat"><div class="metric-stat-n">${m.db.active_sessions}</div><div class="metric-stat-l">Active sessions</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    content.innerHTML = '<div class="muted" style="padding:20px;color:var(--error,#ff4d6d)">⚠️ Failed to load metrics.</div>';
+  }
+}
+
 // ── View switching ────────────────────────────────────────────────
 function setView(view) {
   state.view=view;
   document.getElementById('feedView').style.display = view==='feed'?'':'none';
   document.getElementById('entityView').style.display = view==='entity'?'':'none';
   document.getElementById('knowledgeView').style.display = view==='knowledge'?'':'none';
+  document.getElementById('architectureView').style.display = view==='architecture'?'':'none';
+  document.getElementById('metricsView').style.display = view==='metrics'?'':'none';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
   if (view==='knowledge') loadKnowledge();
+  if (view==='architecture') loadArchitecture();
+  if (view==='metrics') { loadMetrics(); startMetricsPolling(); } else { stopMetricsPolling(); }
 }
 
 // ── Init ──────────────────────────────────────────────────────────

@@ -363,6 +363,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   font-size:.55rem;font-weight:900;letter-spacing:2px;
   padding:2px 6px;animation:livePulse 2s infinite;
 }
+.strip-thumb-wrap{
+  position:relative;overflow:hidden;height:110px;
+}
+.strip-card-overlay{
+  position:absolute;top:8px;left:8px;
+  width:32px;height:32px;
+  background:rgba(0,0,0,.5);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+  z-index:2;
+}
+.source-logo{width:18px;height:18px;border-radius:3px;}
+.category-icon-fallback{font-size:16px;}
 
 /* ══ TICKER ══════════════════════════════════════════════════ */
 #ticker{
@@ -553,6 +567,79 @@ const CAT_GRADIENTS={
 };
 function getCatGradient(cat){
   return CAT_GRADIENTS[cat]||'rgba(0,153,255,0.2)';
+}
+
+const SOURCE_DOMAINS = {
+  'TechCrunch':'techcrunch.com',
+  'The Verge':'theverge.com',
+  'Engadget - Technology News & Expert Reviews':'engadget.com',
+  'Gizmodo':'gizmodo.com',
+  'Nikkei Asia':'asia.nikkei.com',
+  'Dark Reading':'darkreading.com',
+  'SecurityWeek':'securityweek.com',
+  "Tom's Hardware":'tomshardware.com',
+  "Latest from Tom's Hardware":'tomshardware.com',
+  'AnandTech Forums: Technology, Hardware, Software, and Deals':'anandtech.com',
+  'Hacker News: Front Page':'news.ycombinator.com',
+  'Lobsters':'lobste.rs',
+  'CleanTechnica':'cleantechnica.com',
+  'Electrek':'electrek.co',
+  'Finextra Research Headlines':'finextra.com',
+  'OpenAI Blog':'openai.com',
+  'OpenAI News':'openai.com',
+  'Hugging Face Blog':'huggingface.co',
+  'World - South China Morning Post':'scmp.com',
+  'DigiTimes Daily':'digitimes.com',
+  'IT之家':'ithome.com',
+  'AI타임스 - 전체기사':'aitimes.com',
+};
+
+const CATEGORY_BG = {
+  'AI':'linear-gradient(135deg,#1a0b2e,#2d1b4e)',
+  'Artificial_Intelligence':'linear-gradient(135deg,#1a0b2e,#2d1b4e)',
+  'Cybersecurity':'linear-gradient(135deg,#1a0808,#2e1010)',
+  'Semiconductors':'linear-gradient(135deg,#0a1a2e,#102844)',
+  'Asia_Semiconductors':'linear-gradient(135deg,#0a1a2e,#102844)',
+  'Cloud_Infrastructure':'linear-gradient(135deg,#0a1f2e,#0f3050)',
+  'Energy_GreenTech':'linear-gradient(135deg,#0a2e16,#0f4022)',
+  'Geopolitics_TechPolicy':'linear-gradient(135deg,#2e1a0a,#402810)',
+  'Hardware':'linear-gradient(135deg,#1e1e2e,#2a2a3e)',
+  'Hardware_Reviews':'linear-gradient(135deg,#1e1e2e,#2a2a3e)',
+  'Quant_Finance':'linear-gradient(135deg,#0a2e1f,#0f4030)',
+  'Research_Papers':'linear-gradient(135deg,#1a1a2e,#252540)',
+  'Robotics_Automation':'linear-gradient(135deg,#2e1a2e,#401f40)',
+  'Space_Aerospace':'linear-gradient(135deg,#0a0a2e,#10103e)',
+  'Software_Engineering':'linear-gradient(135deg,#0a2e2e,#0f4040)',
+  'DevOps_SRE':'linear-gradient(135deg,#0a2e2e,#0f4040)',
+  'Telecom_5G':'linear-gradient(135deg,#1a0a2e,#28103e)',
+  'Tech_Market':'linear-gradient(135deg,#2e2a0a,#403810)',
+  'Quantum_Computing':'linear-gradient(135deg,#1a0a2e,#28083e)',
+  'Biotech_Medtech':'linear-gradient(135deg,#0a2e20,#083e28)',
+};
+function categoryBg(cat){
+  return CATEGORY_BG[cat]||'linear-gradient(135deg,#111118,#1a1a24)';
+}
+
+const CATEGORY_ICONS = {
+  'AI':'🤖','Artificial_Intelligence':'🤖',
+  'Cybersecurity':'🛡️','Semiconductors':'🔬','Asia_Semiconductors':'🏭',
+  'Cloud_Infrastructure':'☁️','Energy_GreenTech':'🌱',
+  'Geopolitics_TechPolicy':'🌐','Hardware':'💻','Hardware_Reviews':'🖥',
+  'Quant_Finance':'📈','Research_Papers':'📄',
+  'Robotics_Automation':'🦾','Space_Aerospace':'🚀',
+  'Software_Engineering':'⚙️','DevOps_SRE':'⚙️',
+  'Telecom_5G':'📡','Tech_Market':'💹',
+  'Quantum_Computing':'⚛','Biotech_Medtech':'🧬',
+};
+function sourceLogo(feedSource, category, size=32){
+  const domain=SOURCE_DOMAINS[feedSource];
+  const fallback=CATEGORY_ICONS[category]||CAT_ICONS[category]||'📰';
+  if(domain){
+    return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=${size*2}"
+                 class="source-logo" alt="${esc(feedSource)}"
+                 onerror="this.outerHTML='<span class=\\'category-icon-fallback\\'>${fallback}</span>'">`;
+  }
+  return `<span class="category-icon-fallback">${fallback}</span>`;
 }
 
 let articles = [];
@@ -848,25 +935,25 @@ function buildStrip(items){
   const display=recent.length>0?recent:items.slice(0,15);
   const makeCard=(a,idx)=>{
     const isNew=idx<3&&!firstLoad;
-    const icon=CAT_ICONS[a.category]||'📰';
     const flag=a.country_code&&a.country_code!=='GLOBAL'?(FLAGS[a.country_code]||'🌐')+' '+a.country_code:'';
     const sentBadge=a.sentiment&&a.sentiment!=='neutral'&&SENTIMENT[a.sentiment]?SENTIMENT[a.sentiment].label:'';
-    const gradColor=CAT_GRADIENTS[a.category]||'rgba(0,153,255,0.2)';
-    const bgStyle=a.image_url
-      ?`background-image:url('${esc(a.image_url)}')`
-      :`background:radial-gradient(ellipse at center,${gradColor} 0%,#000820 70%)`;
+    const catBg=categoryBg(a.category);
+    const logoHtml=sourceLogo(a.feed_source,a.category,28);
     const thumbHtml=a.image_url
-      ?`<img class="strip-thumb" src="${esc(a.image_url)}" alt="" loading="lazy"
-          onerror="this.style.display='none'">`
-      :`<div class="strip-placeholder-colored"
-          style="background:radial-gradient(ellipse at center,${gradColor} 0%,#000820 70%)">
-          <span>${icon}</span>
+      ?`<div class="strip-thumb-wrap" style="background:${catBg}">
+          <img class="strip-thumb" src="${esc(a.image_url)}" alt="" loading="lazy"
+            onerror="this.style.display='none'">
+          <div class="strip-card-overlay">${logoHtml}</div>
+        </div>`
+      :`<div class="strip-placeholder-colored" style="background:${catBg}">
+          <span>${CATEGORY_ICONS[a.category]||CAT_ICONS[a.category]||'📰'}</span>
+          <div class="strip-card-overlay">${logoHtml}</div>
         </div>`;
     return `<div class="strip-card${idx===0?' current':''}"
       onclick="if(${JSON.stringify(!!a.url)}) window.open(${JSON.stringify(a.url||'')},'_blank')"
       style="cursor:${a.url?'pointer':'default'}">
       ${isNew?'<div class="strip-new">NEW</div>':''}
-      <div class="strip-card-bg" style="${bgStyle}"></div>
+      <div class="strip-card-bg" style="background:${catBg}"></div>
       ${thumbHtml}
       <div class="strip-card-content">
         <div class="strip-body">

@@ -680,7 +680,14 @@ Content: {clean_content}
 
 USER QUESTION: {message}
 
-Respond in English only. Be concise, structured and insightful. Max 250 words."""
+Respond in English only. Be concise, structured and insightful. Max 250 words.
+
+If this exchange reveals a genuine knowledge gap the user is filling (a concept,
+acronym, technology, or context they didn't previously understand), append at
+the very end of your response (on its own line, after your answer):
+<KNOWLEDGE>{{"domain":"<topic area>","gap_identified":"<what was unclear>","gap_resolved":"<the explanation given>"}}</KNOWLEDGE>
+Only include this tag if there is a genuine learning moment — do not force it
+for simple factual lookups."""
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -701,7 +708,22 @@ Respond in English only. Be concise, structured and insightful. Max 250 words.""
         reply = stdout.decode().strip()
         if not reply:
             raise HTTPException(500, "Empty response from AI")
-        return {"response": reply}
+
+        knowledge_updated = None
+        knowledge_match = re.search(r'<KNOWLEDGE>(.*?)</KNOWLEDGE>', reply, re.DOTALL)
+        if knowledge_match:
+            try:
+                kdata = json_lib.loads(knowledge_match.group(1))
+                await database.save_knowledge_update(
+                    pool, user["id"], article_id,
+                    kdata.get("domain", ""), kdata.get("gap_identified", ""), kdata.get("gap_resolved", "")
+                )
+                knowledge_updated = kdata
+            except Exception as ke:
+                logger.warning(f"Failed to parse/store knowledge tag: {ke}")
+            reply = re.sub(r'<KNOWLEDGE>.*?</KNOWLEDGE>', '', reply, flags=re.DOTALL).strip()
+
+        return {"response": reply, "knowledge_updated": knowledge_updated}
     except asyncio.TimeoutError:
         raise HTTPException(504, "AI response timed out — try again")
     except HTTPException:
@@ -732,6 +754,160 @@ async def delete_knowledge(knowledge_id: int, user: dict = Depends(get_current_u
         raise HTTPException(404, "Entry not found")
     return {"ok": True}
 
+@app.get("/api/architecture")
+async def get_architecture(user: dict = Depends(get_current_user)):
+    docs = await pool.fetch("""
+        SELECT section, title, content, updated_at
+        FROM architecture_docs
+        ORDER BY sort_order ASC
+    """)
+    source_stats = await pool.fetch("""
+        SELECT feed_source, COUNT(*) as article_count,
+               COUNT(*) FILTER (WHERE translation_status = 'done') as translated_count,
+               MAX(ingested_at) as last_ingested
+        FROM articles
+        WHERE feed_source IS NOT NULL
+        GROUP BY feed_source
+        ORDER BY article_count DESC
+        LIMIT 30
+    """)
+    db_stats = await pool.fetchrow("""
+        SELECT COUNT(*) as total_articles,
+               COUNT(DISTINCT feed_source) as total_sources,
+               COUNT(*) FILTER (WHERE translation_status = 'done') as translated,
+               COUNT(*) FILTER (WHERE translation_status = 'pending') as pending
+        FROM articles
+    """)
+    tech_stack = await pool.fetch("""
+        SELECT category, name, badge_color, badge_logo
+        FROM tech_stack
+        ORDER BY sort_order ASC
+    """)
+
+    return {
+        "docs": [serialize_row(dict(d)) for d in docs],
+        "sources": [serialize_row(dict(s)) for s in source_stats],
+        "stats": serialize_row(dict(db_stats)) if db_stats else {},
+        "tech_stack": [dict(t) for t in tech_stack]
+    }
+
+import psutil
+import time as _time_mod
+
+_metrics_history: dict = {"cpu": [], "mem": [], "net_sent": [], "net_recv": [], "timestamps": []}
+_last_net_io = None
+_metrics_start_time = _time_mod.time()
+
+@app.get("/api/metrics")
+async def get_system_metrics(user: dict = Depends(get_current_user)):
+    """Live system metrics — CPU, RAM, disk, network. Reads /proc via psutil."""
+    global _last_net_io
+
+    cpu_percent = psutil.cpu_percent(interval=0.3)
+    cpu_per_core = psutil.cpu_percent(interval=0.1, percpu=True)
+    cpu_count = psutil.cpu_count()
+    load_avg = os.getloadavg()
+
+    mem = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+
+    disk = psutil.disk_usage('/')
+    disk_io = psutil.disk_io_counters()
+
+    net_io = psutil.net_io_counters()
+    net_rate_sent = 0
+    net_rate_recv = 0
+    if _last_net_io:
+        net_rate_sent = max(0, net_io.bytes_sent - _last_net_io.bytes_sent)
+        net_rate_recv = max(0, net_io.bytes_recv - _last_net_io.bytes_recv)
+    _last_net_io = net_io
+
+    process = psutil.Process(os.getpid())
+    proc_mem = process.memory_info()
+
+    boot_time = psutil.boot_time()
+    uptime_seconds = _time_mod.time() - boot_time
+
+    pool_size = pool.get_size() if pool else 0
+    pool_free = pool.get_idle_size() if pool else 0
+
+    db_stats = await pool.fetchrow("""
+        SELECT
+            COUNT(*) as total_articles,
+            COUNT(*) FILTER (WHERE ingested_at > NOW() - INTERVAL '1 hour') as last_hour,
+            COUNT(*) FILTER (WHERE ingested_at > NOW() - INTERVAL '24 hours') as last_24h,
+            COUNT(*) FILTER (WHERE translation_status = 'pending') as pending_translation,
+            (SELECT COUNT(*) FROM users) as total_users,
+            (SELECT COUNT(*) FROM users WHERE approved = false) as pending_approvals,
+            (SELECT COUNT(*) FROM user_sessions WHERE expires_at > NOW()) as active_sessions
+        FROM articles
+    """)
+
+    _metrics_history["cpu"].append(cpu_percent)
+    _metrics_history["mem"].append(mem.percent)
+    _metrics_history["net_sent"].append(net_rate_sent)
+    _metrics_history["net_recv"].append(net_rate_recv)
+    _metrics_history["timestamps"].append(_time_mod.time())
+    for key in ["cpu", "mem", "net_sent", "net_recv", "timestamps"]:
+        if len(_metrics_history[key]) > 60:
+            _metrics_history[key] = _metrics_history[key][-60:]
+
+    return {
+        "cpu": {
+            "percent": cpu_percent,
+            "per_core": cpu_per_core,
+            "count": cpu_count,
+            "load_avg_1": round(load_avg[0], 2),
+            "load_avg_5": round(load_avg[1], 2),
+            "load_avg_15": round(load_avg[2], 2),
+            "min_history": round(min(_metrics_history["cpu"]), 1) if _metrics_history["cpu"] else 0,
+            "max_history": round(max(_metrics_history["cpu"]), 1) if _metrics_history["cpu"] else 0,
+        },
+        "memory": {
+            "total_gb": round(mem.total / 1024**3, 2),
+            "used_gb": round(mem.used / 1024**3, 2),
+            "available_gb": round(mem.available / 1024**3, 2),
+            "percent": mem.percent,
+            "swap_used_gb": round(swap.used / 1024**3, 2),
+            "swap_total_gb": round(swap.total / 1024**3, 2),
+            "min_history": round(min(_metrics_history["mem"]), 1) if _metrics_history["mem"] else 0,
+            "max_history": round(max(_metrics_history["mem"]), 1) if _metrics_history["mem"] else 0,
+        },
+        "disk": {
+            "total_gb": round(disk.total / 1024**3, 2),
+            "used_gb": round(disk.used / 1024**3, 2),
+            "free_gb": round(disk.free / 1024**3, 2),
+            "percent": disk.percent,
+            "read_mb": round(disk_io.read_bytes / 1024**2, 1) if disk_io else 0,
+            "write_mb": round(disk_io.write_bytes / 1024**2, 1) if disk_io else 0,
+        },
+        "network": {
+            "sent_rate_kb": round(net_rate_sent / 1024, 1),
+            "recv_rate_kb": round(net_rate_recv / 1024, 1),
+            "total_sent_gb": round(net_io.bytes_sent / 1024**3, 2),
+            "total_recv_gb": round(net_io.bytes_recv / 1024**3, 2),
+        },
+        "process": {
+            "rss_mb": round(proc_mem.rss / 1024**2, 1),
+            "vms_mb": round(proc_mem.vms / 1024**2, 1),
+            "uptime_seconds": round(_time_mod.time() - _metrics_start_time),
+        },
+        "system": {
+            "uptime_hours": round(uptime_seconds / 3600, 1),
+            "hostname": os.uname().nodename,
+        },
+        "db": {
+            "pool_size": pool_size,
+            "pool_free": pool_free,
+            **dict(db_stats)
+        },
+        "history": {
+            "cpu": _metrics_history["cpu"][-30:],
+            "mem": _metrics_history["mem"][-30:],
+            "timestamps": _metrics_history["timestamps"][-30:],
+        }
+    }
+
 @app.get("/api/auth/google")
 async def google_login():
     """Redirect to Google OAuth."""
@@ -755,6 +931,8 @@ async def google_callback(code: str, request: Request):
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(501, "Google OAuth not configured")
     from fastapi.responses import RedirectResponse
+    oauth_logger = logging.getLogger("ax-news-oauth")
+    oauth_logger.warning(f"OAUTH_DEBUG: callback received, code prefix={code[:20]}")
     async with httpx.AsyncClient() as client:
         token_resp = await client.post("https://oauth2.googleapis.com/token", data={
             "code": code,
@@ -764,6 +942,7 @@ async def google_callback(code: str, request: Request):
             "grant_type": "authorization_code",
         })
         token_data = token_resp.json()
+        oauth_logger.warning(f"OAUTH_DEBUG: token exchange status={token_resp.status_code}, has_access_token={'access_token' in token_data}, error={token_data.get('error')}")
         if "access_token" not in token_data:
             raise HTTPException(400, f"Google auth failed: {token_data.get('error', 'unknown')}")
         userinfo_resp = await client.get(
@@ -772,15 +951,17 @@ async def google_callback(code: str, request: Request):
         )
         userinfo = userinfo_resp.json()
 
-    email = userinfo.get("email", "")
+    email = userinfo.get("email", "").lower().strip()
     name = userinfo.get("name", "")
+    oauth_logger.warning(f"OAUTH_DEBUG: userinfo email={email}, name={name}, verified={userinfo.get('verified_email')}")
     base_username = (name or email.split("@")[0]).replace(" ", "_")[:30]
     username = base_username
 
     if not email:
         raise HTTPException(400, "No email returned from Google")
 
-    user = await pool.fetchrow("SELECT * FROM users WHERE email = $1", email)
+    user = await pool.fetchrow("SELECT * FROM users WHERE lower(email) = $1", email)
+    oauth_logger.warning(f"OAUTH_DEBUG: db lookup found={user is not None}, approved={user.get('approved') if user else 'N/A'}, id={user['id'] if user else 'N/A'}")
 
     if not user:
         import bcrypt
@@ -794,9 +975,11 @@ async def google_callback(code: str, request: Request):
             VALUES ($1, $2, $3, false, true, false)
             RETURNING *
         """, username, email, random_pw)
+        oauth_logger.warning(f"OAUTH_DEBUG: new user created id={user['id']}, redirecting to pending")
         return RedirectResponse("/login.html?pending=1")
 
     if not user.get("approved"):
+        oauth_logger.warning(f"OAUTH_DEBUG: user id={user['id']} not approved, redirecting to pending")
         return RedirectResponse("/login.html?pending=1")
 
     session_token = secrets.token_urlsafe(32)
@@ -804,11 +987,21 @@ async def google_callback(code: str, request: Request):
         INSERT INTO user_sessions (id, user_id, expires_at)
         VALUES ($1, $2, NOW() + INTERVAL '30 days')
     """, session_token, user["id"])
+    oauth_logger.warning(f"OAUTH_DEBUG: session created for user id={user['id']}, setting cookie and redirecting")
     nonce = getattr(request.state, 'csp_nonce', secrets.token_urlsafe(16))
-    return templates.TemplateResponse(request, "google_callback.html", {
+    response = templates.TemplateResponse(request, "google_callback.html", {
         "csp_nonce": nonce,
         "session_token": session_token,
     })
+    response.set_cookie(
+        key="ax_session",
+        value=session_token,
+        max_age=30 * 24 * 60 * 60,
+        path="/",
+        samesite="lax",
+        httponly=False,
+    )
+    return response
 
 def send_verification_email(email: str, token: str):
     """Send verification email."""

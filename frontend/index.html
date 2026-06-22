@@ -60,6 +60,8 @@
       <nav class="nav">
         <button class="nav-btn active" data-view="feed">Feed</button>
         <button class="nav-btn" data-view="knowledge">Knowledge</button>
+        <button class="nav-btn" data-view="architecture">Architecture</button>
+        <button class="nav-btn" data-view="metrics">Metrics</button>
       </nav>
       <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
     </div>
@@ -102,6 +104,22 @@
           <span id="knowledgeCount" class="muted"></span>
         </div>
         <div id="knowledgeList"></div>
+      </div>
+      <!-- Architecture view -->
+      <div id="architectureView" style="display:none">
+        <div class="knowledge-header">
+          <h2 class="section-title">Architecture</h2>
+          <span id="archStatsLine" class="muted"></span>
+        </div>
+        <div id="architectureContent"></div>
+      </div>
+      <!-- Metrics view -->
+      <div id="metricsView" style="display:none">
+        <div class="knowledge-header">
+          <h2 class="section-title">📊 Live System Metrics</h2>
+          <span id="metricsRefreshLine" class="muted"></span>
+        </div>
+        <div id="metricsContent"></div>
       </div>
     </main>
   </div>

@@ -63,8 +63,10 @@
       <nav class="nav">
         <button class="nav-btn active" data-view="feed">Feed</button>
         <button class="nav-btn" data-view="knowledge">Knowledge</button>
+        <button class="nav-btn" data-view="architecture">Architecture</button>
+        <button class="nav-btn" data-view="metrics">Metrics</button>
       </nav>
-      <button class="sync-btn" id="syncBtn">⟳ Sync</button>
+      <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
     </div>
     <div class="header-right">
       <div class="theme-switcher">
@@ -76,7 +78,7 @@
       </div>
       <span class="user-name" id="headerUser"></span>
       <a href="/profile.html" class="header-link">Profile</a>
-      <a href="/admin.html" class="header-link admin" id="adminLink">Admin</a>
+      <a href="/admin.html" class="header-link admin" id="adminLink" style="display:none">Admin</a>
       <button class="logout-btn" id="logoutBtn">Sign out</button>
     </div>
   </header>
@@ -96,21 +98,37 @@
         <div id="scrollSentinel"></div>
       </div>
       <!-- Entity detail view -->
-      <div id="entityView"></div>
+      <div id="entityView" style="display:none"></div>
       <!-- Knowledge view -->
-      <div id="knowledgeView">
+      <div id="knowledgeView" style="display:none">
         <div class="knowledge-header">
           <h2 class="section-title">Knowledge Base</h2>
           <span id="knowledgeCount" class="muted"></span>
         </div>
         <div id="knowledgeList"></div>
       </div>
+      <!-- Architecture view -->
+      <div id="architectureView" style="display:none">
+        <div class="knowledge-header">
+          <h2 class="section-title">System Architecture</h2>
+          <span id="archStatsLine" class="muted"></span>
+        </div>
+        <div id="architectureContent"></div>
+      </div>
+      <!-- Metrics view -->
+      <div id="metricsView" style="display:none">
+        <div class="knowledge-header">
+          <h2 class="section-title">📊 Live System Metrics</h2>
+          <span id="metricsRefreshLine" class="muted"></span>
+        </div>
+        <div id="metricsContent"></div>
+      </div>
     </main>
   </div>
 </div>
 
 <!-- Article modal -->
-<div id="modal" class="modal">
+<div id="modal" style="display:none" class="modal">
   <div class="modal-backdrop" id="modalBackdrop"></div>
   <div class="modal-box">
     <div class="modal-article">

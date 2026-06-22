@@ -123,6 +123,19 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
 .badge { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:12px;
          font-size:0.65rem; font-weight:600; cursor:default; }
 .badge-country { background:var(--surface2); color:var(--muted); }
+.flag-icon {
+  width: 16px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 3px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.1);
+}
+.flag-global {
+  font-size: 12px;
+  margin-right: 3px;
+}
 .badge-entity { background:rgba(59,130,246,.12); color:var(--accent); cursor:pointer; }
 .badge-entity:hover { background:rgba(59,130,246,.25); }
 .badge-sentiment-breakthrough  { background:rgba(168,85,247,.2); color:#a855f7; }
@@ -390,7 +403,6 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
 .hdr-logo-img { height:36px; width:auto; object-fit:contain; vertical-align:middle; }
 #syncBtn   { display:none; }
 #entityView    { display:none; }
-#knowledgeView { display:none; }
 #modal { display:none; }
 
 /* ── Misc ────────────────────────────────────────────────────────── */
@@ -400,3 +412,121 @@ header { display:flex; align-items:center; justify-content:space-between; paddin
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* ── Architecture page ───────────────────────────────────────────── */
+.arch-vibe-banner {
+  background: linear-gradient(135deg, rgba(217,119,87,.12), rgba(77,159,255,.08));
+  border: 1px solid rgba(217,119,87,.3);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.arch-card {
+  background: var(--surface, #111118);
+  border: 1px solid var(--border, #1e1e2e);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.arch-card-label {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--accent, #4d9fff);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 6px;
+}
+
+.arch-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.arch-card-body {
+  font-size: .85rem;
+  line-height: 1.7;
+  color: rgba(232,244,255,.85);
+}
+
+.arch-section-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 28px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border, #1e1e2e);
+}
+
+.arch-diagram-wrap {
+  background: var(--surface, #111118);
+  border: 1px solid var(--border, #1e1e2e);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+
+.arch-badge-cat {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--muted, #4a7aa8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* ── Metrics page ────────────────────────────────────────────────── */
+.metrics-gauges {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 24px;
+  background: var(--surface, #111118);
+  border: 1px solid var(--border, #1e1e2e);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+.metric-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.metric-gauge-label {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--muted, #4a7aa8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: .82rem;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.metric-row span { color: var(--muted, #4a7aa8); }
+.metric-stat {
+  background: rgba(255,255,255,.03);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.metric-stat-n { font-size: 1.3rem; font-weight: 800; color: var(--accent, #4d9fff); }
+.metric-stat-l { font-size: .7rem; color: var(--muted, #4a7aa8); margin-top:2px; }
