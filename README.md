@@ -85,6 +85,18 @@ See `backend/.env.example` for required configuration:
 - `APP_URL` — public URL of the deployment
 - `DB_PASSWORD` — used by shell workers (`translate-worker.sh`, `dedup-worker.sh`)
 
+## File organisation
+
+```
+frontend/          Static assets only: CSS, JS, images, logo, 404.html, 50x.html
+                   *.html files are symlinks → ../backend/templates/*.html
+backend/templates/ Source of truth for all HTML pages (Jinja2, CSP nonce injection)
+```
+
+Nginx routes every `.html` request and `/` to FastAPI (port 8000); it never serves
+HTML directly from `frontend/`. The symlinks exist purely so that path references
+inside the repo remain consistent — edits must be made in `backend/templates/`.
+
 ## License
 
 MIT — see LICENSE file.

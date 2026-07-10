@@ -223,9 +223,33 @@ async def tv_feed(limit: int = 150):
         result.append(serialize_row(row))
     return result
 
-@app.post("/api/tv/refresh")
-async def tv_refresh():
-    """Public TV refresh — no token in browser."""
+# ── Auth dependency ───────────────────────────────────────────────────────────
+
+async def get_current_user(request: Request) -> dict:
+    token = request.cookies.get("ax_session")
+    if not token:
+        raise HTTPException(401, "Non authentifié")
+    user = await get_session_user(pool, token)
+    if not user:
+        raise HTTPException(401, "Session expirée")
+    return user
+
+async def get_optional_user(request: Request) -> Optional[dict]:
+    token = request.cookies.get("ax_session")
+    if not token:
+        return None
+    return await get_session_user(pool, token)
+
+async def require_admin(user: dict = Depends(get_current_user)) -> dict:
+    if not user.get("is_admin"):
+        raise HTTPException(403, "Accès réservé aux administrateurs")
+    return user
+
+@app.api_route("/api/tv/refresh", methods=["GET", "POST"])
+async def tv_refresh(request: Request, admin: dict = Depends(require_admin)):
+    """Admin-only TV feed refresh."""
+    if request.method == "GET":
+        return {"message": "POST to trigger refresh"}
     import httpx
     async with httpx.AsyncClient(timeout=30) as client:
         try:
@@ -248,22 +272,6 @@ async def tv_refresh():
 async def tv_translate_public(limit: int = 50):
     count = await translate_batch(pool, limit=limit)
     return {"translated": count}
-
-# ── Auth dependency ───────────────────────────────────────────────────────────
-
-async def get_current_user(request: Request) -> dict:
-    token = request.cookies.get("ax_session")
-    if not token:
-        raise HTTPException(401, "Non authentifié")
-    user = await get_session_user(pool, token)
-    if not user:
-        raise HTTPException(401, "Session expirée")
-    return user
-
-async def require_admin(user: dict = Depends(get_current_user)) -> dict:
-    if not user.get("is_admin"):
-        raise HTTPException(403, "Accès réservé aux administrateurs")
-    return user
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
@@ -490,11 +498,11 @@ async def list_articles(
     offset:   int = Query(0, ge=0),
     category: Optional[str] = None,
     search:   Optional[str] = None,
-    user:     dict = Depends(get_current_user),
+    user:     Optional[dict] = Depends(get_optional_user),
 ):
     rows = await database.get_articles(
         pool, limit=limit, offset=offset,
-        category=category, search=search, user_id=user["id"]
+        category=category, search=search, user_id=user["id"] if user else 0
     )
     return [serialize_row(r) for r in rows]
 
@@ -510,8 +518,28 @@ async def mark_read(article_id: int, user: dict = Depends(get_current_user)):
     await database.mark_read(pool, user["id"], article_id)
     return {"ok": True}
 
+@app.post("/api/articles/{article_id}/view")
+async def record_view(article_id: int, request: Request):
+    import hashlib
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    raw_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
+    ip_hash = hashlib.sha256(raw_ip.encode()).hexdigest()
+    result = await pool.execute(
+        "INSERT INTO article_views (article_id, ip_hash) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        article_id, ip_hash
+    )
+    if result == "INSERT 0 1":
+        await pool.execute("UPDATE articles SET view_count = view_count + 1 WHERE id = $1", article_id)
+        incremented = True
+    else:
+        incremented = False
+    row = await pool.fetchrow("SELECT view_count FROM articles WHERE id = $1", article_id)
+    if not row:
+        raise HTTPException(404, "Article not found")
+    return {"views": row["view_count"], "counted": incremented}
+
 @app.get("/api/categories")
-async def list_categories(user: dict = Depends(get_current_user)):
+async def list_categories(user: Optional[dict] = Depends(get_optional_user)):
     rows = await pool.fetch("""
         SELECT DISTINCT category FROM articles
         WHERE category IS NOT NULL AND category != ''
@@ -519,37 +547,6 @@ async def list_categories(user: dict = Depends(get_current_user)):
     """)
     return [r["category"] for r in rows]
 
-# ── Knowledge ─────────────────────────────────────────────────────────────────
-
-@app.get("/api/knowledge")
-async def get_knowledge(domain: Optional[str] = None, user: dict = Depends(get_current_user)):
-    rows = await database.get_user_knowledge(pool, user_id=user["id"], domain=domain)
-    return [serialize_row(r) for r in rows]
-
-@app.get("/api/knowledge/full")
-async def get_knowledge_full(user: dict = Depends(get_current_user)):
-    rows = await pool.fetch("""
-        SELECT uk.id, uk.domain, uk.gap_identified, uk.gap_resolved, uk.created_at,
-               a.title AS article_title, a.feed_source AS article_source,
-               a.published_at AS article_date
-        FROM user_knowledge uk
-        LEFT JOIN articles a ON a.id = uk.source_article
-        WHERE uk.user_id = $1
-        ORDER BY uk.domain, uk.created_at DESC
-    """, user["id"])
-    grouped: dict = {}
-    for r in rows:
-        d = r["domain"] or "Général"
-        grouped.setdefault(d, []).append({
-            "id":              r["id"],
-            "gap_identified":  r["gap_identified"],
-            "gap_resolved":    r["gap_resolved"],
-            "created_at":      r["created_at"].isoformat() if r["created_at"] else None,
-            "article_title":   r["article_title"],
-            "article_source":  r["article_source"],
-            "article_date":    r["article_date"].isoformat() if r["article_date"] else None,
-        })
-    return grouped
 
 # ── Feeds ─────────────────────────────────────────────────────────────────────
 
@@ -742,172 +739,6 @@ async def chat_history(article_id: int, user: dict = Depends(get_current_user)):
         "knowledge_extracted": session["knowledge_extracted"],
     }
 
-# ── Phase 2 additions ─────────────────────────────────────────────────────────
-
-@app.delete("/api/knowledge/{knowledge_id}")
-async def delete_knowledge(knowledge_id: int, user: dict = Depends(get_current_user)):
-    result = await pool.execute(
-        "DELETE FROM user_knowledge WHERE id = $1 AND user_id = $2",
-        knowledge_id, user["id"]
-    )
-    if result == "DELETE 0":
-        raise HTTPException(404, "Entry not found")
-    return {"ok": True}
-
-@app.get("/api/architecture")
-async def get_architecture(user: dict = Depends(get_current_user)):
-    docs = await pool.fetch("""
-        SELECT section, title, content, updated_at
-        FROM architecture_docs
-        ORDER BY sort_order ASC
-    """)
-    source_stats = await pool.fetch("""
-        SELECT feed_source, COUNT(*) as article_count,
-               COUNT(*) FILTER (WHERE translation_status = 'done') as translated_count,
-               MAX(ingested_at) as last_ingested
-        FROM articles
-        WHERE feed_source IS NOT NULL
-        GROUP BY feed_source
-        ORDER BY article_count DESC
-        LIMIT 30
-    """)
-    db_stats = await pool.fetchrow("""
-        SELECT COUNT(*) as total_articles,
-               COUNT(DISTINCT feed_source) as total_sources,
-               COUNT(*) FILTER (WHERE translation_status = 'done') as translated,
-               COUNT(*) FILTER (WHERE translation_status = 'pending') as pending
-        FROM articles
-    """)
-    tech_stack = await pool.fetch("""
-        SELECT category, name, badge_color, badge_logo
-        FROM tech_stack
-        ORDER BY sort_order ASC
-    """)
-
-    return {
-        "docs": [serialize_row(dict(d)) for d in docs],
-        "sources": [serialize_row(dict(s)) for s in source_stats],
-        "stats": serialize_row(dict(db_stats)) if db_stats else {},
-        "tech_stack": [dict(t) for t in tech_stack]
-    }
-
-import psutil
-import time as _time_mod
-
-_metrics_history: dict = {"cpu": [], "mem": [], "net_sent": [], "net_recv": [], "timestamps": []}
-_last_net_io = None
-_metrics_start_time = _time_mod.time()
-
-@app.get("/api/metrics")
-async def get_system_metrics(user: dict = Depends(get_current_user)):
-    """Live system metrics — CPU, RAM, disk, network. Reads /proc via psutil."""
-    global _last_net_io
-
-    cpu_percent = psutil.cpu_percent(interval=0.3)
-    cpu_per_core = psutil.cpu_percent(interval=0.1, percpu=True)
-    cpu_count = psutil.cpu_count()
-    load_avg = os.getloadavg()
-
-    mem = psutil.virtual_memory()
-    swap = psutil.swap_memory()
-
-    disk = psutil.disk_usage('/')
-    disk_io = psutil.disk_io_counters()
-
-    net_io = psutil.net_io_counters()
-    net_rate_sent = 0
-    net_rate_recv = 0
-    if _last_net_io:
-        net_rate_sent = max(0, net_io.bytes_sent - _last_net_io.bytes_sent)
-        net_rate_recv = max(0, net_io.bytes_recv - _last_net_io.bytes_recv)
-    _last_net_io = net_io
-
-    process = psutil.Process(os.getpid())
-    proc_mem = process.memory_info()
-
-    boot_time = psutil.boot_time()
-    uptime_seconds = _time_mod.time() - boot_time
-
-    pool_size = pool.get_size() if pool else 0
-    pool_free = pool.get_idle_size() if pool else 0
-
-    db_stats = await pool.fetchrow("""
-        SELECT
-            COUNT(*) as total_articles,
-            COUNT(*) FILTER (WHERE ingested_at > NOW() - INTERVAL '1 hour') as last_hour,
-            COUNT(*) FILTER (WHERE ingested_at > NOW() - INTERVAL '24 hours') as last_24h,
-            COUNT(*) FILTER (WHERE translation_status = 'pending') as pending_translation,
-            (SELECT COUNT(*) FROM users) as total_users,
-            (SELECT COUNT(*) FROM users WHERE approved = false) as pending_approvals,
-            (SELECT COUNT(*) FROM user_sessions WHERE expires_at > NOW()) as active_sessions
-        FROM articles
-    """)
-
-    _metrics_history["cpu"].append(cpu_percent)
-    _metrics_history["mem"].append(mem.percent)
-    _metrics_history["net_sent"].append(net_rate_sent)
-    _metrics_history["net_recv"].append(net_rate_recv)
-    _metrics_history["timestamps"].append(_time_mod.time())
-    for key in ["cpu", "mem", "net_sent", "net_recv", "timestamps"]:
-        if len(_metrics_history[key]) > 60:
-            _metrics_history[key] = _metrics_history[key][-60:]
-
-    return {
-        "cpu": {
-            "percent": cpu_percent,
-            "per_core": cpu_per_core,
-            "count": cpu_count,
-            "load_avg_1": round(load_avg[0], 2),
-            "load_avg_5": round(load_avg[1], 2),
-            "load_avg_15": round(load_avg[2], 2),
-            "min_history": round(min(_metrics_history["cpu"]), 1) if _metrics_history["cpu"] else 0,
-            "max_history": round(max(_metrics_history["cpu"]), 1) if _metrics_history["cpu"] else 0,
-        },
-        "memory": {
-            "total_gb": round(mem.total / 1024**3, 2),
-            "used_gb": round(mem.used / 1024**3, 2),
-            "available_gb": round(mem.available / 1024**3, 2),
-            "percent": mem.percent,
-            "swap_used_gb": round(swap.used / 1024**3, 2),
-            "swap_total_gb": round(swap.total / 1024**3, 2),
-            "min_history": round(min(_metrics_history["mem"]), 1) if _metrics_history["mem"] else 0,
-            "max_history": round(max(_metrics_history["mem"]), 1) if _metrics_history["mem"] else 0,
-        },
-        "disk": {
-            "total_gb": round(disk.total / 1024**3, 2),
-            "used_gb": round(disk.used / 1024**3, 2),
-            "free_gb": round(disk.free / 1024**3, 2),
-            "percent": disk.percent,
-            "read_mb": round(disk_io.read_bytes / 1024**2, 1) if disk_io else 0,
-            "write_mb": round(disk_io.write_bytes / 1024**2, 1) if disk_io else 0,
-        },
-        "network": {
-            "sent_rate_kb": round(net_rate_sent / 1024, 1),
-            "recv_rate_kb": round(net_rate_recv / 1024, 1),
-            "total_sent_gb": round(net_io.bytes_sent / 1024**3, 2),
-            "total_recv_gb": round(net_io.bytes_recv / 1024**3, 2),
-        },
-        "process": {
-            "rss_mb": round(proc_mem.rss / 1024**2, 1),
-            "vms_mb": round(proc_mem.vms / 1024**2, 1),
-            "uptime_seconds": round(_time_mod.time() - _metrics_start_time),
-        },
-        "system": {
-            "uptime_hours": round(uptime_seconds / 3600, 1),
-            "hostname": os.uname().nodename,
-        },
-        "db": {
-            "pool_size": pool_size,
-            "pool_free": pool_free,
-            **dict(db_stats)
-        },
-        "history": {
-            "cpu": _metrics_history["cpu"][-30:],
-            "mem": _metrics_history["mem"][-30:],
-            "timestamps": _metrics_history["timestamps"][-30:],
-        }
-    }
-
 @app.get("/api/auth/google")
 async def google_login():
     """Redirect to Google OAuth."""
@@ -1043,7 +874,8 @@ def send_verification_email(email: str, token: str):
 
 @app.post("/api/auth/register")
 async def register(req: dict):
-    """Register new user with email verification."""
+    """Registration is closed."""
+    raise HTTPException(403, "Registration is currently closed")
     username = req.get("username", "").strip()
     email    = req.get("email", "").strip()
     password = req.get("password", "")
@@ -1097,7 +929,8 @@ async def delete_feed_permanent(feed_id: int, user: dict = Depends(get_current_u
     return {"ok": True}
 
 @app.get("/api/categories/tree")
-async def categories_tree(user: dict = Depends(get_current_user)):
+async def categories_tree(user: Optional[dict] = Depends(get_optional_user)):
+    uid = user["id"] if user else 0
     rows = await pool.fetch("""
         SELECT category,
                COUNT(*) as total,
@@ -1107,7 +940,7 @@ async def categories_tree(user: dict = Depends(get_current_user)):
         WHERE a.category IS NOT NULL AND a.category != ''
         GROUP BY a.category
         ORDER BY a.category
-    """, user["id"])
+    """, uid)
     return [{"category": r["category"], "total": r["total"], "read": r["read_count"]} for r in rows]
 
 @app.post("/api/enrich")
@@ -1391,6 +1224,11 @@ async def about_page(request: Request):
     """Public landing page for SEO — no auth required."""
     return templates.TemplateResponse(request, "about.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
 
+@app.get("/privacy")
+async def privacy_page(request: Request):
+    """Privacy policy — no auth required."""
+    return templates.TemplateResponse(request, "privacy.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+
 # ── HTML page handlers (Jinja2 templates for CSP nonce injection) ─────────────
 
 @app.get("/", response_class=HTMLResponse)
@@ -1420,3 +1258,7 @@ async def about_html(request: Request):
 @app.get("/landing.html", response_class=HTMLResponse)
 async def landing_html(request: Request):
     return templates.TemplateResponse(request, "landing.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+
+@app.get("/privacy.html", response_class=HTMLResponse)
+async def privacy_html(request: Request):
+    return templates.TemplateResponse(request, "privacy.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})

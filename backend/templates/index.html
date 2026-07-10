@@ -60,12 +60,6 @@
       <source srcset="/logo.webp" type="image/webp">
       <img src="/logo.png" alt="AXIOM" width="72" height="36" class="hdr-logo-img">
     </picture></div>
-      <nav class="nav">
-        <button class="nav-btn active" data-view="feed">Feed</button>
-        <button class="nav-btn" data-view="knowledge">Knowledge</button>
-        <button class="nav-btn" data-view="architecture">Architecture</button>
-        <button class="nav-btn" data-view="metrics">Metrics</button>
-      </nav>
       <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
     </div>
     <div class="header-right">
@@ -82,6 +76,7 @@
       <button class="logout-btn" id="logoutBtn">Sign out</button>
     </div>
   </header>
+  <div class="mobile-cat-bar" id="mobileCatBar"></div>
 
   <div class="layout">
     <aside class="sidebar" id="sidebar">
@@ -95,34 +90,11 @@
       <!-- Feed view -->
       <div id="feedView">
         <div id="articleGrid" class="article-grid"></div>
-        <div id="scrollSentinel"></div>
+        <div id="scrollSentinel" style="height:60px;display:flex;align-items:center;
+          justify-content:center;color:var(--muted);font-size:.8rem;padding:20px 0"></div>
       </div>
       <!-- Entity detail view -->
       <div id="entityView" style="display:none"></div>
-      <!-- Knowledge view -->
-      <div id="knowledgeView" style="display:none">
-        <div class="knowledge-header">
-          <h2 class="section-title">Knowledge Base</h2>
-          <span id="knowledgeCount" class="muted"></span>
-        </div>
-        <div id="knowledgeList"></div>
-      </div>
-      <!-- Architecture view -->
-      <div id="architectureView" style="display:none">
-        <div class="knowledge-header">
-          <h2 class="section-title">System Architecture</h2>
-          <span id="archStatsLine" class="muted"></span>
-        </div>
-        <div id="architectureContent"></div>
-      </div>
-      <!-- Metrics view -->
-      <div id="metricsView" style="display:none">
-        <div class="knowledge-header">
-          <h2 class="section-title">📊 Live System Metrics</h2>
-          <span id="metricsRefreshLine" class="muted"></span>
-        </div>
-        <div id="metricsContent"></div>
-      </div>
     </main>
   </div>
 </div>
@@ -146,7 +118,27 @@
   </div>
 </div>
 
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="/logo.png" alt="AXIOM" style="height:22px;width:auto;opacity:.8">
+      <span>AX-NEWS — Global Tech Intelligence</span>
+    </div>
+    <div class="footer-links">
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy</a>
+      <a href="https://github.com/plkarin/ax-news" rel="noopener" target="_blank">Source Code</a>
+    </div>
+    <div class="footer-legal">
+      &copy; 2026 Karin Pierre-Léonard &middot; Personal non-commercial project &middot;
+      Content aggregated from public RSS feeds — all articles remain property of their respective publishers &middot;
+      No cookies, no tracking — see <a href="/privacy">Privacy</a> &middot;
+      Built with Claude Code &middot; MIT License
+    </div>
+  </div>
+</footer>
+
 <script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js"></script>
+<script nonce="{{ csp_nonce }}" src="app.js?v=20260710b"></script>
 </body>
 </html>
