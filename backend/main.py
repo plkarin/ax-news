@@ -60,7 +60,8 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASS = os.getenv("SMTP_PASS", "")
 SMTP_FROM = os.getenv("SMTP_FROM", "noreply@ax-news.com")
-APP_URL   = os.getenv("APP_URL", "https://ax-news.com")
+APP_URL              = os.getenv("APP_URL", "https://ax-news.com")
+INTERNAL_SYNC_TOKEN  = os.getenv("INTERNAL_SYNC_TOKEN", "")
 
 # In-memory token store (use Redis in production)
 _email_tokens: dict = {}
@@ -245,8 +246,20 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
         raise HTTPException(403, "Accès réservé aux administrateurs")
     return user
 
+async def require_admin_or_internal(request: Request) -> dict:
+    """Admin session OR internal token from localhost (systemd timers)."""
+    token = request.headers.get("x-internal-token", "")
+    if INTERNAL_SYNC_TOKEN and token == INTERNAL_SYNC_TOKEN:
+        client_ip = request.client.host if request.client else ""
+        if client_ip in ("127.0.0.1", "::1"):
+            return {"id": 0, "username": "internal", "is_admin": True}
+    user = await get_current_user(request)  # raises 401 if no/invalid session
+    if not user.get("is_admin"):
+        raise HTTPException(403, "Accès réservé aux administrateurs")
+    return user
+
 @app.api_route("/api/tv/refresh", methods=["GET", "POST"])
-async def tv_refresh(request: Request, admin: dict = Depends(require_admin)):
+async def tv_refresh(request: Request, admin: dict = Depends(require_admin_or_internal)):
     """Admin-only TV feed refresh."""
     if request.method == "GET":
         return {"message": "POST to trigger refresh"}
