@@ -507,8 +507,9 @@ async def list_articles(
     return [serialize_row(r) for r in rows]
 
 @app.get("/api/articles/{article_id}")
-async def get_article(article_id: int, user: dict = Depends(get_current_user)):
-    row = await database.get_article_by_id(pool, article_id, user["id"])
+async def get_article(article_id: int, user: Optional[dict] = Depends(get_optional_user)):
+    uid = user["id"] if user else 0
+    row = await database.get_article_by_id(pool, article_id, uid)
     if not row:
         raise HTTPException(404, "Article introuvable")
     return serialize_row(row)
@@ -950,7 +951,7 @@ async def enrich_articles(limit: int = 500):
     return {"enriched": count}
 
 @app.get("/api/entities")
-async def list_entities(user: dict = Depends(get_current_user)):
+async def list_entities(user: Optional[dict] = Depends(get_optional_user)):
     """Return all distinct entities with article counts and avg sentiment score."""
     rows = await pool.fetch("""
         SELECT e.entity,
@@ -969,8 +970,9 @@ async def list_entities(user: dict = Depends(get_current_user)):
 
 @app.get("/api/entities/{entity_name}")
 async def entity_detail(entity_name: str, limit: int = 50,
-                        user: dict = Depends(get_current_user)):
+                        user: Optional[dict] = Depends(get_optional_user)):
     """Return articles mentioning a specific entity + sentiment stats."""
+    uid = user["id"] if user else 0
     rows = await pool.fetch("""
         SELECT a.id, a.title, a.feed_source, a.category, a.published_at,
                a.url, a.image_url, a.country_code, a.entities,
@@ -981,7 +983,7 @@ async def entity_detail(entity_name: str, limit: int = 50,
         WHERE a.entities @> $2::jsonb
         ORDER BY a.published_at DESC
         LIMIT $3
-    """, user["id"], json_lib.dumps([entity_name]), limit)
+    """, uid, json_lib.dumps([entity_name]), limit)
 
     articles = [serialize_row(dict(r)) for r in rows]
 
@@ -1010,7 +1012,7 @@ async def entity_detail(entity_name: str, limit: int = 50,
     }
 
 @app.get("/api/countries")
-async def list_countries(user: dict = Depends(get_current_user)):
+async def list_countries(user: Optional[dict] = Depends(get_optional_user)):
     """Return article counts by country."""
     rows = await pool.fetch("""
         SELECT country_code, COUNT(*) as count
@@ -1101,9 +1103,7 @@ async def purge_old_articles(token: str = ""):
     return {"deleted": deleted}
 
 @app.get("/api/admin/pending-users")
-async def get_pending_users(user: dict = Depends(get_current_user)):
-    if not user.get("is_admin"):
-        raise HTTPException(403, "Admin only")
+async def get_pending_users(user: dict = Depends(require_admin)):
     rows = await pool.fetch("""
         SELECT id, username, email, created_at, email_verified
         FROM users WHERE approved = false
@@ -1112,9 +1112,7 @@ async def get_pending_users(user: dict = Depends(get_current_user)):
     return [serialize_row(dict(r)) for r in rows]
 
 @app.post("/api/admin/users/{user_id}/approve")
-async def approve_user(user_id: int, user: dict = Depends(get_current_user)):
-    if not user.get("is_admin"):
-        raise HTTPException(403, "Admin only")
+async def approve_user(user_id: int, user: dict = Depends(require_admin)):
     await pool.execute("""
         UPDATE users SET approved = true, approved_at = NOW(), approved_by = $1
         WHERE id = $2
@@ -1212,9 +1210,7 @@ async def news_sitemap():
     return FastAPIResponse(content='\n'.join(lines), media_type="application/xml")
 
 @app.post("/api/admin/users/{user_id}/reject")
-async def reject_user(user_id: int, user: dict = Depends(get_current_user)):
-    if not user.get("is_admin"):
-        raise HTTPException(403, "Admin only")
+async def reject_user(user_id: int, user: dict = Depends(require_admin)):
     await pool.execute(
         "DELETE FROM users WHERE id = $1 AND is_admin = false", user_id)
     return {"rejected": True}
