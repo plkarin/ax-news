@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://ax-news.com/og-image.png">
   <link rel="canonical" href="https://ax-news.com/">
   <meta name="theme-color" content="#000510">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260713b">
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -76,26 +76,18 @@
       <button class="logout-btn" id="logoutBtn">Sign out</button>
     </div>
   </header>
-  <div class="mobile-cat-bar" id="mobileCatBar"></div>
-
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <div class="search-wrap">
-        <input type="text" id="searchInput" placeholder="Search articles…" autocomplete="off" class="search-input">
+  <div class="feed-layout">
+    <div class="cat-panel">
+      <div class="cat-panel-search">
+        <input type="text" id="searchInput" placeholder="Search articles…" class="search-input">
       </div>
-      <div id="categoryTree"></div>
-    </aside>
-
-    <main class="main" id="mainContent">
-      <!-- Feed view -->
-      <div id="feedView">
-        <div id="articleGrid" class="article-grid"></div>
-        <div id="scrollSentinel" style="height:60px;display:flex;align-items:center;
-          justify-content:center;color:var(--muted);font-size:.8rem;padding:20px 0"></div>
-      </div>
-      <!-- Entity detail view -->
-      <div id="entityView" style="display:none"></div>
-    </main>
+      <div class="cat-pills" id="catPills"></div>
+    </div>
+    <div id="feedView">
+      <div class="article-grid" id="articleGrid"></div>
+      <div id="scrollSentinel"></div>
+    </div>
+    <div id="entityView"></div>
   </div>
 </div>
 
@@ -139,6 +131,6 @@
 </footer>
 
 <script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js?v=20260710b"></script>
+<script nonce="{{ csp_nonce }}" src="app.js?v=20260713b"></script>
 </body>
 </html>

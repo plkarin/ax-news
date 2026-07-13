@@ -154,38 +154,49 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   window.location.href='/login.html';
 });
 
-// ── Tree ──────────────────────────────────────────────────────────
-async function buildTree() {
-  const data = await api('/categories/tree');
-  if (!data) return;
-  const tree = document.getElementById('categoryTree');
-  const total = data.reduce((s,r)=>s+r.total, 0);
+// ── Category pills (unified, all screen sizes) ────────────────────
+async function buildCatPills() {
+  const wrap = document.getElementById('catPills');
+  if (!wrap) return;
+  let cats = [];
+  try {
+    cats = await api('/categories/tree').catch(()=>api('/categories')) || [];
+  } catch(e) { cats = []; }
+  const norm = cats.map(c => ({
+    name: c.category || c.name,
+    count: c.count || c.total || c.article_count || 0
+  })).filter(c => c.name);
 
-  tree.innerHTML = `
-    <div class="tree-root-label">Technology</div>
-    <div class="tree-all ${!state.category?'active':''}" data-cat="">
-      📰 All Articles <span class="tree-badge">${total}</span>
-    </div>`;
+  const allActive = !state.category ? 'active' : '';
+  let html = `<button class="cat-pill ${allActive}" data-cat="">All`;
+  const total = norm.reduce((s,c)=>s+(c.count||0),0);
+  html += total ? ` <span class="cat-pill-count">${total.toLocaleString()}</span>` : '';
+  html += `</button>`;
 
-  data.forEach(row => {
-    const m = TREE_META[row.category] || {label:row.category.replace(/_/g,' '), icon:'📁'};
-    const leaf = document.createElement('div');
-    leaf.className = 'tree-leaf'+(state.category===row.category?' active':'');
-    leaf.dataset.cat = row.category;
-    leaf.innerHTML = `${m.icon} ${m.label} <span class="tree-badge">${row.total}</span>`;
-    leaf.addEventListener('click', ()=>selectCategory(row.category));
-    tree.appendChild(leaf);
+  html += norm.map(c => {
+    const active = state.category === c.name ? 'active' : '';
+    const label = c.name.replace(/_/g,' ');
+    return `<button class="cat-pill ${active}" data-cat="${esc(c.name)}">${esc(label)}${c.count?` <span class="cat-pill-count">${c.count.toLocaleString()}</span>`:''}</button>`;
+  }).join('');
+
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.cat-pill').forEach(p => {
+    p.addEventListener('click', () => {
+      state.category = p.dataset.cat || null;
+      wrap.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active'));
+      p.classList.add('active');
+      hasMore = true;
+      loadArticles(true);
+      p.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+    });
   });
-
-  tree.querySelector('[data-cat=""]').addEventListener('click', ()=>selectCategory(''));
-  buildMobileCatBar(data.map(r => r.category));
 }
 
 function selectCategory(cat) {
-  state.category = cat;
-  document.querySelectorAll('.tree-all,.tree-leaf').forEach(el =>
-    el.classList.toggle('active', el.dataset.cat===cat));
-  setView('feed');
+  state.category = cat || null;
+  const wrap = document.getElementById('catPills');
+  if (wrap) wrap.querySelectorAll('.cat-pill').forEach(x =>
+    x.classList.toggle('active', (x.dataset.cat||'') === (cat||'')));
   hasMore = true;
   loadArticles(true);
 }
@@ -499,7 +510,7 @@ async function openArticle(articleId) {
 
   document.body.appendChild(modal);
 
-  setTimeout(() => buildTree(), 500);
+  setTimeout(() => buildCatPills(), 500);
 }
 
 function closeModal() {
@@ -591,33 +602,12 @@ async function syncFeed() {
     const res=await fetch(API+'/sync',{method:'POST',credentials:'same-origin'});
     const data=await res.json();
     toast(`${data.synced} synced, ${data.enriched||0} enriched`);
-    await buildTree(); await loadArticles(true);
+    await buildCatPills(); await loadArticles(true);
   } catch(e) { toast('Sync failed',true); }
   btn.disabled=false; btn.textContent='⟳ Sync';
 }
 
 
-// ── Mobile category bar ───────────────────────────────────────────
-function buildMobileCatBar(categories) {
-  const bar = document.getElementById('mobileCatBar');
-  if (!bar) return;
-  bar.innerHTML = '';
-  const all = document.createElement('button');
-  all.className = 'cat-pill' + (state.category === '' ? ' active' : '');
-  all.textContent = 'All';
-  all.onclick = () => { state.category = ''; hasMore = true; loadArticles(true); buildMobileCatBar(categories); };
-  bar.appendChild(all);
-  (categories || []).forEach(cat => {
-    const pill = document.createElement('button');
-    pill.className = 'cat-pill' + (state.category === cat ? ' active' : '');
-    const style = getCatStyle(cat);
-    pill.style.background = style.bg;
-    pill.style.color = style.fg;
-    pill.textContent = (style.icon ? style.icon + ' ' : '') + cat.replace(/_/g, ' ');
-    pill.onclick = () => { state.category = cat; hasMore = true; loadArticles(true); buildMobileCatBar(categories); };
-    bar.appendChild(pill);
-  });
-}
 
 // ── View switching ────────────────────────────────────────────────
 function setView(view) {
@@ -643,7 +633,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     clearTimeout(searchTimer);
     searchTimer=setTimeout(()=>{state.search=e.target.value;hasMore=true;loadArticles(true);},350);
   });
-  await buildTree();
+  await buildCatPills();
   await loadArticles(true);
   initInfiniteScroll();
 });
