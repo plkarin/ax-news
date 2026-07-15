@@ -1,76 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — AX-NEWS</title>
-  <meta name="description" content="AX-NEWS Privacy Policy — how we handle data for visitors and registered users.">
+  <meta name="description" content="AX-NEWS Privacy Policy — what data is processed, why, and how to contact the operator.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://ax-news.com/privacy.html">
-  <style>
-    body{margin:0;background:#000510;color:#e8f4ff;font-family:system-ui,sans-serif}
-    header{padding:20px 40px;border-bottom:1px solid #1e1e2e;display:flex;align-items:center;justify-content:space-between}
-    .logo{font-size:1.8rem;font-weight:900;color:#4d9fff;letter-spacing:2px}
-    .logo span{color:#e8f4ff}
-    a.back{color:#4d9fff;text-decoration:none;font-size:.9rem}
-    main{max-width:760px;margin:40px auto;padding:0 32px}
-    h1{font-size:2rem;color:#4d9fff;margin-bottom:8px}
-    h2{font-size:1.1rem;color:#a0c4ff;margin-top:28px}
-    p,li{line-height:1.7;color:#b8d0ef;font-size:.95rem}
-    ul{padding-left:20px}
-    footer{text-align:center;padding:32px;color:#4a7aa8;font-size:.8rem;border-top:1px solid #1e1e2e;margin-top:40px}
-    footer a{color:#4a7aa8;text-decoration:none}
+  <link rel="canonical" href="https://ax-news.com/privacy">
+  <style nonce="{{ csp_nonce }}">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: #05060a;
+      color: #e8f4ff;
+      line-height: 1.7;
+    }
+    a { color: #4d9fff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Header ── */
+    .priv-header {
+      padding: 18px 32px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #05060a 0%, #0a0d18 100%);
+    }
+    .priv-logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #4d9fff;
+    }
+    .priv-logo span { color: #e8f4ff; }
+    .back-link {
+      font-size: .85rem;
+      color: rgba(232,244,255,.6);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 5px 14px;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .back-link:hover { color: #4d9fff; border-color: #4d9fff; text-decoration: none; }
+
+    /* ── Content ── */
+    main {
+      max-width: 780px;
+      margin: 48px auto;
+      padding: 0 28px 80px;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #e8f4ff;
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      font-size: .85rem;
+      color: #6b7a90;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #4d9fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 36px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e2230;
+    }
+    p { color: rgba(232,244,255,.82); font-size: .93rem; margin-bottom: 12px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { color: rgba(232,244,255,.82); font-size: .93rem; margin-bottom: 6px; }
+    strong { color: #e8f4ff; font-weight: 600; }
+    .callout {
+      background: rgba(77,159,255,.07);
+      border: 1px solid rgba(77,159,255,.18);
+      border-left: 3px solid #4d9fff;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: .9rem;
+      color: rgba(232,244,255,.85);
+    }
+
+    /* ── Footer ── */
+    .priv-footer {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 28px 32px;
+      text-align: center;
+      font-size: .78rem;
+      color: #6b7a90;
+    }
+    .priv-footer a { color: #6b7a90; }
+    .priv-footer a:hover { color: #4d9fff; }
   </style>
 </head>
 <body>
-<header>
-  <div class="logo">AX<span>-NEWS</span></div>
-  <a class="back" href="/">← Back to feed</a>
+
+<header class="priv-header">
+  <div class="priv-logo">AX<span>-NEWS</span></div>
+  <a class="back-link" href="/">← Back to feed</a>
 </header>
+
 <main>
-  <h1>Privacy Policy</h1>
-  <p><em>Last updated: July 2025</em></p>
+  <h1 class="page-title">Privacy Policy</h1>
+  <p class="page-subtitle">Last updated: July 2026 &nbsp;·&nbsp; Operator: Karin Pierre-Léonard</p>
 
-  <h2>1. Who we are</h2>
-  <p>AX-NEWS is a private tech intelligence aggregator running at ax-news.com. It collects and displays publicly available news from 200+ RSS sources.</p>
+  <div class="callout">
+    <strong>Short version:</strong> AX-NEWS sets no tracking cookies, runs no analytics, and stores no personal data about visitors. Your IP address is processed transiently for security and basic non-identifying metrics only — never stored raw, never shared.
+  </div>
 
-  <h2>Data collection</h2>
-  <p>AX-NEWS collects no personal information from visitors. No account is needed, no cookies are set, and no analytics or advertising trackers run on this site.</p>
+  <h2>1. Who operates this site</h2>
+  <p>AX-NEWS is a personal, non-commercial tech intelligence aggregator operated by <strong>Karin Pierre-Léonard</strong>. It is not affiliated with any company. The source code is published at <a href="https://github.com/plkarin/ax-news" rel="noopener" target="_blank">github.com/plkarin/ax-news</a>, which is also the primary contact channel for any privacy-related requests.</p>
 
-  <h2>IP addresses — flood protection and view counting</h2>
-  <p>Your IP address is processed transiently for two purposes only: (1) rate limiting to protect the service against flooding and abuse, and (2) deduplicating article view counts. For view counting, the IP is immediately transformed into a salted one-way cryptographic hash — the raw address is never stored and the hash cannot be reversed to identify you. Rate-limiting counters exist only in memory and expire within seconds.</p>
+  <h2>2. Visitors — no account required</h2>
+  <p>Reading the feed requires no account, no registration, and no login. Visitors receive <strong>no cookies</strong>. No client-side storage (localStorage, sessionStorage, IndexedDB) is used. The site loads no advertising scripts, no social-media widgets, and no third-party analytics.</p>
 
-  <h2>2. Data we collect from visitors</h2>
+  <h2>3. IP address processing</h2>
+  <p>Your IP address is processed transiently for exactly two purposes:</p>
   <ul>
-    <li><strong>Anonymous article views</strong> — when you view an article, we record a SHA-256 hash of your IP address to count unique views. The raw IP is never stored.</li>
-    <li><strong>No tracking cookies</strong> — anonymous visitors receive no cookies.</li>
-    <li><strong>Server logs</strong> — standard nginx access logs (IP, user-agent, timestamp) retained for up to 30 days for security purposes.</li>
+    <li><strong>Rate limiting / flood protection.</strong> Counters keyed on your IP are held in memory to detect and block abusive request patterns. These counters expire within seconds and are never written to disk.</li>
+    <li><strong>Article view-count deduplication.</strong> To count unique views without tracking individuals, your IP is immediately converted to a <strong>salted SHA-256 hash</strong>. The raw IP address is never stored. The hash is one-way and cannot be reversed to identify you. Hashes are retained for 90 days then purged.</li>
   </ul>
+  <p>Outside these two cases, your IP address is not processed or stored by the application.</p>
 
-  <h2>3. Data we collect from registered users</h2>
+  <h2>4. Server logs</h2>
+  <p>Standard web-server access logs (IP address, User-Agent string, URL, HTTP status code, timestamp) are written automatically by the server software for security and operational purposes. These logs are auto-rotated and retained for approximately 30 days. They are not used for analytics or profiling.</p>
+
+  <h2>5. Third-party content loaded by your browser</h2>
+  <p>When you visit the feed, your browser may fetch assets directly from third-party servers. Those providers may see your IP address:</p>
   <ul>
-    <li>Username and hashed password (bcrypt).</li>
-    <li>Optional email address for account recovery.</li>
-    <li>Read history and knowledge notes you create.</li>
-    <li>Session tokens stored in a secure, HttpOnly cookie.</li>
+    <li><strong>Article thumbnail images</strong> — loaded from the original publishers' CDNs or servers, as found in RSS feeds.</li>
+    <li><strong>Country flag icons</strong> — served by <a href="https://flagcdn.com" rel="noopener" target="_blank">flagcdn.com</a>.</li>
+    <li><strong>Source favicons</strong> — fetched from Google's favicon service (<code>t3.gstatic.com</code>) where used.</li>
   </ul>
+  <p>AX-NEWS has no control over what these providers log or how they process your IP. If you wish to avoid these requests, a browser extension that blocks third-party images will prevent them.</p>
 
-  <h2>4. Data sharing</h2>
-  <p>We do not sell, rent, or share your data with third parties. Article content is fetched from public RSS feeds and attributed to original sources.</p>
+  <h2>6. Content and attribution</h2>
+  <p>AX-NEWS aggregates article metadata (title, URL, thumbnail, summary) from public RSS feeds. Full article text is never reproduced. All articles remain the property of their respective publishers and are attributed with a link to the original source. AX-NEWS adds machine-generated categorisation, sentiment scoring, and translation for non-English articles.</p>
 
-  <h2>5. Data retention</h2>
-  <p>Account data is retained for as long as your account is active. View hashes are retained for 90 days then purged. Server logs are retained for 30 days.</p>
+  <h2>7. Registered admin account</h2>
+  <p>There is a single administrator account used to manage the site. For that account only, a <strong>session cookie</strong> (HttpOnly, Secure, SameSite=Strict) is set after login. The username and a bcrypt-hashed password are stored in the database. No email address is required. Admin session data is retained for as long as the account exists.</p>
 
-  <h2>6. Your rights</h2>
-  <p>Registered users may request deletion of their account and associated data by contacting the administrator.</p>
+  <h2>8. Your rights (GDPR)</h2>
+  <p>If you are in the EU/EEA, you have rights under the GDPR including access, rectification, erasure, and objection. The legal basis for the limited IP processing described above is <strong>legitimate interest</strong> — specifically, security (flood protection) and basic non-identifying operational metrics (unique view counts). Because raw IP addresses are never stored, erasure requests for view hashes can be accommodated by purging the hash table on request.</p>
+  <p>To exercise any right or ask a question about this policy, open an issue or contact at <a href="https://github.com/plkarin/ax-news" rel="noopener" target="_blank">github.com/plkarin/ax-news</a>.</p>
 
-  <h2>7. Contact</h2>
-  <p>Questions about this policy can be sent to the site administrator.</p>
+  <h2>9. Changes to this policy</h2>
+  <p>Any material changes to this policy will be reflected by updating the "Last updated" date above and committing the change to the public repository, where a full history is available.</p>
 </main>
-<footer>
+
+<footer class="priv-footer">
   <a href="/">AX-NEWS</a> &nbsp;·&nbsp;
   <a href="/about">About</a> &nbsp;·&nbsp;
-  No cookies · No tracking · MIT License
+  <a href="https://github.com/plkarin/ax-news" rel="noopener" target="_blank">Source Code</a>
+  &nbsp;·&nbsp; No cookies · No tracking · MIT License
 </footer>
+
 </body>
 </html>

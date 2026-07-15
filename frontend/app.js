@@ -95,18 +95,21 @@ const TREE_META = {
 };
 
 // ── Theme ─────────────────────────────────────────────────────────
+let currentTheme = 'dark';
+
 function initTheme() {
-  const saved = localStorage.getItem('ax-theme') || 'dark';
-  applyTheme(saved);
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(prefersLight ? 'light' : 'dark');
 }
 function applyTheme(theme) {
+  currentTheme = theme;
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('ax-theme', theme);
-  document.querySelectorAll('.theme-dot').forEach(d =>
-    d.classList.toggle('active', d.dataset.theme === theme));
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = theme === 'dark' ? '☀' : '🌙';
 }
-document.querySelectorAll('.theme-dot').forEach(d =>
-  d.addEventListener('click', () => applyTheme(d.dataset.theme)));
+document.getElementById('themeToggle')?.addEventListener('click', () => {
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+});
 
 // ── Utils ─────────────────────────────────────────────────────────
 function esc(s) {

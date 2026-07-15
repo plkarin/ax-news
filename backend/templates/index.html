@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://ax-news.com/og-image.png">
   <link rel="canonical" href="https://ax-news.com/">
   <meta name="theme-color" content="#000510">
-  <link rel="stylesheet" href="style.css?v=20260714b">
+  <link rel="stylesheet" href="style.css?v=20260714d">
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -66,13 +66,7 @@
     </div>
     <div class="header-right">
       <input type="text" id="searchInput" placeholder="Search…" class="header-search">
-      <div class="theme-switcher">
-        <div class="theme-dot active" data-theme="dark" title="Dark"></div>
-        <div class="theme-dot" data-theme="light" title="Light"></div>
-        <div class="theme-dot" data-theme="green" title="Green"></div>
-        <div class="theme-dot" data-theme="blue" title="Blue"></div>
-        <div class="theme-dot" data-theme="purple" title="Purple"></div>
-      </div>
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀</button>
       <span class="user-name" id="headerUser"></span>
       <a href="/profile.html" class="header-link">Profile</a>
       <a href="/admin.html" class="header-link admin" id="adminLink" style="display:none">Admin</a>
@@ -113,6 +107,6 @@
 </footer>
 
 <script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js?v=20260714c"></script>
+<script nonce="{{ csp_nonce }}" src="app.js?v=20260714d"></script>
 </body>
 </html>
