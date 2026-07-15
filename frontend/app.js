@@ -7,7 +7,7 @@ let currentOffset = 0;
 
 let state = {
   category: '', search: '',
-  currentArticleId: null, chatBusy: false, view: 'feed',
+  view: 'feed',
   isAdmin: false,
 };
 
@@ -310,7 +310,15 @@ function appendArticles(articles) {
         <div class="card-date">${a.published_at ? timeAgo(a.published_at) : ''}</div>
         ${buildBadges(a)}
       </div>`;
-    card.addEventListener('click', () => openArticle(a.id));
+    card.addEventListener('click', () => {
+      api(`/articles/${a.id}/view`, { method: 'POST' })
+        .then(r => {
+          const el = card.querySelector('.card-views');
+          if (el && r && typeof r.views === 'number') el.textContent = `👁 ${r.views}`;
+        }).catch(()=>{});
+      const url = a.url || card.dataset.url || '';
+      if (url) window.open(url, '_blank', 'noopener');
+    });
     grid.appendChild(card);
   });
 
@@ -396,6 +404,7 @@ async function showEntity(entityName) {
         ? `<img class="card-thumb" src="${esc(a.image_url)}" alt="" loading="lazy"
                onerror="this.outerHTML='<div class=card-thumb-placeholder>📰</div>'">`
         : `<div class="card-thumb-placeholder">📰</div>`;
+      card.dataset.url = a.url || '';
       card.innerHTML = `
         ${thumb}
         <div class="card-body">
@@ -407,7 +416,11 @@ async function showEntity(entityName) {
           <div class="card-date">${a.published_at?timeAgo(a.published_at):''}</div>
           ${buildBadges(a)}
         </div>`;
-      card.addEventListener('click', ()=>openArticle(a.id));
+      card.addEventListener('click', () => {
+        api(`/articles/${a.id}/view`, { method: 'POST' }).catch(()=>{});
+        const url = a.url || card.dataset.url || '';
+        if (url) window.open(url, '_blank', 'noopener');
+      });
       egrid.appendChild(card);
     });
   } catch(e) {
@@ -415,184 +428,6 @@ async function showEntity(entityName) {
       <div class="empty-state error">Error: ${e.message}</div>`;
   }
 }
-
-// ── Modal ─────────────────────────────────────────────────────────
-async function openArticle(articleId) {
-  api(`/articles/${articleId}/read`, { method: 'POST' }).catch(() => {});
-  const card = document.querySelector(`[data-article-id="${articleId}"]`);
-  if (card) card.classList.add('read');
-
-  const article = await api(`/articles/${articleId}`);
-  if (!article) return;
-
-  function formatContent(raw) {
-    if (!raw) return '';
-    const tmp = document.createElement('div');
-    tmp.innerHTML = raw;
-    const text = (tmp.textContent || '').replace(/\s+/g, ' ').trim();
-    if (!text || text.length < 30) return '';
-    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    const paragraphs = [];
-    let current = '';
-    for (const s of sentences) {
-      current += s + ' ';
-      if (current.length > 280) {
-        paragraphs.push(current.trim());
-        current = '';
-      }
-    }
-    if (current.trim()) paragraphs.push(current.trim());
-    return paragraphs.map(p => `<p>${esc(p)}</p>`).join('');
-  }
-
-  const contentHtml = formatContent(article.content_raw);
-  const entities = typeof article.entities === 'string'
-    ? JSON.parse(article.entities || '[]') : (article.entities || []);
-  const flag = article.country_code
-    ? `${flagImg(article.country_code, 16)} ${esc(article.country_code !== 'GLOBAL' ? article.country_code : '')}` : '';
-
-  document.getElementById('articleModal')?.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'articleModal';
-  modal.className = 'modal-overlay';
-  modal.innerHTML = `
-    <div class="modal-container">
-      <div class="modal-header">
-        <button class="modal-close" onclick="document.getElementById('articleModal').remove()">
-          ✕ Close
-        </button>
-        <div class="modal-meta">
-          <span class="modal-source">${esc(article.feed_source || '')}</span>
-          ${article.category ? `<span class="modal-cat">${esc(article.category.replace(/_/g,' '))}</span>` : ''}
-          <span class="modal-time">${article.published_at ? timeAgo(article.published_at) : ''}</span>
-          ${flag ? `<span class="badge badge-country">${flag}</span>` : ''}
-        </div>
-        <div class="modal-title">${esc(article.title)}</div>
-        <div class="modal-badges">
-          ${entities.slice(0,5).map(e => `<span class="badge badge-entity">${esc(e)}</span>`).join('')}
-          ${article.sentiment && article.sentiment !== 'neutral' && SENTIMENT[article.sentiment]
-            ? `<span class="badge ${SENTIMENT[article.sentiment].cls}">${SENTIMENT[article.sentiment].label}</span>`
-            : ''}
-        </div>
-      </div>
-      ${article.image_url
-        ? `<img class="modal-hero" src="${esc(article.image_url)}" alt="" onerror="this.style.display='none'">`
-        : ''}
-      <div class="modal-body">
-        ${contentHtml
-          ? `<div class="modal-content-block">${contentHtml}</div>`
-          : `<div class="modal-content-block" style="font-style:italic;color:rgba(232,244,255,.4)">
-               No preview available for this article.
-             </div>`}
-        ${article.url
-          ? `<a href="${esc(article.url)}" target="_blank" rel="noopener" class="modal-read-more">
-               Read full article ↗
-             </a>`
-          : ''}
-        ${state.isAdmin ? `
-        <div class="modal-ai-section">
-          <div class="modal-ai-title">🤖 AI Analysis</div>
-          <div class="modal-ai-messages" id="aiMessages"></div>
-          <div class="modal-ai-input">
-            <input type="text" id="aiInput" placeholder="Ask about this article..."
-              onkeydown="if(event.key==='Enter') sendAiMsg(${articleId})">
-            <button onclick="sendAiMsg(${articleId})">Ask</button>
-          </div>
-        </div>
-        ` : ''}
-      </div>
-    </div>`;
-
-  modal.addEventListener('click', e => {
-    if (e.target === modal) modal.remove();
-  });
-
-  document.body.appendChild(modal);
-
-  setTimeout(() => buildCatPills(), 500);
-}
-
-function closeModal() {
-  document.getElementById('articleModal')?.remove();
-  document.getElementById('modal') && (document.getElementById('modal').style.display='none');
-  state.currentArticleId=null;
-}
-
-function appendMsg(role, content) {
-  const msgs = document.getElementById('chatMsgs');
-  const div = document.createElement('div');
-  div.className=`msg ${role}`; div.textContent=content;
-  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
-}
-
-async function sendChat() {
-  if (!state.currentArticleId||state.chatBusy) return;
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim(); if (!msg) return;
-  input.value=''; state.chatBusy=true;
-  document.getElementById('chatSend').disabled=true;
-  appendMsg('user',msg);
-  const thinking = document.createElement('div');
-  thinking.className='msg system'; thinking.textContent='⟳ Analysing…';
-  document.getElementById('chatMsgs').appendChild(thinking);
-  try {
-    const res = await api('/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({article_id:state.currentArticleId, message:msg})});
-    thinking.remove();
-    if (res) { appendMsg('assistant',res.response);
-      if (res.knowledge_updated) toast(`Knowledge updated: ${res.knowledge_updated.domain}`); }
-  } catch(e) { thinking.remove(); appendMsg('system','Error communicating with AI assistant.'); }
-  state.chatBusy=false; document.getElementById('chatSend').disabled=false;
-}
-
-async function sendAiMsg(articleId, autoMsg) {
-  const input = document.getElementById('aiInput');
-  const messages = document.getElementById('aiMessages');
-  if (!input || !messages) return;
-
-  const text = autoMsg || input.value.trim();
-  if (!text) return;
-  if (!autoMsg) input.value = '';
-
-  const userMsg = document.createElement('div');
-  userMsg.className = 'ai-msg user';
-  userMsg.textContent = text;
-  messages.appendChild(userMsg);
-
-  const loadMsg = document.createElement('div');
-  loadMsg.className = 'ai-msg assistant ai-response';
-  loadMsg.textContent = 'Analysing...';
-  messages.appendChild(loadMsg);
-  messages.scrollTop = messages.scrollHeight;
-
-  try {
-    const res = await fetch(API + `/articles/${articleId}/chat`, {
-      credentials: 'same-origin',
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
-    });
-    if (!res.ok) {
-      let detail = '';
-      try { const j = await res.json(); detail = j.detail || ''; } catch(_) {}
-      throw new Error(detail || `${res.status} ${res.statusText}`);
-    }
-    const data = await res.json();
-    let md = data?.response || 'No response.';
-    md = md
-      .replace(/(#{1,3}\s*)(Key Points)/gi,   '$1🔑 Key Points')
-      .replace(/(#{1,3}\s*)(Bottom Line)/gi,  '$1💡 Bottom Line')
-      .replace(/(#{1,3}\s*)Why(\s*[:\n])/gi,  '$1❓ Why$2')
-      .replace(/(#{1,3}\s*)(Context)/gi,       '$1📌 Context')
-      .replace(/(#{1,3}\s*)(Trade-off)/gi,     '$1⚖️ Trade-off');
-    loadMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(md) : md.replace(/\n/g, '<br>');
-  } catch(e) {
-    loadMsg.textContent = 'Error: ' + (e.message || 'Could not reach AI service.');
-  }
-  messages.scrollTop = messages.scrollHeight;
-}
-
 
 // ── Sync ──────────────────────────────────────────────────────────
 async function syncFeed() {
@@ -621,13 +456,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   initTheme();
   const authed = await initAuth(); if (!authed) return;
   document.getElementById('syncBtn').addEventListener('click',syncFeed);
-  document.getElementById('modalClose')?.addEventListener('click',closeModal);
-  document.getElementById('modalBackdrop')?.addEventListener('click',closeModal);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-  document.getElementById('chatSend')?.addEventListener('click',sendChat);
-  document.getElementById('chatInput')?.addEventListener('keydown',e=>{
-    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}
-  });
   let searchTimer;
   document.getElementById('searchInput').addEventListener('input',e=>{
     clearTimeout(searchTimer);

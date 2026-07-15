@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://ax-news.com/og-image.png">
   <link rel="canonical" href="https://ax-news.com/">
   <meta name="theme-color" content="#000510">
-  <link rel="stylesheet" href="style.css?v=20260713b">
+  <link rel="stylesheet" href="style.css?v=20260714">
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -58,11 +58,12 @@
     <div class="header-left">
       <div class="logo"><picture>
       <source srcset="/logo.webp" type="image/webp">
-      <img src="/logo.png" alt="AXIOM" width="72" height="36" class="hdr-logo-img">
+      <img src="/logo.png" alt="AXIOM" class="hdr-logo-img" style="height:52px;width:auto;object-fit:contain;vertical-align:middle">
     </picture></div>
       <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
     </div>
     <div class="header-right">
+      <input type="text" id="searchInput" placeholder="Search…" class="header-search">
       <div class="theme-switcher">
         <div class="theme-dot active" data-theme="dark" title="Dark"></div>
         <div class="theme-dot" data-theme="light" title="Light"></div>
@@ -78,9 +79,6 @@
   </header>
   <div class="feed-layout">
     <div class="cat-panel">
-      <div class="cat-panel-search">
-        <input type="text" id="searchInput" placeholder="Search articles…" class="search-input">
-      </div>
       <div class="cat-pills" id="catPills"></div>
     </div>
     <div id="feedView">
@@ -91,24 +89,6 @@
   </div>
 </div>
 
-<!-- Article modal -->
-<div id="modal" style="display:none" class="modal">
-  <div class="modal-backdrop" id="modalBackdrop"></div>
-  <div class="modal-box">
-    <div class="modal-article">
-      <button class="modal-close" id="modalClose">✕ Close</button>
-      <div id="modalContent"></div>
-    </div>
-    <div class="modal-chat">
-      <div class="chat-header">⬡ AI Assistant</div>
-      <div class="chat-msgs" id="chatMsgs"></div>
-      <div class="chat-input-area">
-        <textarea id="chatInput" placeholder="Ask about this article…" disabled></textarea>
-        <button id="chatSend" disabled>Send</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <footer class="site-footer">
   <div class="footer-inner">
@@ -131,6 +111,6 @@
 </footer>
 
 <script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js?v=20260713b"></script>
+<script nonce="{{ csp_nonce }}" src="app.js?v=20260714"></script>
 </body>
 </html>
