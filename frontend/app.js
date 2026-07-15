@@ -4,6 +4,8 @@ const PAGE_SIZE = 24;
 let isLoading = false;
 let hasMore = true;
 let currentOffset = 0;
+let loadRetries = 0;
+const MAX_RETRIES = 4;
 
 let state = {
   category: '', search: '',
@@ -132,6 +134,30 @@ async function api(path, opts={}) {
   return res.json();
 }
 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function apiWithRetry(path, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(`/api${path}`, { credentials: 'include' });
+      if (res.status === 429) {
+        const ra = parseInt(res.headers.get('retry-after') || '2', 10);
+        await sleep(Math.min(ra, 5) * 1000);
+        continue;
+      }
+      if (res.status >= 500) {
+        await sleep(400 * Math.pow(2, i));
+        continue;
+      }
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      await sleep(400 * Math.pow(2, i));
+    }
+  }
+  return null;
+}
+
 // ── Auth ──────────────────────────────────────────────────────────
 async function initAuth() {
   const me = await api('/auth/me').catch(()=>null);
@@ -242,13 +268,14 @@ function buildBadges(article) {
 // ── Articles ──────────────────────────────────────────────────────
 async function loadArticles(reset = false) {
   if (isLoading) return;
-  if (!hasMore && !reset) return;
-
   if (reset) {
     currentOffset = 0;
     hasMore = true;
-    document.getElementById('articleGrid').innerHTML = '';
+    loadRetries = 0;
+    const grid = document.getElementById('articleGrid');
+    if (grid) grid.innerHTML = '';
   }
+  if (!hasMore) return;
 
   isLoading = true;
   const sentinel = document.getElementById('scrollSentinel');
@@ -259,26 +286,50 @@ async function loadArticles(reset = false) {
   if (state.search) p.set('search', state.search);
 
   try {
-    const articles = await api(`/articles?${p}`);
-    if (!articles || articles.length === 0) {
+    const articles = await apiWithRetry(`/articles?${p.toString()}`, 3);
+
+    if (!articles) {
+      loadRetries++;
+      if (sentinel) sentinel.textContent = '';
+      isLoading = false;
+      setTimeout(() => { if (!isLoading && hasMore) maybeAutoLoad(); }, 1200 * Math.min(loadRetries, 4));
+      return;
+    }
+
+    loadRetries = 0;
+
+    if (articles.length === 0) {
       hasMore = false;
       if (sentinel) sentinel.textContent = currentOffset === 0
         ? 'No articles found.' : '— End of feed —';
       isLoading = false;
       return;
     }
+
+    appendArticles(articles);
+    currentOffset += articles.length;
+
     if (articles.length < PAGE_SIZE) {
       hasMore = false;
       if (sentinel) sentinel.textContent = '— End of feed —';
-    } else {
-      if (sentinel) sentinel.textContent = '';
+    } else if (sentinel) {
+      sentinel.textContent = '';
     }
-    appendArticles(articles);
-    currentOffset += articles.length;
-  } catch(e) {
-    if (sentinel) sentinel.textContent = 'Error loading articles.';
+  } catch (e) {
+    loadRetries++;
+    if (sentinel) sentinel.textContent = '';
+    isLoading = false;
+    setTimeout(() => { if (!isLoading && hasMore) maybeAutoLoad(); }, 1200 * Math.min(loadRetries, 4));
+    return;
   }
   isLoading = false;
+}
+
+function maybeAutoLoad() {
+  const sentinel = document.getElementById('scrollSentinel');
+  if (!sentinel || isLoading || !hasMore) return;
+  const rect = sentinel.getBoundingClientRect();
+  if (rect.top < window.innerHeight + 400) loadArticles();
 }
 
 function appendArticles(articles) {
@@ -328,11 +379,16 @@ function appendArticles(articles) {
 function initInfiniteScroll() {
   const sentinel = document.getElementById('scrollSentinel');
   if (!sentinel) return;
+  let scheduled = false;
   const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && hasMore && !isLoading) {
-      loadArticles();
+    if (entries[0].isIntersecting && hasMore && !isLoading && !scheduled) {
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        loadArticles();
+      });
     }
-  }, { rootMargin: '300px' });
+  }, { rootMargin: '600px 0px' });
   observer.observe(sentinel);
 }
 
