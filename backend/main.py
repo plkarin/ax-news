@@ -1,4 +1,4 @@
-import asyncio, logging, os, re, html as html_lib, wave
+import asyncio, logging, os, re, html as html_lib
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -17,6 +17,7 @@ load_dotenv()
 import freshrss
 import db as database
 import ollama_client
+from audio_pipeline import generate_article_audio, try_lock_audio
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
 from keyword_analysis import enrich_batch_static, enrich_article_static
@@ -64,11 +65,8 @@ SMTP_FROM = os.getenv("SMTP_FROM", "noreply@ax-news.com")
 APP_URL              = os.getenv("APP_URL", "https://ax-news.com")
 INTERNAL_SYNC_TOKEN  = os.getenv("INTERNAL_SYNC_TOKEN", "")
 
-# Audio TTS config
-VOICE_MODEL_PATH = "/opt/ax-news/voices/fr_FR-siwis-medium.onnx"
-AUDIO_DIR        = "/opt/ax-news/audio"
-PIPER_BIN        = "/opt/ax-news/backend/venv/bin/piper"
-SYNTHESIZE_SCRIPT = "/opt/ax-news/synthesize_audio.py"
+# Audio storage (purge uses this; generation constants live in audio_pipeline.py)
+AUDIO_DIR = "/opt/ax-news/audio"
 
 # In-memory token store (use Redis in production)
 _email_tokens: dict = {}
@@ -561,62 +559,6 @@ async def record_view(article_id: int, request: Request):
 
 # ── Audio summaries ───────────────────────────────────────────────────────────
 
-def get_audio_duration_seconds(wav_path: str) -> int:
-    try:
-        with wave.open(wav_path, "rb") as w:
-            return round(w.getnframes() / w.getframerate())
-    except Exception:
-        return 0
-
-async def _try_lock_audio(article_id: int) -> bool:
-    result = await pool.execute("""
-        UPDATE articles SET audio_status = 'generating'
-        WHERE id = $1 AND audio_status IN ('none', 'failed')
-    """, article_id)
-    return result == "UPDATE 1"
-
-async def _audio_done(article_id: int, summary: str, url: str, duration: int):
-    await pool.execute("""
-        UPDATE articles
-        SET audio_status = 'done',
-            audio_summary_text = $2,
-            audio_url = $3,
-            audio_duration_seconds = $4,
-            audio_generated_at = NOW(),
-            audio_error = NULL
-        WHERE id = $1
-    """, article_id, summary, url, duration)
-
-async def _audio_failed(article_id: int, error: str):
-    await pool.execute("""
-        UPDATE articles
-        SET audio_status = 'failed', audio_error = $2
-        WHERE id = $1
-    """, article_id, error[:500])
-
-async def _generate_audio(article_id: int, content: str):
-    try:
-        summary = await ollama_client.summarize_to_french(content)
-        output_path = f"{AUDIO_DIR}/{article_id}.wav"
-        proc = await asyncio.create_subprocess_exec(
-            PIPER_BIN, "--model", VOICE_MODEL_PATH, "--output_file", output_path,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
-        )
-        await proc.communicate(input=summary.encode("utf-8"))
-        if proc.returncode != 0:
-            raise RuntimeError("piper synthesis failed")
-        duration = get_audio_duration_seconds(output_path)
-        await _audio_done(article_id, summary, f"/audio/{article_id}.wav", duration)
-        logger.info(f"Audio generated for article {article_id}: {duration}s")
-    except ollama_client.OllamaUnavailableError as e:
-        await _audio_failed(article_id, str(e))
-        logger.warning(f"Audio failed for {article_id}: {e}")
-    except Exception as e:
-        await _audio_failed(article_id, str(e))
-        logger.error(f"Audio error for {article_id}: {e}")
-
 @app.get("/api/articles/{article_id}/audio")
 async def get_article_audio(article_id: int):
     row = await pool.fetchrow(
@@ -638,11 +580,11 @@ async def get_article_audio(article_id: int):
     if not row["content_raw"]:
         return _JSONResponse({"status": "failed", "error": "no content"}, status_code=422)
 
-    locked = await _try_lock_audio(article_id)
+    locked = await try_lock_audio(pool, article_id)
     if not locked:
         return _JSONResponse({"status": "generating"}, status_code=202)
 
-    asyncio.create_task(_generate_audio(article_id, row["content_raw"]))
+    asyncio.create_task(generate_article_audio(pool, article_id, row["content_raw"]))
     return _JSONResponse({"status": "generating"}, status_code=202)
 
 @app.get("/api/categories")
