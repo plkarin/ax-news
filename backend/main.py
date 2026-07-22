@@ -1,4 +1,4 @@
-import asyncio, logging, os, re, html as html_lib
+import asyncio, logging, os, re, html as html_lib, wave
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -7,7 +7,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request, Response, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse as _JSONResponse
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
@@ -16,6 +16,7 @@ load_dotenv()
 
 import freshrss
 import db as database
+import ollama_client
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
 from keyword_analysis import enrich_batch_static, enrich_article_static
@@ -62,6 +63,12 @@ SMTP_PASS = os.getenv("SMTP_PASS", "")
 SMTP_FROM = os.getenv("SMTP_FROM", "noreply@ax-news.com")
 APP_URL              = os.getenv("APP_URL", "https://ax-news.com")
 INTERNAL_SYNC_TOKEN  = os.getenv("INTERNAL_SYNC_TOKEN", "")
+
+# Audio TTS config
+VOICE_MODEL_PATH = "/opt/ax-news/voices/fr_FR-siwis-medium.onnx"
+AUDIO_DIR        = "/opt/ax-news/audio"
+PIPER_BIN        = "/opt/ax-news/backend/venv/bin/piper"
+SYNTHESIZE_SCRIPT = "/opt/ax-news/synthesize_audio.py"
 
 # In-memory token store (use Redis in production)
 _email_tokens: dict = {}
@@ -551,6 +558,92 @@ async def record_view(article_id: int, request: Request):
     if not row:
         raise HTTPException(404, "Article not found")
     return {"views": row["view_count"], "counted": incremented}
+
+# ── Audio summaries ───────────────────────────────────────────────────────────
+
+def get_audio_duration_seconds(wav_path: str) -> int:
+    try:
+        with wave.open(wav_path, "rb") as w:
+            return round(w.getnframes() / w.getframerate())
+    except Exception:
+        return 0
+
+async def _try_lock_audio(article_id: int) -> bool:
+    result = await pool.execute("""
+        UPDATE articles SET audio_status = 'generating'
+        WHERE id = $1 AND audio_status IN ('none', 'failed')
+    """, article_id)
+    return result == "UPDATE 1"
+
+async def _audio_done(article_id: int, summary: str, url: str, duration: int):
+    await pool.execute("""
+        UPDATE articles
+        SET audio_status = 'done',
+            audio_summary_text = $2,
+            audio_url = $3,
+            audio_duration_seconds = $4,
+            audio_generated_at = NOW(),
+            audio_error = NULL
+        WHERE id = $1
+    """, article_id, summary, url, duration)
+
+async def _audio_failed(article_id: int, error: str):
+    await pool.execute("""
+        UPDATE articles
+        SET audio_status = 'failed', audio_error = $2
+        WHERE id = $1
+    """, article_id, error[:500])
+
+async def _generate_audio(article_id: int, content: str):
+    try:
+        summary = await ollama_client.summarize_to_french(content)
+        output_path = f"{AUDIO_DIR}/{article_id}.wav"
+        proc = await asyncio.create_subprocess_exec(
+            PIPER_BIN, "--model", VOICE_MODEL_PATH, "--output_file", output_path,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await proc.communicate(input=summary.encode("utf-8"))
+        if proc.returncode != 0:
+            raise RuntimeError("piper synthesis failed")
+        duration = get_audio_duration_seconds(output_path)
+        await _audio_done(article_id, summary, f"/audio/{article_id}.wav", duration)
+        logger.info(f"Audio generated for article {article_id}: {duration}s")
+    except ollama_client.OllamaUnavailableError as e:
+        await _audio_failed(article_id, str(e))
+        logger.warning(f"Audio failed for {article_id}: {e}")
+    except Exception as e:
+        await _audio_failed(article_id, str(e))
+        logger.error(f"Audio error for {article_id}: {e}")
+
+@app.get("/api/articles/{article_id}/audio")
+async def get_article_audio(article_id: int):
+    row = await pool.fetchrow(
+        "SELECT audio_status, audio_url, audio_duration_seconds, content_raw FROM articles WHERE id = $1",
+        article_id
+    )
+    if not row:
+        raise HTTPException(404, "Article not found")
+
+    status = row["audio_status"] or "none"
+
+    if status == "done":
+        return {"status": "done", "audio_url": row["audio_url"],
+                "duration": row["audio_duration_seconds"]}
+
+    if status == "generating":
+        return _JSONResponse({"status": "generating"}, status_code=202)
+
+    if not row["content_raw"]:
+        return _JSONResponse({"status": "failed", "error": "no content"}, status_code=422)
+
+    locked = await _try_lock_audio(article_id)
+    if not locked:
+        return _JSONResponse({"status": "generating"}, status_code=202)
+
+    asyncio.create_task(_generate_audio(article_id, row["content_raw"]))
+    return _JSONResponse({"status": "generating"}, status_code=202)
 
 @app.get("/api/categories")
 async def list_categories(user: Optional[dict] = Depends(get_optional_user)):
@@ -1103,17 +1196,32 @@ async def save_article_image(article_id: int, data: dict):
 
 @app.delete("/api/purge")
 async def purge_old_articles(token: str = ""):
-    """Delete articles older than 30 days."""
+    """Delete articles older than 30 days, including associated audio files."""
     TV_TOKEN_VALUE = "ax-news-tv-readonly-2026"
     if token != TV_TOKEN_VALUE:
         raise HTTPException(403, "Not authorized")
+    # Collect IDs with audio files before deleting
+    old_rows = await pool.fetch("""
+        SELECT id FROM articles
+        WHERE published_at < NOW() - INTERVAL '30 days'
+          AND audio_status = 'done'
+    """)
     result = await pool.execute("""
         DELETE FROM articles
         WHERE published_at < NOW() - INTERVAL '30 days'
     """)
     deleted = int(result.split()[-1])
-    logger.info(f"Purged {deleted} articles older than 30 days")
-    return {"deleted": deleted}
+    audio_deleted = 0
+    for row in old_rows:
+        wav = f"{AUDIO_DIR}/{row['id']}.wav"
+        try:
+            if os.path.exists(wav):
+                os.remove(wav)
+                audio_deleted += 1
+        except OSError as e:
+            logger.warning(f"Could not delete audio {wav}: {e}")
+    logger.info(f"Purged {deleted} articles, {audio_deleted} audio files")
+    return {"deleted": deleted, "audio_deleted": audio_deleted}
 
 @app.get("/api/admin/pending-users")
 async def get_pending_users(user: dict = Depends(require_admin)):
@@ -1271,3 +1379,11 @@ async def landing_html(request: Request):
 @app.get("/privacy.html", response_class=HTMLResponse)
 async def privacy_html(request: Request):
     return templates.TemplateResponse(request, "privacy.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+
+@app.get("/architecture")
+async def architecture_page(request: Request):
+    return templates.TemplateResponse(request, "architecture.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+
+@app.get("/contact")
+async def contact_page(request: Request):
+    return templates.TemplateResponse(request, "contact.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
