@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — AX-NEWS</title>
+  <meta name="description" content="Contact AX-NEWS — reach the operator by email or GitHub.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://ax-news.com/contact">
+  <style nonce="{{ csp_nonce }}">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: #05060a;
+      color: #e8f4ff;
+      line-height: 1.7;
+    }
+    a { color: #4d9fff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .contact-header {
+      padding: 18px 32px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #05060a 0%, #0a0d18 100%);
+    }
+    .contact-logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #4d9fff;
+    }
+    .contact-logo span { color: #e8f4ff; }
+    .back-link {
+      font-size: .85rem;
+      color: rgba(232,244,255,.6);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 5px 14px;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .back-link:hover { color: #4d9fff; border-color: #4d9fff; text-decoration: none; }
+
+    main {
+      max-width: 680px;
+      margin: 64px auto;
+      padding: 0 28px 80px;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #e8f4ff;
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      font-size: .9rem;
+      color: #6b7a90;
+      margin-bottom: 40px;
+    }
+    .contact-card {
+      background: #0f1118;
+      border: 1px solid #1e2230;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+    .contact-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .contact-label {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6b7a90;
+      margin-bottom: 4px;
+    }
+    .contact-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4d9fff;
+    }
+    .contact-desc {
+      font-size: .85rem;
+      color: rgba(232,244,255,.55);
+      margin-top: 4px;
+    }
+    p { color: rgba(232,244,255,.75); font-size: .93rem; margin-bottom: 12px; }
+
+    .footer-simple {
+      text-align: center;
+      padding: 24px;
+      font-size: .8rem;
+      color: #6b7a90;
+      border-top: 1px solid #1e2230;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="contact-header">
+  <div class="contact-logo">AX<span>-NEWS</span></div>
+  <a href="/" class="back-link">← Feed</a>
+</header>
+
+<main>
+  <h1 class="page-title">Contact</h1>
+  <p class="page-subtitle">AX-NEWS is a personal non-commercial project. No support SLA.</p>
+
+  <div class="contact-card">
+    <div class="contact-icon">✉</div>
+    <div>
+      <div class="contact-label">Email</div>
+      <div class="contact-value"><a href="mailto:leonardkarin@gmail.com">leonardkarin@gmail.com</a></div>
+      <div class="contact-desc">For questions, DMCA / takedown requests, privacy inquiries.</div>
+    </div>
+  </div>
+
+  <div class="contact-card">
+    <div class="contact-icon">⌥</div>
+    <div>
+      <div class="contact-label">GitHub</div>
+      <div class="contact-value"><a href="https://github.com/plkarin/ax-news" target="_blank" rel="noopener">github.com/plkarin/ax-news</a></div>
+      <div class="contact-desc">Bug reports, feature requests — open an issue.</div>
+    </div>
+  </div>
+
+  <p style="margin-top:32px">Content displayed on AX-NEWS is aggregated from public RSS feeds. Each article remains the property of its original publisher. For takedown requests, please include the URL of the specific article.</p>
+</main>
+
+<footer class="footer-simple">
+  <a href="/">Feed</a> &middot;
+  <a href="/about">About</a> &middot;
+  <a href="/privacy">Privacy</a> &middot;
+  <a href="/architecture">Architecture</a> &middot;
+  <a href="https://github.com/plkarin/ax-news" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+</body>
+</html>

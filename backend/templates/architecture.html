@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — AX-NEWS</title>
+  <meta name="description" content="AX-NEWS technical architecture — stack, request flow, and pipeline descriptions.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://ax-news.com/architecture">
+  <style nonce="{{ csp_nonce }}">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: #05060a;
+      color: #e8f4ff;
+      line-height: 1.7;
+    }
+    a { color: #4d9fff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .arch-header {
+      padding: 18px 32px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #05060a 0%, #0a0d18 100%);
+    }
+    .arch-logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #4d9fff;
+    }
+    .arch-logo span { color: #e8f4ff; }
+    .back-link {
+      font-size: .85rem;
+      color: rgba(232,244,255,.6);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 5px 14px;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .back-link:hover { color: #4d9fff; border-color: #4d9fff; text-decoration: none; }
+
+    main {
+      max-width: 860px;
+      margin: 48px auto;
+      padding: 0 28px 80px;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #e8f4ff;
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      font-size: .85rem;
+      color: #6b7a90;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #4d9fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 36px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e2230;
+    }
+    p { color: rgba(232,244,255,.82); font-size: .93rem; margin-bottom: 12px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { color: rgba(232,244,255,.82); font-size: .93rem; margin-bottom: 8px; }
+    strong { color: #e8f4ff; font-weight: 600; }
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: .85em;
+      background: rgba(77,159,255,.1);
+      border: 1px solid rgba(77,159,255,.15);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: #93c5fd;
+    }
+
+    .flow-box {
+      background: #0f1118;
+      border: 1px solid #1e2230;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: .88rem;
+      color: #93c5fd;
+      line-height: 2;
+    }
+    .flow-arrow { color: #4d9fff; margin: 0 8px; }
+
+    .stack-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    .stack-table th {
+      text-align: left;
+      font-size: .8rem;
+      color: #6b7a90;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #1e2230;
+    }
+    .stack-table td {
+      padding: 10px 12px;
+      font-size: .9rem;
+      color: rgba(232,244,255,.82);
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: top;
+    }
+    .stack-table td:first-child { color: #4d9fff; font-weight: 600; white-space: nowrap; }
+
+    .callout {
+      background: rgba(77,159,255,.07);
+      border: 1px solid rgba(77,159,255,.18);
+      border-left: 3px solid #4d9fff;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: .9rem;
+      color: rgba(232,244,255,.85);
+    }
+
+    .footer-simple {
+      text-align: center;
+      padding: 24px;
+      font-size: .8rem;
+      color: #6b7a90;
+      border-top: 1px solid #1e2230;
+    }
+  </style>
+</head>
+<body>
+
+<header class="arch-header">
+  <div class="arch-logo">AX<span>-NEWS</span></div>
+  <a href="/" class="back-link">← Feed</a>
+</header>
+
+<main>
+  <h1 class="page-title">Architecture</h1>
+  <p class="page-subtitle">Static description of the AX-NEWS technical stack — no live metrics.</p>
+
+  <h2>Request Flow</h2>
+  <div class="flow-box">
+    Browser / Client
+    <span class="flow-arrow">→</span> Cloudflare (CDN + DDoS)
+    <span class="flow-arrow">→</span> HAProxy (TLS termination, ax-lab05:443)
+    <span class="flow-arrow">→</span> Nginx (vhost, static assets, rate limiting)
+    <span class="flow-arrow">→</span> FastAPI / uvicorn (port 8000, 2 workers)
+    <span class="flow-arrow">→</span> PostgreSQL 16 (local socket)
+  </div>
+
+  <p>Static assets (CSS, JS, images) are served directly by Nginx from <code>/opt/ax-news/frontend/</code> without hitting FastAPI. HTML pages go through FastAPI for per-request CSP nonce injection via Jinja2 templates.</p>
+
+  <h2>Stack</h2>
+  <table class="stack-table">
+    <thead>
+      <tr><th>Layer</th><th>Technology</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Edge / CDN</td><td>Cloudflare</td><td>DDoS protection, global CDN, Proxy DNS</td></tr>
+      <tr><td>Load balancer</td><td>HAProxy</td><td>TLS termination, HTTP→HTTPS redirect</td></tr>
+      <tr><td>Web server</td><td>Nginx</td><td>Static files, reverse proxy, rate limiting (login: 5/min, API: 60/min, audio: 10/min)</td></tr>
+      <tr><td>Application</td><td>FastAPI + uvicorn</td><td>REST API, Jinja2 HTML rendering, background tasks</td></tr>
+      <tr><td>Database</td><td>PostgreSQL 16</td><td>Articles, users, sessions, NLP metadata</td></tr>
+      <tr><td>RSS ingestion</td><td>FreshRSS (PHP 8.3)</td><td>200+ RSS feeds aggregated at <code>/news</code></td></tr>
+      <tr><td>Translation</td><td>Argos Translate</td><td>CJK/Korean titles translated to English — runs as a standalone systemd service to avoid OOM in uvicorn</td></tr>
+      <tr><td>Audio summaries</td><td>Ollama (qwen2.5:3b) + Piper TTS</td><td>French oral summaries generated on-demand — Ollama runs on bare-metal host (.37), Piper synthesises WAV via subprocess (not inline in uvicorn)</td></tr>
+      <tr><td>Enrichment</td><td>Keyword analysis (Python)</td><td>Entity extraction, sentiment classification, country tagging — runs at sync time</td></tr>
+      <tr><td>Hosting</td><td>ax-lab05 VM (~3.8 GB RAM)</td><td>Single Linux VM, all services via systemd</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Audio Summary Pipeline</h2>
+  <div class="flow-box">
+    User clicks "Listen"
+    <span class="flow-arrow">→</span> GET /api/articles/{id}/audio
+    <span class="flow-arrow">→</span> FastAPI checks audio_status in DB<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;If 'none'/'failed': locks row → launches asyncio background task<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;Task: Ollama (.37) → French summary (~120 words)
+    <span class="flow-arrow">→</span> Piper subprocess → WAV file<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;Frontend polls every 2s until status = 'done'
+    <span class="flow-arrow">→</span> Audio plays in browser
+  </div>
+  <ul>
+    <li>Piper TTS voice: <strong>fr_FR-siwis-medium</strong> (MIT license, CPU-only, ~61 MB model)</li>
+    <li>WAV files stored in <code>/opt/ax-news/audio/</code>, served statically by Nginx</li>
+    <li>Audio files purged automatically with their article after 30 days</li>
+    <li>Rate limit on audio generation endpoint: 10 req/min per IP</li>
+  </ul>
+
+  <h2>Data Flow — Article Lifecycle</h2>
+  <ul>
+    <li><strong>Ingestion</strong>: FreshRSS syncs feeds every 15 min → FastAPI upserts into <code>articles</code> table</li>
+    <li><strong>Enrichment</strong>: Keyword analysis runs at sync time — extracts entities, sentiment, country code</li>
+    <li><strong>Translation</strong>: CJK/Korean titles translated by Argos standalone worker (every 10 min)</li>
+    <li><strong>Deduplication</strong>: Dedup worker runs every 6 hours to remove near-identical articles</li>
+    <li><strong>Image prefetch</strong>: OG image fetched nightly for articles missing thumbnails</li>
+    <li><strong>Purge</strong>: Articles older than 30 days deleted every Monday 3 AM, including audio files</li>
+  </ul>
+
+  <h2>Security Notes</h2>
+  <div class="callout">
+    This page is intentionally static and descriptive. It does not expose live system metrics (CPU, RAM, disk, hostname). A previous <code>/api/metrics</code> endpoint was removed because it disclosed server internals without authentication.
+  </div>
+  <ul>
+    <li>CSP with per-request nonce injected by FastAPI — no <code>unsafe-eval</code> in practice</li>
+    <li>No cookies except session (httpOnly, SameSite=Lax)</li>
+    <li>No localStorage / sessionStorage (privacy policy — zero client-side persistence)</li>
+    <li>Public feed is unauthenticated read-only — write operations and admin actions require session</li>
+    <li>Rate limiting at Nginx level for login, API, and audio endpoints</li>
+  </ul>
+
+  <h2>Source Code</h2>
+  <p>
+    The full source is available on GitHub:
+    <a href="https://github.com/plkarin/ax-news" target="_blank" rel="noopener">github.com/plkarin/ax-news</a>
+    (MIT license).
+  </p>
+</main>
+
+<footer class="footer-simple">
+  <a href="/">Feed</a> &middot;
+  <a href="/about">About</a> &middot;
+  <a href="/privacy">Privacy</a> &middot;
+  <a href="/contact">Contact</a> &middot;
+  <a href="https://github.com/plkarin/ax-news" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+</body>
+</html>
