@@ -29,3 +29,5 @@ client_secret*.json
 .git-credentials
 .claude/
 **/.claude/
+voices/
+audio/
