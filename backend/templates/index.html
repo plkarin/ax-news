@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://ax-news.com/og-image.png">
   <link rel="canonical" href="https://ax-news.com/">
   <meta name="theme-color" content="#000510">
-  <link rel="stylesheet" href="style.css?v=20260714d">
+  <link rel="stylesheet" href="style.css?v=20260722a">
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -67,6 +67,22 @@
     <div class="header-right">
       <input type="text" id="searchInput" placeholder="Search…" class="header-search">
       <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀</button>
+      <nav class="header-nav-links" aria-label="Site navigation">
+        <a href="/architecture" class="header-link">Architecture</a>
+        <a href="/privacy" class="header-link">Privacy</a>
+        <a href="/contact" class="header-link">Contact</a>
+        <a href="https://github.com/plkarin/ax-news" class="header-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <details class="mobile-nav">
+        <summary title="Navigation">☰ Nav</summary>
+        <div class="mobile-nav-menu">
+          <a href="/architecture">Architecture</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/contact">Contact</a>
+          <a href="/profile.html">Profile</a>
+          <a href="https://github.com/plkarin/ax-news" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </details>
       <span class="user-name" id="headerUser"></span>
       <a href="/profile.html" class="header-link">Profile</a>
       <a href="/admin.html" class="header-link admin" id="adminLink" style="display:none">Admin</a>
@@ -107,6 +123,6 @@
 </footer>
 
 <script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js?v=20260714d"></script>
+<script nonce="{{ csp_nonce }}" src="app.js?v=20260722a"></script>
 </body>
 </html>
