@@ -176,3 +176,16 @@ async def save_knowledge_update(pool, user_id: int, article_id: int,
           (user_id, domain, gap_identified, gap_resolved, source_article)
         VALUES ($1,$2,$3,$4,$5)
     """, user_id, domain, gap_id, gap_res, article_id)
+
+async def get_articles_needing_audio(pool, window_hours: int, limit: int) -> list:
+    """Articles récents sans audio, les plus récents en premier."""
+    rows = await pool.fetch("""
+        SELECT id, content_raw FROM articles
+        WHERE audio_status = 'none'
+          AND content_raw IS NOT NULL
+          AND content_raw != ''
+          AND published_at > NOW() - make_interval(hours => $1)
+        ORDER BY published_at DESC
+        LIMIT $2
+    """, window_hours, limit)
+    return [dict(r) for r in rows]
