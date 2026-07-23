@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://ax-news.com/og-image.png">
   <link rel="canonical" href="https://ax-news.com/">
   <meta name="theme-color" content="#000510">
-  <link rel="stylesheet" href="style.css?v=20260723a">
+  <link rel="stylesheet" href="style.css?v=20260723b">
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -55,16 +55,14 @@
 <h1 class="sr-only">AX-NEWS — Global Tech Intelligence Feed: AI, Semiconductors, Cybersecurity News</h1>
 <div id="app">
   <header>
-    <div class="header-left">
+    <div class="header-logo-zone">
+      <picture>
+        <source srcset="/logo.webp" type="image/webp">
+        <img src="/logo.png" alt="AXIOM" class="hdr-logo-img" width="416" height="208">
+      </picture>
+    </div>
+    <div class="header-controls-row">
       <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
-    </div>
-    <div class="header-center">
-      <div class="logo"><picture>
-      <source srcset="/logo.webp" type="image/webp">
-      <img src="/logo.png" alt="AXIOM" class="hdr-logo-img">
-    </picture></div>
-    </div>
-    <div class="header-right">
       <input type="text" id="searchInput" placeholder="Search…" class="header-search">
       <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀</button>
       <nav class="header-nav-links" aria-label="Site navigation">
@@ -123,6 +121,6 @@
 </footer>
 
 <script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js?v=20260723a"></script>
+<script nonce="{{ csp_nonce }}" src="app.js?v=20260723b"></script>
 </body>
 </html>
