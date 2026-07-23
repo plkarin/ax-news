@@ -572,6 +572,7 @@ body {
 .audio-play-btn.loading { background: rgba(255,165,0,.18); border-color: rgba(255,165,0,.5); }
 .audio-play-btn.playing { background: rgba(16,185,129,.25); border-color: #10b981; }
 .audio-play-btn.error-state { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.5); }
+.audio-play-btn.not-ready { opacity: 0.45; cursor: default; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .audio-play-btn.loading svg.icon-spin { animation: spin .9s linear infinite; }
 .card { position: relative; }

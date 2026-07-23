@@ -348,14 +348,15 @@ function renderAudioButton(articleId) {
 }
 
 function setAudioBtnState(btn, state) {
-  btn.classList.remove('loading', 'playing', 'error-state');
+  btn.classList.remove('loading', 'playing', 'error-state', 'not-ready');
   const play = btn.querySelector('.icon-play');
   const spin = btn.querySelector('.icon-spin');
   const pause = btn.querySelector('.icon-pause');
-  if (state === 'idle')    { play.style.display=''; spin.style.display='none'; pause.style.display='none'; }
-  if (state === 'loading') { play.style.display='none'; spin.style.display=''; pause.style.display='none'; btn.classList.add('loading'); }
-  if (state === 'playing') { play.style.display='none'; spin.style.display='none'; pause.style.display=''; btn.classList.add('playing'); }
-  if (state === 'error')   { play.style.display=''; spin.style.display='none'; pause.style.display='none'; btn.classList.add('error-state'); }
+  if (state === 'idle')      { play.style.display=''; spin.style.display='none'; pause.style.display='none'; }
+  if (state === 'loading')   { play.style.display='none'; spin.style.display=''; pause.style.display='none'; btn.classList.add('loading'); }
+  if (state === 'playing')   { play.style.display='none'; spin.style.display='none'; pause.style.display=''; btn.classList.add('playing'); }
+  if (state === 'error')     { play.style.display=''; spin.style.display='none'; pause.style.display='none'; btn.classList.add('error-state'); }
+  if (state === 'not-ready') { play.style.display=''; spin.style.display='none'; pause.style.display='none'; btn.classList.add('not-ready'); }
 }
 
 function playAudio(url, btn) {
@@ -382,24 +383,18 @@ async function handleAudioClick(id, btn) {
     if (_currentAudio) { _currentAudio.pause(); setAudioBtnState(btn, 'idle'); _currentAudio = null; _currentAudioBtn = null; }
     return;
   }
-  setAudioBtnState(btn, 'loading');
+  // Single read — no polling, no generation triggered server-side.
+  // Audio is produced by the scruteur worker on its own schedule.
   let data = null;
   try {
-    let res = await fetch(`/api/articles/${id}/audio`, { credentials: 'same-origin' });
+    const res = await fetch(`/api/articles/${id}/audio`, { credentials: 'same-origin' });
     data = await res.json();
-    let polls = 0;
-    while (data.status === 'generating' && polls < 90) {
-      await new Promise(r => setTimeout(r, 2000));
-      res = await fetch(`/api/articles/${id}/audio`, { credentials: 'same-origin' });
-      data = await res.json();
-      polls++;
-    }
   } catch(e) { setAudioBtnState(btn, 'error'); return; }
   if (data && data.status === 'done') {
     playAudio(data.audio_url, btn);
   } else {
-    setAudioBtnState(btn, 'error');
-    toast('Audio unavailable', true);
+    setAudioBtnState(btn, 'not-ready');
+    toast('Résumé audio en préparation', false);
   }
 }
 
