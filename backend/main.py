@@ -17,7 +17,7 @@ load_dotenv()
 import freshrss
 import db as database
 import ollama_client
-from audio_pipeline import generate_article_audio, try_lock_audio
+# audio_pipeline is used only by the standalone scruteur worker, not from HTTP handlers
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
 from keyword_analysis import enrich_batch_static, enrich_article_static
@@ -562,7 +562,7 @@ async def record_view(article_id: int, request: Request):
 @app.get("/api/articles/{article_id}/audio")
 async def get_article_audio(article_id: int):
     row = await pool.fetchrow(
-        "SELECT audio_status, audio_url, audio_duration_seconds, content_raw FROM articles WHERE id = $1",
+        "SELECT audio_status, audio_url, audio_duration_seconds FROM articles WHERE id = $1",
         article_id
     )
     if not row:
@@ -574,18 +574,9 @@ async def get_article_audio(article_id: int):
         return {"status": "done", "audio_url": row["audio_url"],
                 "duration": row["audio_duration_seconds"]}
 
-    if status == "generating":
-        return _JSONResponse({"status": "generating"}, status_code=202)
-
-    if not row["content_raw"]:
-        return _JSONResponse({"status": "failed", "error": "no content"}, status_code=422)
-
-    locked = await try_lock_audio(pool, article_id)
-    if not locked:
-        return _JSONResponse({"status": "generating"}, status_code=202)
-
-    asyncio.create_task(generate_article_audio(pool, article_id, row["content_raw"]))
-    return _JSONResponse({"status": "generating"}, status_code=202)
+    # Pure read — no generation triggered here. Audio is produced by the
+    # scruteur worker (audio-scruteur-worker.py), never by an HTTP request.
+    return {"status": status}
 
 @app.get("/api/categories")
 async def list_categories(user: Optional[dict] = Depends(get_optional_user)):
