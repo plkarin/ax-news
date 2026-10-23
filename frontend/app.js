@@ -335,81 +335,6 @@ function maybeAutoLoad() {
   if (rect.top < window.innerHeight + 400) loadArticles();
 }
 
-// ── Audio ─────────────────────────────────────────────────────────
-let _currentAudio = null;
-let _currentAudioBtn = null;
-
-function renderAudioButton(articleId) {
-  return `<button class="audio-play-btn" data-article-id="${articleId}" aria-label="Écouter le résumé audio">
-    <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    <svg class="icon-spin" viewBox="0 0 24 24" style="display:none"><path d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8V2z"/></svg>
-    <svg class="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-  </button>`;
-}
-
-function setAudioBtnState(btn, state) {
-  btn.classList.remove('loading', 'playing', 'error-state', 'not-ready');
-  const play = btn.querySelector('.icon-play');
-  const spin = btn.querySelector('.icon-spin');
-  const pause = btn.querySelector('.icon-pause');
-  if (state === 'idle')      { play.style.display=''; spin.style.display='none'; pause.style.display='none'; }
-  if (state === 'loading')   { play.style.display='none'; spin.style.display=''; pause.style.display='none'; btn.classList.add('loading'); }
-  if (state === 'playing')   { play.style.display='none'; spin.style.display='none'; pause.style.display=''; btn.classList.add('playing'); }
-  if (state === 'error')     { play.style.display=''; spin.style.display='none'; pause.style.display='none'; btn.classList.add('error-state'); }
-  if (state === 'not-ready') { play.style.display=''; spin.style.display='none'; pause.style.display='none'; btn.classList.add('not-ready'); }
-}
-
-function playAudio(url, btn) {
-  if (_currentAudio) {
-    _currentAudio.pause();
-    if (_currentAudioBtn && _currentAudioBtn !== btn) setAudioBtnState(_currentAudioBtn, 'idle');
-    if (_currentAudioBtn === btn) {
-      _currentAudio = null; _currentAudioBtn = null;
-      setAudioBtnState(btn, 'idle');
-      return;
-    }
-  }
-  const audio = new Audio(url);
-  _currentAudio = audio;
-  _currentAudioBtn = btn;
-  setAudioBtnState(btn, 'playing');
-  audio.play().catch(() => setAudioBtnState(btn, 'error'));
-  audio.onended = () => { setAudioBtnState(btn, 'idle'); _currentAudio = null; _currentAudioBtn = null; };
-  audio.onerror = () => { setAudioBtnState(btn, 'error'); _currentAudio = null; _currentAudioBtn = null; };
-}
-
-async function handleAudioClick(id, btn) {
-  if (btn.classList.contains('playing')) {
-    if (_currentAudio) { _currentAudio.pause(); setAudioBtnState(btn, 'idle'); _currentAudio = null; _currentAudioBtn = null; }
-    return;
-  }
-  // Single read — no polling, no generation triggered server-side.
-  // Audio is produced by the scruteur worker on its own schedule.
-  let data = null;
-  try {
-    const res = await fetch(`/api/articles/${id}/audio`, { credentials: 'same-origin' });
-    data = await res.json();
-  } catch(e) { setAudioBtnState(btn, 'error'); return; }
-  if (data && data.status === 'done') {
-    playAudio(data.audio_url, btn);
-  } else {
-    setAudioBtnState(btn, 'not-ready');
-    toast('Résumé audio en préparation', false);
-  }
-}
-
-function attachAudioHandlers(grid) {
-  grid.querySelectorAll('.audio-play-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleAudioClick(btn.dataset.articleId, btn);
-    });
-    // Prevent touch-tap from propagating to card on mobile
-    btn.addEventListener('touchend', e => { e.stopPropagation(); });
-  });
-}
-
 function appendArticles(articles) {
   const grid = document.getElementById('articleGrid');
   articles.forEach(a => {
@@ -429,7 +354,6 @@ function appendArticles(articles) {
 
     card.innerHTML = `
       ${thumb}
-      ${renderAudioButton(a.id)}
       <div class="card-body">
         <div class="card-meta">
           <span class="card-source">${esc(a.feed_source||'')}</span>
@@ -452,7 +376,6 @@ function appendArticles(articles) {
     grid.appendChild(card);
   });
 
-  attachAudioHandlers(grid);
   lazyFetchImages(articles.filter(a => !a.image_url && a.url));
 }
 

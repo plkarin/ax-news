@@ -6,6 +6,7 @@ After=postgresql.service
 Type=oneshot
 User=cbrain
 Environment=HOME=/opt/ax-news/.argos-home
+EnvironmentFile=/opt/ax-news/backend/.env
 ExecStart=/opt/ax-news/backend/venv/bin/python3 /opt/ax-news/translate-standalone.py
 StandardOutput=append:/var/log/ax-news/translate.log
 StandardError=append:/var/log/ax-news/translate.log

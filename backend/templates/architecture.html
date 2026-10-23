@@ -170,34 +170,15 @@
     <tbody>
       <tr><td>Edge / CDN</td><td>Cloudflare</td><td>DDoS protection, global CDN, Proxy DNS</td></tr>
       <tr><td>Load balancer</td><td>HAProxy</td><td>TLS termination, HTTP→HTTPS redirect</td></tr>
-      <tr><td>Web server</td><td>Nginx</td><td>Static files, reverse proxy, rate limiting (login: 5/min, API: 60/min, audio: 10/min)</td></tr>
+      <tr><td>Web server</td><td>Nginx</td><td>Static files, reverse proxy, rate limiting (login: 5/min, API: 60/min)</td></tr>
       <tr><td>Application</td><td>FastAPI + uvicorn</td><td>REST API, Jinja2 HTML rendering, background tasks</td></tr>
       <tr><td>Database</td><td>PostgreSQL 16</td><td>Articles, users, sessions, NLP metadata</td></tr>
       <tr><td>RSS ingestion</td><td>FreshRSS (PHP 8.3)</td><td>200+ RSS feeds aggregated at <code>/news</code></td></tr>
       <tr><td>Translation</td><td>Argos Translate</td><td>CJK/Korean titles translated to English — runs as a standalone systemd service to avoid OOM in uvicorn</td></tr>
-      <tr><td>Audio summaries</td><td>Ollama (qwen2.5:3b) + Piper TTS</td><td>French oral summaries generated on-demand — Ollama runs on bare-metal host (.37), Piper synthesises WAV via subprocess (not inline in uvicorn)</td></tr>
       <tr><td>Enrichment</td><td>Keyword analysis (Python)</td><td>Entity extraction, sentiment classification, country tagging — runs at sync time</td></tr>
       <tr><td>Hosting</td><td>ax-lab05 VM (~3.8 GB RAM)</td><td>Single Linux VM, all services via systemd</td></tr>
     </tbody>
   </table>
-
-  <h2>Audio Summary Pipeline</h2>
-  <div class="flow-box">
-    User clicks "Listen"
-    <span class="flow-arrow">→</span> GET /api/articles/{id}/audio
-    <span class="flow-arrow">→</span> FastAPI checks audio_status in DB<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;If 'none'/'failed': locks row → launches asyncio background task<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;Task: Ollama (.37) → French summary (~120 words)
-    <span class="flow-arrow">→</span> Piper subprocess → WAV file<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;Frontend polls every 2s until status = 'done'
-    <span class="flow-arrow">→</span> Audio plays in browser
-  </div>
-  <ul>
-    <li>Piper TTS voice: <strong>fr_FR-siwis-medium</strong> (MIT license, CPU-only, ~61 MB model)</li>
-    <li>WAV files stored in <code>/opt/ax-news/audio/</code>, served statically by Nginx</li>
-    <li>Audio files purged automatically with their article after 30 days</li>
-    <li>Rate limit on audio generation endpoint: 10 req/min per IP</li>
-  </ul>
 
   <h2>Data Flow — Article Lifecycle</h2>
   <ul>
@@ -206,7 +187,7 @@
     <li><strong>Translation</strong>: CJK/Korean titles translated by Argos standalone worker (every 10 min)</li>
     <li><strong>Deduplication</strong>: Dedup worker runs every 6 hours to remove near-identical articles</li>
     <li><strong>Image prefetch</strong>: OG image fetched nightly for articles missing thumbnails</li>
-    <li><strong>Purge</strong>: Articles older than 30 days deleted every Monday 3 AM, including audio files</li>
+    <li><strong>Purge</strong>: Articles older than 30 days deleted every Monday 3 AM</li>
   </ul>
 
   <h2>Security Notes</h2>
@@ -218,7 +199,7 @@
     <li>No cookies except session (httpOnly, SameSite=Lax)</li>
     <li>No localStorage / sessionStorage (privacy policy — zero client-side persistence)</li>
     <li>Public feed is unauthenticated read-only — write operations and admin actions require session</li>
-    <li>Rate limiting at Nginx level for login, API, and audio endpoints</li>
+    <li>Rate limiting at Nginx level for login and API endpoints</li>
   </ul>
 
   <h2>Source Code</h2>

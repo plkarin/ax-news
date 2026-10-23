@@ -16,8 +16,6 @@ load_dotenv()
 
 import freshrss
 import db as database
-import ollama_client
-# audio_pipeline is used only by the standalone scruteur worker, not from HTTP handlers
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
 from keyword_analysis import enrich_batch_static, enrich_article_static
@@ -64,9 +62,6 @@ SMTP_PASS = os.getenv("SMTP_PASS", "")
 SMTP_FROM = os.getenv("SMTP_FROM", "noreply@ax-news.com")
 APP_URL              = os.getenv("APP_URL", "https://ax-news.com")
 INTERNAL_SYNC_TOKEN  = os.getenv("INTERNAL_SYNC_TOKEN", "")
-
-# Audio storage (purge uses this; generation constants live in audio_pipeline.py)
-AUDIO_DIR = "/opt/ax-news/audio"
 
 # In-memory token store (use Redis in production)
 _email_tokens: dict = {}
@@ -556,27 +551,6 @@ async def record_view(article_id: int, request: Request):
     if not row:
         raise HTTPException(404, "Article not found")
     return {"views": row["view_count"], "counted": incremented}
-
-# ── Audio summaries ───────────────────────────────────────────────────────────
-
-@app.get("/api/articles/{article_id}/audio")
-async def get_article_audio(article_id: int):
-    row = await pool.fetchrow(
-        "SELECT audio_status, audio_url, audio_duration_seconds FROM articles WHERE id = $1",
-        article_id
-    )
-    if not row:
-        raise HTTPException(404, "Article not found")
-
-    status = row["audio_status"] or "none"
-
-    if status == "done":
-        return {"status": "done", "audio_url": row["audio_url"],
-                "duration": row["audio_duration_seconds"]}
-
-    # Pure read — no generation triggered here. Audio is produced by the
-    # scruteur worker (audio-scruteur-worker.py), never by an HTTP request.
-    return {"status": status}
 
 @app.get("/api/categories")
 async def list_categories(user: Optional[dict] = Depends(get_optional_user)):
@@ -1129,32 +1103,17 @@ async def save_article_image(article_id: int, data: dict):
 
 @app.delete("/api/purge")
 async def purge_old_articles(token: str = ""):
-    """Delete articles older than 30 days, including associated audio files."""
+    """Delete articles older than 30 days."""
     TV_TOKEN_VALUE = "ax-news-tv-readonly-2026"
     if token != TV_TOKEN_VALUE:
         raise HTTPException(403, "Not authorized")
-    # Collect IDs with audio files before deleting
-    old_rows = await pool.fetch("""
-        SELECT id FROM articles
-        WHERE published_at < NOW() - INTERVAL '30 days'
-          AND audio_status = 'done'
-    """)
     result = await pool.execute("""
         DELETE FROM articles
         WHERE published_at < NOW() - INTERVAL '30 days'
     """)
     deleted = int(result.split()[-1])
-    audio_deleted = 0
-    for row in old_rows:
-        wav = f"{AUDIO_DIR}/{row['id']}.wav"
-        try:
-            if os.path.exists(wav):
-                os.remove(wav)
-                audio_deleted += 1
-        except OSError as e:
-            logger.warning(f"Could not delete audio {wav}: {e}")
-    logger.info(f"Purged {deleted} articles, {audio_deleted} audio files")
-    return {"deleted": deleted, "audio_deleted": audio_deleted}
+    logger.info(f"Purged {deleted} articles")
+    return {"deleted": deleted}
 
 @app.get("/api/admin/pending-users")
 async def get_pending_users(user: dict = Depends(require_admin)):

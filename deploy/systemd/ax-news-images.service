@@ -1,0 +1,9 @@
+[Unit]
+Description=AX-NEWS nightly og:image fetch
+After=network.target ax-news-backend.service
+[Service]
+Type=oneshot
+User=cbrain
+ExecStart=/usr/bin/curl -sf -X POST "http://127.0.0.1:8000/api/fetch-images?limit=100"
+StandardOutput=append:/var/log/ax-news/images.log
+StandardError=append:/var/log/ax-news/images.log

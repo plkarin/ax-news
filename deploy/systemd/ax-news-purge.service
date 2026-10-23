@@ -1,0 +1,8 @@
+[Unit]
+Description=AX-NEWS purge articles older than 30 days
+[Service]
+Type=oneshot
+User=cbrain
+ExecStart=/usr/bin/curl -sf -X DELETE "http://127.0.0.1:8000/api/purge?token=ax-news-tv-readonly-2026"
+StandardOutput=append:/var/log/ax-news/purge.log
+StandardError=append:/var/log/ax-news/purge.log

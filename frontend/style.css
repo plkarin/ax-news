@@ -583,31 +583,4 @@ body {
 }
 .mobile-nav-menu a:hover { background: rgba(77,159,255,.1); color: #4d9fff; }
 
-/* ── Audio play button ───────────────────────────────────────────── */
-.audio-play-btn {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: rgba(0,0,0,.72);
-  border: 1.5px solid rgba(255,255,255,.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  cursor: pointer;
-  transition: transform .12s, background .12s;
-  flex-shrink: 0;
-}
-.audio-play-btn:hover { background: rgba(77,159,255,.85); border-color: #4d9fff; }
-.audio-play-btn:active { transform: scale(0.91); }
-.audio-play-btn svg { width: 22px; height: 22px; fill: #fff; pointer-events: none; }
-.audio-play-btn.loading { background: rgba(255,165,0,.18); border-color: rgba(255,165,0,.5); }
-.audio-play-btn.playing { background: rgba(16,185,129,.25); border-color: #10b981; }
-.audio-play-btn.error-state { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.5); }
-.audio-play-btn.not-ready { opacity: 0.45; cursor: default; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.audio-play-btn.loading svg.icon-spin { animation: spin .9s linear infinite; }
 .card { position: relative; }
