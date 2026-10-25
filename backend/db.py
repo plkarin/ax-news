@@ -137,6 +137,9 @@ async def get_articles(pool, limit=50, offset=0, category=None, search=None,
         return f"${len(params)}"
 
     uid = arg(user_id or 0)
+    # Typed once here: a count of public articles uses $1 nowhere else, and
+    # PostgreSQL refuses a parameter it cannot type.
+    conditions.append(f"{uid}::int IS NOT NULL")
     if scope == "mine":
         conditions.append(f"a.owner_user_id = {uid}")
     elif scope == "all":
