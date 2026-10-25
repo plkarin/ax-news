@@ -11,4 +11,6 @@ ExecStart=/opt/ax-news/backend/venv/bin/python3 /opt/ax-news/translate-standalon
 StandardOutput=append:/var/log/ax-news/translate.log
 StandardError=append:/var/log/ax-news/translate.log
 MemoryMax=1G
-TimeoutStartSec=300
+# A run of 30 articles takes about 5 minutes on two cores (2026-10-25);
+# the timer starts one every 10 minutes and runs never overlap.
+TimeoutStartSec=540
