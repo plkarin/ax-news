@@ -3,10 +3,11 @@
 import asyncio, asyncpg, os, logging, sys
 os.environ['HOME'] = '/opt/ax-news/.argos-home'
 
+# To standard output only: ax-news-translate.service appends it to
+# /var/log/ax-news/translate.log (a FileHandler as well wrote every line twice).
 logging.basicConfig(level=logging.INFO,
     format='%(asctime)s %(levelname)s %(message)s',
-    handlers=[logging.FileHandler('/var/log/ax-news/translate.log'),
-              logging.StreamHandler()])
+    handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger('translate-worker')
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://ax_news:@localhost/ax_news')

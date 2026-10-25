@@ -32,7 +32,22 @@ LANG_MAP = {
     'ar': 'ar', 'ru': 'ru', 'it': 'it', 'nl': 'nl', 'tr': 'tr',
 }
 
+def _script_language(text: str) -> str | None:
+    """The language a CJK script says, before langdetect guesses: it reads a
+    Chinese title mixed with Latin words (product names, "AI") as Korean or
+    German, and Argos then translates from the wrong language."""
+    if re.search(r'[\uac00-\ud7af\u1100-\u11ff]', text):
+        return 'ko'
+    if re.search(r'[\u3040-\u30ff]', text):
+        return 'ja'
+    if re.search(r'[\u4e00-\u9fff\u3400-\u4dbf]', text):
+        return 'zh'
+    return None
+
 def _detect_language(text: str) -> str:
+    script = _script_language(text or '')
+    if script:
+        return script
     try:
         from langdetect import detect
         if not text or len(text.strip()) < 10:
