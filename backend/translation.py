@@ -147,9 +147,11 @@ async def translate_batch(pool, limit: int = 200) -> int:
                 cjk = sum(1 for c in new_title[:20]
                           if unicodedata.east_asian_width(c) in ('W', 'F'))
                 if cjk > 3:
-                    # Translation failed — back to pending
+                    # Argos returned the original script, or a loop of it:
+                    # failed, not pending, or the same articles would be
+                    # retried on every run and the queue would never move.
                     await pool.execute(
-                        "UPDATE articles SET translation_status = 'pending' WHERE id = $1",
+                        "UPDATE articles SET translation_status = 'failed' WHERE id = $1",
                         row["id"])
                     continue
                 # Success
@@ -184,7 +186,7 @@ async def translate_batch(pool, limit: int = 200) -> int:
         except Exception as e:
             logger.error(f"Translation error for id={row['id']}: {e}")
             await pool.execute(
-                "UPDATE articles SET translation_status = 'pending' WHERE id = $1",
+                "UPDATE articles SET translation_status = 'failed' WHERE id = $1",
                 row["id"])
 
     return count

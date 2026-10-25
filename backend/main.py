@@ -184,14 +184,6 @@ async def access_log_middleware(request: Request, call_next):
 
     return response
 
-@app.post("/api/tv/translate")
-async def tv_translate(token: str = "", limit: int = 50):
-    """Public translation endpoint for worker — TV token auth."""
-    if token != "ax-news-tv-readonly-2026":
-        raise HTTPException(403, "Not authorized")
-    count = await translate_batch(pool, limit=limit)
-    return {"translated": count}
-
 @app.get("/api/tv/feed")
 async def tv_feed(limit: int = 150):
     """Public TV feed — only translated articles."""
@@ -281,11 +273,6 @@ async def tv_refresh(request: Request, admin: dict = Depends(require_admin_or_in
     enriched = await enrich_batch_static(pool, limit=500)
     return {"synced": count, "translated": translated, "enriched": enriched}
 
-@app.post("/api/tv/translate-public")
-async def tv_translate_public(limit: int = 50):
-    count = await translate_batch(pool, limit=limit)
-    return {"translated": count}
-
 # ── Models ────────────────────────────────────────────────────────────────────
 
 class LoginRequest(BaseModel):
@@ -325,7 +312,9 @@ def serialize_row(row: dict) -> dict:
 
 # ── Public endpoints ──────────────────────────────────────────────────────────
 
-TV_TOKEN = "ax-news-tv-readonly-2026"
+# Read-only token for the TV dashboards' feed (backend/.env). Empty: those
+# endpoints refuse every request.
+TV_TOKEN = os.getenv("TV_TOKEN", "")
 
 @app.get("/api/health")
 async def health():
@@ -334,7 +323,7 @@ async def health():
 @app.get("/api/tv/articles")
 async def tv_articles(token: str = "", limit: int = 100):
     """Public endpoint for TV dashboard — no session required."""
-    if token != TV_TOKEN:
+    if not TV_TOKEN or token != TV_TOKEN:
         raise HTTPException(403, "Invalid token")
     rows = await database.get_articles(pool, limit=limit, user_id=1)
     return [serialize_row(r) for r in rows]
@@ -345,7 +334,7 @@ async def tv_sync(token: str = "", request: Request = None):
     client_ip = request.client.host if request.client else "unknown"
     if not _check_rate_limit(_sync_attempts, client_ip, 1, 300):
         raise HTTPException(429, "Sync rate limited. Try again in 5 minutes.")
-    if token != TV_TOKEN:
+    if not TV_TOKEN or token != TV_TOKEN:
         raise HTTPException(403, "Invalid token")
     async with httpx.AsyncClient(timeout=30) as client:
         try:
@@ -371,7 +360,7 @@ async def tv_sync(token: str = "", request: Request = None):
     return {"synced": count, "translated": translated, "enriched": enriched}
 
 @app.post("/api/sync")
-async def sync_articles():
+async def sync_articles(admin: dict = Depends(require_admin_or_internal)):
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             token = await freshrss.authenticate(client)
@@ -958,7 +947,7 @@ async def categories_tree(user: Optional[dict] = Depends(get_optional_user)):
     return [{"category": r["category"], "total": r["total"], "read": r["read_count"]} for r in rows]
 
 @app.post("/api/enrich")
-async def enrich_articles(limit: int = 500):
+async def enrich_articles(limit: int = 500, admin: dict = Depends(require_admin_or_internal)):
     """Static keyword enrichment — fast, no AI calls."""
     count = await enrich_batch_static(pool, limit=limit)
     return {"enriched": count}
@@ -1036,16 +1025,20 @@ async def list_countries(user: Optional[dict] = Depends(get_optional_user)):
     return [dict(r) for r in rows]
 
 @app.post("/api/translate")
-async def trigger_translate(limit: int = 20):
+async def trigger_translate(limit: int = 20, admin: dict = Depends(require_admin_or_internal)):
     """Translate up to limit non-English articles."""
     count = await translate_batch(pool, limit=limit)
     return {"translated": count}
 
 @app.get("/api/proxy/ogimage")
 async def get_og_image(url: str, token: str = "", request: Request = None):
-    """Fetch og:image from a URL server-side to avoid CORS."""
+    """Fetch og:image from an article's page server-side to avoid CORS.
+    Only the URL of an article we hold is fetched: an arbitrary URL would let
+    anyone make this server request any address, its own network included."""
     if not url or not url.startswith("http"):
         raise HTTPException(400, "Invalid URL")
+    if not await pool.fetchval("SELECT 1 FROM articles WHERE url = $1 LIMIT 1", url):
+        raise HTTPException(404, "Unknown article URL")
     try:
         async with httpx.AsyncClient(timeout=8, follow_redirects=True,
             headers={"User-Agent": "Mozilla/5.0 (compatible; AXNews/1.0)"}) as client:
@@ -1061,7 +1054,7 @@ async def get_og_image(url: str, token: str = "", request: Request = None):
         return {"image_url": None}
 
 @app.post("/api/fetch-images")
-async def fetch_missing_images(limit: int = 30):
+async def fetch_missing_images(limit: int = 30, admin: dict = Depends(require_admin_or_internal)):
     """Fetch og:image for articles that have no image_url."""
     rows = await pool.fetch("""
         SELECT id, url FROM articles
@@ -1102,15 +1095,22 @@ async def save_article_image(article_id: int, data: dict):
     return {"ok": True}
 
 @app.delete("/api/purge")
-async def purge_old_articles(token: str = ""):
-    """Delete articles older than 30 days."""
-    TV_TOKEN_VALUE = "ax-news-tv-readonly-2026"
-    if token != TV_TOKEN_VALUE:
-        raise HTTPException(403, "Not authorized")
-    result = await pool.execute("""
-        DELETE FROM articles
-        WHERE published_at < NOW() - INTERVAL '30 days'
-    """)
+async def purge_old_articles(admin: dict = Depends(require_admin_or_internal)):
+    """Delete articles older than 30 days. A user's knowledge note keeps its
+    text and loses its link to the article (user_knowledge.source_article has
+    no ON DELETE rule, so the DELETE used to fail on the first such note)."""
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute("""
+                UPDATE user_knowledge SET source_article = NULL
+                WHERE source_article IN (
+                    SELECT id FROM articles
+                    WHERE published_at < NOW() - INTERVAL '30 days')
+            """)
+            result = await conn.execute("""
+                DELETE FROM articles
+                WHERE published_at < NOW() - INTERVAL '30 days'
+            """)
     deleted = int(result.split()[-1])
     logger.info(f"Purged {deleted} articles")
     return {"deleted": deleted}
@@ -1243,6 +1243,11 @@ async def privacy_page(request: Request):
 @app.get("/", response_class=HTMLResponse)
 async def root_page(request: Request):
     return templates.TemplateResponse(request, "index.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+
+@app.get("/index.html")
+async def index_html():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse("/", status_code=301)
 
 @app.get("/login.html", response_class=HTMLResponse)
 async def login_html(request: Request):

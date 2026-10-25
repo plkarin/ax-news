@@ -49,41 +49,60 @@ Internet → Cloudflare → HAProxy (TLS) → Nginx → FastAPI (uvicorn, 2 work
 
 ### Installation
 
+Paths are fixed: the units and workers expect the checkout at `/opt/ax-news`,
+run as the user `cbrain`.
+
 ```bash
-git clone https://github.com/plkarin/ax-news.git
-cd ax-news
+sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
+sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
 python3 -m venv backend/venv
-source backend/venv/bin/activate
-pip install -r backend/requirements.txt --break-system-packages
+backend/venv/bin/pip install -r backend/requirements.txt
 
 cp backend/.env.example backend/.env
-# Edit backend/.env with your actual credentials
+# Edit backend/.env with your actual credentials (see below)
 
-sudo cp deploy/systemd/*.service /etc/systemd/system/
-sudo cp deploy/systemd/*.timer /etc/systemd/system/
+# Database: an empty PostgreSQL database owned by the application user
+psql "$DATABASE_URL" -f migrations/001_schema.sql
+
+# Translation models (about 2.5 GB, downloaded once)
+deploy/install-argos-models.sh
+
+sudo mkdir -p /var/log/ax-news && sudo chown cbrain:cbrain /var/log/ax-news
+sudo cp deploy/systemd/*.service deploy/systemd/*.timer /etc/systemd/system/
 sudo cp deploy/nginx/ax-news /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/ax-news /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now ax-news-backend
-sudo systemctl enable --now ax-news-sync.timer
-sudo systemctl enable --now ax-news-translate.timer
-sudo systemctl enable --now ax-news-dedup.timer
+sudo systemctl enable --now ax-news-sync.timer ax-news-translate.timer \
+  ax-news-dedup.timer ax-news-images.timer
 
 # Install and start local FreshRSS (208 feeds, auto-refresh every 15 min)
 sudo FRESHRSS_USER=Pierre FRESHRSS_PASS=yourpassword deploy/install-freshrss.sh
 ```
 
+### Purge
+
+`ax-news-purge.timer` deletes every article older than 30 days, each Monday
+at 03:00. It is not enabled by the installation above: turn it on only once
+you want the archive to keep a month, `sudo systemctl enable --now
+ax-news-purge.timer`.
+
 ## Environment variables
 
 See `backend/.env.example` for required configuration:
 
-- `DB_URL` / `DATABASE_URL` — PostgreSQL connection
+- `DATABASE_URL` — PostgreSQL connection, also used by `dedup-worker.sh`
+- `HOME` — where the Argos models are installed
 - `FRESHRSS_*` — FreshRSS API credentials
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — for Google SSO
 - `SMTP_*` — for email verification
 - `APP_URL` — public URL of the deployment
-- `DB_PASSWORD` — used by shell workers (`translate-worker.sh`, `dedup-worker.sh`)
+- `INTERNAL_SYNC_TOKEN` — sent by the timers from localhost; the routes that
+  start work (sync, enrichment, translation, images, purge) accept it, or an
+  administrator's session
+- `TV_TOKEN` — read-only token of the TV dashboards' feed
 
 ## File organisation
 

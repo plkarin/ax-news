@@ -1,5 +1,5 @@
 [Unit]
-Description=AX-NEWS dedup every 6 hours
+Description=AX-NEWS dedup every hour
 
 [Timer]
 OnBootSec=10min

@@ -1,9 +1,11 @@
 #!/bin/bash
 LOG="/var/log/ax-news/dedup.log"
+# DATABASE_URL comes from backend/.env (EnvironmentFile in ax-news-dedup.service).
+: "${DATABASE_URL:?DATABASE_URL is not set}"
 date -u >> $LOG
 
 # Remove title duplicates keeping oldest
-DELETED=$(PGPASSWORD="${DB_PASSWORD}" psql -U ax_news -d ax_news -h 127.0.0.1 -t -c "
+DELETED=$(psql "${DATABASE_URL}" -t -c "
 WITH dupes AS (
     SELECT id,
            ROW_NUMBER() OVER (
@@ -21,13 +23,13 @@ RETURNING id;
 echo "Deleted $DELETED duplicate articles" >> $LOG
 
 # Remove future-dated articles
-FUTURE=$(PGPASSWORD="${DB_PASSWORD}" psql -U ax_news -d ax_news -h 127.0.0.1 -t -c "
+FUTURE=$(psql "${DATABASE_URL}" -t -c "
 DELETE FROM articles WHERE published_at > NOW() RETURNING id;
 " | wc -l)
 
 echo "Deleted $FUTURE future-dated articles" >> $LOG
 
 # Stats
-PGPASSWORD="${DB_PASSWORD}" psql -U ax_news -d ax_news -h 127.0.0.1 -c "
+psql "${DATABASE_URL}" -c "
 SELECT COUNT(*) as total_articles FROM articles;
 " >> $LOG 2>&1

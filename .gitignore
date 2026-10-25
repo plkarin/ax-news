@@ -31,3 +31,6 @@ client_secret*.json
 **/.claude/
 voices/
 audio/
+
+# Migrations are part of the code
+!migrations/*.sql

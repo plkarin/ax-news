@@ -37,11 +37,18 @@ async def upsert_article(pool, art: dict) -> int:
             END,
             feed_source = EXCLUDED.feed_source,
             category = EXCLUDED.category,
-            content_raw = EXCLUDED.content_raw,
+            -- A translated article keeps its English text; the original is in
+            -- original_content.
+            content_raw = CASE
+                WHEN articles.translation_status = 'done'
+                     AND articles.original_lang IS DISTINCT FROM 'en'
+                     AND articles.original_content IS NOT NULL THEN articles.content_raw
+                ELSE EXCLUDED.content_raw
+            END,
             image_url = COALESCE(articles.image_url, EXCLUDED.image_url),
             translation_status = CASE
                 WHEN articles.translation_status = 'done' THEN 'done'
-                WHEN articles.translation_status = 'pending' THEN articles.translation_status
+                WHEN articles.translation_status IN ('pending', 'failed') THEN articles.translation_status
                 ELSE EXCLUDED.translation_status
             END,
             translated_at = articles.translated_at,
