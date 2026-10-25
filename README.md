@@ -7,6 +7,10 @@ Live at [ax-news.com](https://ax-news.com)
 ## Features
 
 - Real-time news aggregation via **self-hosted FreshRSS** (co-located, 208 feeds)
+- **Six layouts** for the same news: cards, magazine, micro news, dense list, picture mosaic, hour-by-hour timeline — and a reader panel with keyboard navigation (`j`/`k`, `o`, `s`, `v`, `/`)
+- **Your own sources**, private to your account: any site that announces a feed, RSS/Atom, YouTube channels, subreddits, Mastodon accounts, GitHub releases, Hacker News — found from a plain link, with OPML import/export
+- Saved stories, per-account display preferences (layout, theme, topics), light and dark themes
+- Topic illustrations made in Canva for every story without a picture
 - Automatic translation (Argos Translate, fully offline, no API costs)
 - AI-powered sentiment scoring and entity extraction (static Bayesian model, zero LLM cost)
 - Admin-approved user registration + Google OAuth SSO
@@ -63,6 +67,7 @@ cp backend/.env.example backend/.env
 
 # Database: an empty PostgreSQL database owned by the application user
 psql "$DATABASE_URL" -f migrations/001_schema.sql
+psql "$DATABASE_URL" -f migrations/003_personal_sources.sql
 
 # Translation models (about 2.5 GB, downloaded once)
 deploy/install-argos-models.sh
@@ -76,7 +81,7 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo systemctl daemon-reload
 sudo systemctl enable --now ax-news-backend
 sudo systemctl enable --now ax-news-sync.timer ax-news-translate.timer \
-  ax-news-dedup.timer ax-news-images.timer
+  ax-news-dedup.timer ax-news-images.timer ax-news-sources.timer
 
 # Install and start local FreshRSS (208 feeds, auto-refresh every 15 min)
 sudo FRESHRSS_USER=Pierre FRESHRSS_PASS=yourpassword deploy/install-freshrss.sh
@@ -104,10 +109,23 @@ See `backend/.env.example` for required configuration:
   administrator's session
 - `TV_TOKEN` — read-only token of the TV dashboards' feed
 
+## Running it locally
+
+`AXNEWS_SERVE_STATIC=1` lets the backend serve `frontend/` itself (nginx does
+it in production), so one process is the whole site:
+
+```bash
+cd backend && set -a && . ./.env && set +a
+AXNEWS_SERVE_STATIC=1 venv/bin/uvicorn main:app --port 8001
+```
+
 ## File organisation
 
 ```
-frontend/          Static assets only: CSS, JS, images, logo, 404.html, 50x.html
+frontend/assets/   The interface: css/app.css (design system and pages),
+                   js/core.js (shared), feed.js, account.js, admin.js,
+                   fonts (Inter, Space Grotesk — OFL), img/topics (Canva)
+frontend/          Other static files: logo, favicons, 404.html, 50x.html
                    *.html files are symlinks → ../backend/templates/*.html
 backend/templates/ Source of truth for all HTML pages (Jinja2, CSP nonce injection)
 ```

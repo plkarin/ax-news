@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Your account — AX-NEWS{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<main class="page" id="main">
+  <div class="page-head" data-auth="in">
+    <span data-me-avatar></span>
+    <div>
+      <h1>Your space</h1>
+      <p>Your own sources, how the news looks, and your account.</p>
+    </div>
+  </div>
+
+  <div class="empty hidden" data-auth="out">
+    <div class="art-hero" style="background-image:url(/assets/img/topics/mine.webp)"></div>
+    <h2>Make the news yours</h2>
+    <p>Sign in to follow any site, YouTube channel, subreddit, Mastodon account or GitHub repository — privately, next to the shared feeds.</p>
+    <a class="btn primary" href="/login.html">Sign in</a>
+  </div>
+
+  <div data-auth="in" class="hidden">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="sources" aria-selected="true">My sources</button>
+      <button role="tab" data-tab="display" aria-selected="false">Display</button>
+      <button role="tab" data-tab="profile" aria-selected="false">Profile & security</button>
+      <button role="tab" data-tab="notes" aria-selected="false" class="hidden" data-notes-tab>AI notes</button>
+    </div>
+
+    <!-- My sources -->
+    <section data-panel="sources">
+      <div class="grid-2">
+        <div>
+          <div class="add-box">
+            <h2>Add a source</h2>
+            <p>Paste a link to a site or a feed, a YouTube channel, <code>r/subreddit</code>, <code>@you@mastodon.social</code>, <code>github.com/owner/repo</code> — or type <code>hn</code>. Only you will see its stories.</p>
+            <form class="add-row" data-discover>
+              <label class="sr-only" for="src-input">Address</label>
+              <input class="input" id="src-input" name="q" placeholder="https://… · youtube.com/@channel · r/rust · hn" autocomplete="off" required>
+              <button class="btn primary" type="submit">Find feeds</button>
+            </form>
+            <div class="examples" data-examples></div>
+            <div class="alert err" data-discover-err></div>
+            <div class="found" data-found></div>
+          </div>
+
+          <div class="panel" style="margin-top:20px">
+            <h3>Import & export</h3>
+            <p class="muted" style="margin:0 0 12px;font-size:14px">Bring your subscriptions from another reader (Feedly, Inoreader, NetNewsWire…) with an OPML file, or take yours away.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <label class="btn sm"><input type="file" accept=".opml,.xml,text/xml,application/xml" data-opml hidden><span data-opml-label>Import OPML</span></label>
+              <a class="btn sm" href="/api/sources/opml" download>Export OPML</a>
+            </div>
+            <div class="alert" data-opml-msg style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <h3 data-src-count>Your sources</h3>
+            <div class="src-list" data-sources><div class="skeleton" style="height:180px"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Display -->
+    <section data-panel="display" class="hidden">
+      <div class="panel">
+        <h3>Layout</h3>
+        <div class="option-cards" data-opt-view></div>
+      </div>
+      <div class="grid-2" style="margin-top:20px">
+        <div class="panel">
+          <h3>Theme</h3>
+          <div class="segmented" data-opt-theme>
+            <button data-v="system">System</button><button data-v="dark">Dark</button><button data-v="light">Light</button>
+          </div>
+          <h3 style="margin-top:24px">The home page shows</h3>
+          <div class="segmented" data-opt-scope>
+            <button data-v="public">Shared feeds</button><button data-v="all">Shared + mine</button><button data-v="mine">Only mine</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Topics</h3>
+          <p class="muted" style="margin:0 0 12px;font-size:14px">Topics you switch off are hidden from the topic list.</p>
+          <div data-opt-topics style="display:grid;gap:8px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile -->
+    <section data-panel="profile" class="hidden">
+      <div class="kpis" data-kpis></div>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Account</h3>
+          <div class="field"><label>Username</label><input class="input" data-username disabled></div>
+          <div class="field"><label>Email</label><input class="input" data-email disabled></div>
+        </div>
+        <form class="panel" data-password>
+          <h3>Change password</h3>
+          <div class="alert" data-pw-msg></div>
+          <div class="field"><label for="pw1">Current password</label><input class="input" id="pw1" type="password" name="current" autocomplete="current-password" required></div>
+          <div class="field"><label for="pw2">New password</label><input class="input" id="pw2" type="password" name="next" autocomplete="new-password" minlength="8" required><span class="hint">8 characters or more.</span></div>
+          <div class="field"><label for="pw3">Confirm</label><input class="input" id="pw3" type="password" name="confirm" autocomplete="new-password" required></div>
+          <button class="btn primary" type="submit">Update password</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- AI notes -->
+    <section data-panel="notes" class="hidden">
+      <div class="panel"><h3>What the analyst explained to you</h3><div data-notes></div></div>
+    </section>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script nonce="{{ csp_nonce }}" src="/assets/js/account.js?v={{ asset_version }}"></script>
+{% endblock %}

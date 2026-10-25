@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}AX-NEWS — Global Tech Intelligence Feed{% endblock %}</title>
+  <meta name="description" content="{% block description %}AX-NEWS — global tech intelligence: AI, semiconductors, cybersecurity, energy and geopolitics from 200+ sources worldwide, in beautiful micro news.{% endblock %}">
+  <meta name="theme-color" content="#060a13">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/app.css?v={{ asset_version }}">
+  <meta property="og:site_name" content="AX-NEWS">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://ax-news.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  {% block head %}{% endblock %}
+  <script nonce="{{ csp_nonce }}">
+    // Before the page paints: the reader's theme, so it never flashes.
+    (function () { try {
+      var p = JSON.parse(localStorage.getItem('ax-prefs') || '{}').theme || 'system';
+      var t = p === 'system' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : p;
+      document.documentElement.dataset.theme = t;
+    } catch (e) {} })();
+  </script>
+</head>
+<body {% block body_attrs %}{% endblock %}>
+{% block topbar %}
+<header class="topbar">
+  <a class="brand" href="/" aria-label="AX-NEWS home">
+    <img src="/logo.webp" alt="" width="60" height="30">
+    <span class="word">AX<span>·</span>NEWS</span>
+  </a>
+  <nav class="nav" aria-label="Main">
+    <a href="/" {% if active == 'feed' %}aria-current="page"{% endif %}>Feed</a>
+    <a href="/mine" data-auth="in" class="hidden" {% if active == 'mine' %}aria-current="page"{% endif %}>My sources</a>
+    <a href="/saved" data-auth="in" class="hidden" {% if active == 'saved' %}aria-current="page"{% endif %}>Saved</a>
+  </nav>
+  <label class="search">
+    <span class="sr-only">Search the news</span>
+    <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" data-search placeholder="Search stories, sources…" autocomplete="off">
+    <kbd>/</kbd>
+  </label>
+  <div class="actions">
+    <button class="btn icon ghost" data-theme-toggle title="Theme" aria-label="Change theme"></button>
+    <div data-account><a class="btn sm primary" href="/login.html">Sign in</a></div>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}{% endblock %}
+
+{% block footer %}
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Karin Pierre-Léonard · AX-NEWS, a personal non-commercial project. Stories belong to their publishers. No ads, no tracking.</div>
+    <nav aria-label="Site">
+      <a href="/about">About</a>
+      <a href="/architecture">Architecture</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/contact">Contact</a>
+      <a href="/tv.html">TV mode</a>
+      <a href="https://github.com/plkarin/ax-news" rel="noopener" target="_blank">Source code</a>
+    </nav>
+  </div>
+</footer>
+<nav class="bottombar" aria-label="Sections">
+  <a href="/" {% if active == 'feed' %}aria-current="page"{% endif %}><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Feed</a>
+  <a href="/mine" {% if active == 'mine' %}aria-current="page"{% endif %}><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 18 6"/></svg>Mine</a>
+  <a href="/saved" {% if active == 'saved' %}aria-current="page"{% endif %}><svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</a>
+  <a href="/account" {% if active == 'account' %}aria-current="page"{% endif %}><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Account</a>
+</nav>
+{% endblock %}
+
+<script nonce="{{ csp_nonce }}" src="/assets/js/core.js?v={{ asset_version }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

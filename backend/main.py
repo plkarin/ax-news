@@ -1,5 +1,6 @@
-import asyncio, logging, os, re, html as html_lib
+import asyncio, hashlib, logging, os, re, html as html_lib
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Optional
 
 import asyncpg
@@ -16,6 +17,7 @@ load_dotenv()
 
 import freshrss
 import db as database
+import sources
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
 from keyword_analysis import enrich_batch_static, enrich_article_static
@@ -62,6 +64,7 @@ SMTP_PASS = os.getenv("SMTP_PASS", "")
 SMTP_FROM = os.getenv("SMTP_FROM", "noreply@ax-news.com")
 APP_URL              = os.getenv("APP_URL", "https://ax-news.com")
 INTERNAL_SYNC_TOKEN  = os.getenv("INTERNAL_SYNC_TOKEN", "")
+VIEW_SALT = os.getenv("VIEW_SALT") or hashlib.sha256(("ax-news-views:" + INTERNAL_SYNC_TOKEN).encode()).hexdigest()
 
 # In-memory token store (use Redis in production)
 _email_tokens: dict = {}
@@ -89,53 +92,61 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AX-NEWS API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # The pages and the API share one origin: no other site may read the API
+    # with a reader's session.
+    allow_origins=[os.getenv("APP_URL", "https://ax-news.com")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Pages whose scripts still use inline handlers (onclick=…): they keep the
+# old, permissive policy until they are rebuilt.
+LEGACY_CSP_PAGES = {"/tv.html"}
+_GOOGLE = "https://accounts.google.com https://apis.google.com"
+
+
 class CSPNonceMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # login.html uses inline onclick= handlers; browsers ignore unsafe-inline
-        # when a nonce is present, so skip nonce generation for this page.
-        if request.url.path == '/login.html':
-            request.state.csp_nonce = ''
-            response = await call_next(request)
-            response.headers["Content-Security-Policy"] = (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
-                "https://accounts.google.com https://apis.google.com; "
-                "style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data: https: blob:; "
-                "font-src 'self' data:; "
-                "connect-src 'self' https://accounts.google.com "
-                "https://oauth2.googleapis.com https://www.googleapis.com; "
-                "frame-src https://accounts.google.com; "
-                "object-src 'none'; base-uri 'self'; form-action 'self';"
-            )
-            return response
-
         nonce = secrets.token_urlsafe(16)
         request.state.csp_nonce = nonce
         response = await call_next(request)
+        if request.url.path in LEGACY_CSP_PAGES:
+            script = f"script-src 'self' 'unsafe-inline' 'unsafe-eval' {_GOOGLE}; "
+        else:
+            # Only this response's own scripts run: an injected <script> or
+            # onclick= does not.
+            script = f"script-src 'self' 'nonce-{nonce}' {_GOOGLE}; "
         response.headers["Content-Security-Policy"] = (
-            f"default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com; "
+            "default-src 'self'; " + script +
             "style-src 'self' 'unsafe-inline'; "
-            f"img-src 'self' data: https: blob:; "
-            f"font-src 'self' data:; "
-            f"connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com; "
-            f"frame-src https://accounts.google.com; "
-            f"object-src 'none'; "
-            f"base-uri 'self'; "
-            f"form-action 'self';"
+            "img-src 'self' data: https: blob:; "
+            "font-src 'self' data:; "
+            "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com; "
+            "frame-src https://accounts.google.com; "
+            "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
         )
         return response
 
 app.add_middleware(CSPNonceMiddleware)
 
-templates = Jinja2Templates(directory="/opt/ax-news/backend/templates")
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+
+def _asset_version() -> str:
+    """Changes whenever a file under frontend/assets changes: appended to the
+    pages' CSS and JS, so a browser never keeps last week's script."""
+    newest = 0.0
+    for f in (FRONTEND_DIR / "assets").rglob("*"):
+        if f.is_file():
+            newest = max(newest, f.stat().st_mtime)
+    return hashlib.sha1(str(newest).encode()).hexdigest()[:10]
+
+
+templates.env.globals["asset_version"] = _asset_version()
+COOKIE_SECURE = os.getenv("APP_URL", "https://ax-news.com").startswith("https://")
 
 @app.middleware("http")
 async def access_log_middleware(request: Request, call_next):
@@ -194,6 +205,7 @@ async def tv_feed(limit: int = 150):
                original_lang, translation_status
         FROM articles
         WHERE published_at <= NOW()
+          AND owner_user_id IS NULL
           AND published_at >= NOW() - INTERVAL '30 days'
           AND (translation_status = 'done' OR original_lang = 'en')
           AND title !~ '[가-힣]'
@@ -291,11 +303,22 @@ class CreateUserRequest(BaseModel):
     email: Optional[str] = None
     password: str
 
-class AddFeedRequest(BaseModel):
-    name: str
+class DiscoverRequest(BaseModel):
+    input: str
+
+class AddSourceRequest(BaseModel):
     url: str
+    name: Optional[str] = None
     category: Optional[str] = None
-    freshrss_id: Optional[str] = None
+    kind: Optional[str] = None
+
+class UpdateSourceRequest(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    active: Optional[bool] = None
+
+class OpmlRequest(BaseModel):
+    opml: str
 
 # ── Serialisation ─────────────────────────────────────────────────────────────
 
@@ -400,15 +423,15 @@ async def login(req: LoginRequest, response: Response, request: Request):
         req.username
     )
     if not row or not row["password_hash"]:
-        raise HTTPException(401, "Identifiants invalides")
+        raise HTTPException(401, "Username or password not recognised.")
     if not verify_password(req.password, row["password_hash"]):
-        raise HTTPException(401, "Identifiants invalides")
+        raise HTTPException(401, "Username or password not recognised.")
     if not row.get("approved", True):
         raise HTTPException(403, "Your account is pending admin approval.")
     token = await create_session(pool, row["id"])
     response.set_cookie(
         key="ax_session", value=token,
-        httponly=True, path="/", max_age=2592000, samesite="lax"
+        httponly=True, path="/", max_age=2592000, samesite="lax", secure=COOKIE_SECURE
     )
     return {"user_id": row["id"], "username": row["username"], "is_admin": row["is_admin"]}
 
@@ -441,12 +464,16 @@ async def list_users(admin: dict = Depends(require_admin)):
 async def create_user(req: CreateUserRequest, admin: dict = Depends(require_admin)):
     existing = await pool.fetchrow("SELECT id FROM users WHERE username = $1", req.username)
     if existing:
-        raise HTTPException(409, "Nom d'utilisateur déjà pris")
+        raise HTTPException(409, "This username is taken.")
+    if len(req.password or "") < 8:
+        raise HTTPException(400, "The password needs 8 characters or more.")
     ph = hash_password(req.password)
+    # Opened by an administrator: approved at once (the column's default,
+    # false, left such an account waiting for an approval nobody asked for).
     row = await pool.fetchrow("""
-        INSERT INTO users (username, email, password_hash)
-        VALUES ($1, $2, $3) RETURNING id, username
-    """, req.username, req.email, ph)
+        INSERT INTO users (username, email, password_hash, approved, approved_at, approved_by)
+        VALUES ($1, $2, $3, TRUE, NOW(), $4) RETURNING id, username
+    """, req.username.strip(), req.email, ph, admin["id"])
     return dict(row)
 
 @app.delete("/api/users/{user_id}")
@@ -464,28 +491,31 @@ async def delete_user(user_id: int, admin: dict = Depends(require_admin)):
 async def get_profile(user: dict = Depends(get_current_user)):
     row = await pool.fetchrow("""
         SELECT u.username, u.email,
-               COUNT(DISTINCT ur.article_id) AS articles_read,
-               COUNT(DISTINCT uk.id)         AS knowledge_count,
-               COUNT(DISTINCT uf.id)         AS feeds_count
-        FROM users u
-        LEFT JOIN user_reads    ur ON ur.user_id = u.id
-        LEFT JOIN user_knowledge uk ON uk.user_id = u.id
-        LEFT JOIN user_feeds    uf ON uf.user_id = u.id AND uf.active = TRUE
-        WHERE u.id = $1
-        GROUP BY u.username, u.email
+               (SELECT count(*) FROM user_reads ur WHERE ur.user_id = u.id)      AS articles_read,
+               (SELECT count(*) FROM user_knowledge uk WHERE uk.user_id = u.id)  AS knowledge_count,
+               (SELECT count(*) FROM user_feeds uf WHERE uf.user_id = u.id
+                  AND uf.active AND uf.kind IS NOT NULL)                        AS feeds_count,
+               (SELECT count(*) FROM user_saves us WHERE us.user_id = u.id)      AS saved_count
+        FROM users u WHERE u.id = $1
     """, user["id"])
     return serialize_row(dict(row))
+
+@app.get("/api/knowledge")
+async def my_knowledge(user: dict = Depends(get_current_user)):
+    """What the AI analyst explained to this reader (admin chat)."""
+    return [serialize_row(r) for r in await database.get_user_knowledge(pool, user["id"])]
+
 
 @app.post("/api/profile/password")
 async def change_password(request: Request, user: dict = Depends(get_current_user)):
     body = await request.json()
     current = body.get("current_password", "")
     new_pw  = body.get("new_password", "")
-    if not new_pw or len(new_pw) < 6:
-        raise HTTPException(400, "Le nouveau mot de passe doit contenir au moins 6 caractères")
+    if not new_pw or len(new_pw) < 8:
+        raise HTTPException(400, "The new password needs 8 characters or more.")
     row = await pool.fetchrow("SELECT password_hash FROM users WHERE id = $1", user["id"])
     if not row or not verify_password(current, row["password_hash"]):
-        raise HTTPException(401, "Mot de passe actuel incorrect")
+        raise HTTPException(401, "The current password is not right.")
     await pool.execute(
         "UPDATE users SET password_hash = $1 WHERE id = $2",
         hash_password(new_pw), user["id"]
@@ -494,19 +524,48 @@ async def change_password(request: Request, user: dict = Depends(get_current_use
 
 # ── Articles (authenticated) ──────────────────────────────────────────────────
 
+SCOPES = {"public", "mine", "all"}
+
+
 @app.get("/api/articles")
 async def list_articles(
-    limit:    int = Query(50, ge=1, le=200),
-    offset:   int = Query(0, ge=0),
+    limit:    int = Query(50, ge=1, le=100),
+    offset:   int = Query(0, ge=0, le=5000),
     category: Optional[str] = None,
-    search:   Optional[str] = None,
+    search:   Optional[str] = Query(None, max_length=200),
+    scope:    str = "public",
+    source:   Optional[str] = None,
+    feed:     Optional[int] = None,
+    saved:    bool = False,
     user:     Optional[dict] = Depends(get_optional_user),
 ):
+    """The feed. scope: public (shared feeds), mine (the reader's own
+    sources), all (both). feed: one of the reader's sources. saved: the
+    articles the reader saved."""
+    uid = user["id"] if user else 0
+    if scope not in SCOPES:
+        raise HTTPException(400, "Unknown scope")
+    if (scope != "public" or feed or saved) and not uid:
+        raise HTTPException(401, "Sign in to see your own sources")
     rows = await database.get_articles(
-        pool, limit=limit, offset=offset,
-        category=category, search=search, user_id=user["id"] if user else 0
-    )
+        pool, limit=limit, offset=offset, category=category, search=search,
+        user_id=uid, scope="mine" if feed else scope, source=source, feed_id=feed,
+        saved=saved)
     return [serialize_row(r) for r in rows]
+
+
+@app.get("/api/articles/count")
+async def count_new_articles(since: datetime, category: Optional[str] = None,
+                             scope: str = "public",
+                             user: Optional[dict] = Depends(get_optional_user)):
+    """How many articles appeared after `since`: the "new stories" button."""
+    uid = user["id"] if user else 0
+    if scope not in SCOPES or (scope != "public" and not uid):
+        scope = "public"
+    n = await database.get_articles(pool, category=category, user_id=uid, scope=scope,
+                                    since=since, count_only=True)
+    return {"count": n}
+
 
 @app.get("/api/articles/{article_id}")
 async def get_article(article_id: int, user: Optional[dict] = Depends(get_optional_user)):
@@ -514,7 +573,30 @@ async def get_article(article_id: int, user: Optional[dict] = Depends(get_option
     row = await database.get_article_by_id(pool, article_id, uid)
     if not row:
         raise HTTPException(404, "Article introuvable")
+    html = row.pop("content_raw", "") or ""
+    for k in ("original_content", "audio_summary_text", "audio_url", "audio_status",
+              "audio_error", "audio_duration_seconds", "audio_generated_at", "freshrss_id"):
+        row.pop(k, None)
+    row["paragraphs"] = database.paragraphs(html)
+    row["excerpt"] = database.excerpt(html)
+    row["reading_minutes"] = database.reading_minutes(html)
+    row["personal"] = row.get("owner_user_id") is not None
     return serialize_row(row)
+
+
+@app.post("/api/articles/{article_id}/save")
+async def save_article(article_id: int, user: dict = Depends(get_current_user)):
+    if not await database.get_article_by_id(pool, article_id, user["id"]):
+        raise HTTPException(404, "Article not found")
+    await pool.execute("INSERT INTO user_saves (user_id, article_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+                       user["id"], article_id)
+    return {"saved": True}
+
+
+@app.delete("/api/articles/{article_id}/save")
+async def unsave_article(article_id: int, user: dict = Depends(get_current_user)):
+    await pool.execute("DELETE FROM user_saves WHERE user_id = $1 AND article_id = $2", user["id"], article_id)
+    return {"saved": False}
 
 @app.post("/api/articles/{article_id}/read")
 async def mark_read(article_id: int, user: dict = Depends(get_current_user)):
@@ -523,10 +605,11 @@ async def mark_read(article_id: int, user: dict = Depends(get_current_user)):
 
 @app.post("/api/articles/{article_id}/view")
 async def record_view(article_id: int, request: Request):
-    import hashlib
     forwarded = request.headers.get("X-Forwarded-For", "")
     raw_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
-    ip_hash = hashlib.sha256(raw_ip.encode()).hexdigest()
+    # Salted, as the privacy page says: the hash of an IP alone can be reversed
+    # by hashing every IPv4 address.
+    ip_hash = hashlib.sha256((VIEW_SALT + raw_ip).encode()).hexdigest()
     result = await pool.execute(
         "INSERT INTO article_views (article_id, ip_hash) VALUES ($1, $2) ON CONFLICT DO NOTHING",
         article_id, ip_hash
@@ -543,53 +626,14 @@ async def record_view(article_id: int, request: Request):
 
 @app.get("/api/categories")
 async def list_categories(user: Optional[dict] = Depends(get_optional_user)):
-    rows = await pool.fetch("""
-        SELECT DISTINCT category FROM articles
-        WHERE category IS NOT NULL AND category != ''
-        ORDER BY category
+    rows = await pool.fetch(f"""
+        SELECT DISTINCT a.category FROM articles a
+        WHERE a.category IS NOT NULL AND a.category != ''
+          AND {database.PUBLIC} AND {' AND '.join(database.VISIBLE)}
+        ORDER BY a.category
     """)
     return [r["category"] for r in rows]
 
-
-# ── Feeds ─────────────────────────────────────────────────────────────────────
-
-@app.get("/api/feeds")
-async def get_feeds(user: dict = Depends(get_current_user)):
-    rows = await pool.fetch("""
-        SELECT id, freshrss_id, name, url, category, active, added_at
-        FROM user_feeds WHERE user_id = $1 ORDER BY name
-    """, user["id"])
-    if rows:
-        return [serialize_row(dict(r)) for r in rows]
-    # Default: return distinct feed sources from articles
-    src_rows = await pool.fetch("""
-        SELECT DISTINCT feed_source AS name, category
-        FROM articles WHERE feed_source IS NOT NULL AND feed_source != ''
-        ORDER BY feed_source
-    """)
-    return [{"id": None, "freshrss_id": None, "name": r["name"],
-             "url": None, "category": r["category"], "active": True} for r in src_rows]
-
-@app.post("/api/feeds", status_code=201)
-async def add_feed(req: AddFeedRequest, user: dict = Depends(get_current_user)):
-    fid = req.freshrss_id or req.url
-    row = await pool.fetchrow("""
-        INSERT INTO user_feeds (user_id, freshrss_id, name, url, category)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (user_id, freshrss_id) DO UPDATE SET active = TRUE
-        RETURNING id, name
-    """, user["id"], fid, req.name, req.url, req.category)
-    return dict(row)
-
-@app.delete("/api/feeds/{feed_id}")
-async def remove_feed(feed_id: int, user: dict = Depends(get_current_user)):
-    result = await pool.execute("""
-        UPDATE user_feeds SET active = FALSE
-        WHERE id = $1 AND user_id = $2
-    """, feed_id, user["id"])
-    if result == "UPDATE 0":
-        raise HTTPException(404, "Flux introuvable")
-    return {"ok": True}
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 
@@ -822,10 +866,10 @@ async def google_callback(code: str, request: Request):
         VALUES ($1, $2, NOW() + INTERVAL '30 days')
     """, session_token, user["id"])
     oauth_logger.warning(f"OAUTH_DEBUG: session created for user id={user['id']}, setting cookie and redirecting")
-    nonce = getattr(request.state, 'csp_nonce', secrets.token_urlsafe(16))
+    # The session cookie is set by the server only, HttpOnly: the callback
+    # page used to write it from JavaScript as well, readable by any script.
     response = templates.TemplateResponse(request, "google_callback.html", {
-        "csp_nonce": nonce,
-        "session_token": session_token,
+        "csp_nonce": getattr(request.state, 'csp_nonce', ''),
     })
     response.set_cookie(
         key="ax_session",
@@ -833,7 +877,8 @@ async def google_callback(code: str, request: Request):
         max_age=30 * 24 * 60 * 60,
         path="/",
         samesite="lax",
-        httponly=False,
+        httponly=True,
+        secure=COOKIE_SECURE,
     )
     return response
 
@@ -921,30 +966,24 @@ async def verify_email(token: str, response: Response):
     _email_tokens.pop(token, None)
     return RedirectResponse("/?verified=1")
 
-@app.delete("/api/feeds/{feed_id}/permanent")
-async def delete_feed_permanent(feed_id: int, user: dict = Depends(get_current_user)):
-    result = await pool.execute(
-        "DELETE FROM user_feeds WHERE id = $1 AND user_id = $2",
-        feed_id, user["id"]
-    )
-    if result == "DELETE 0":
-        raise HTTPException(404, "Feed not found")
-    return {"ok": True}
-
 @app.get("/api/categories/tree")
 async def categories_tree(user: Optional[dict] = Depends(get_optional_user)):
     uid = user["id"] if user else 0
-    rows = await pool.fetch("""
+    # The counts the feed can show: public articles of the last 30 days.
+    rows = await pool.fetch(f"""
         SELECT category,
                COUNT(*) as total,
-               COUNT(CASE WHEN ur.id IS NOT NULL THEN 1 END) as read_count
+               COUNT(CASE WHEN ur.id IS NOT NULL THEN 1 END) as read_count,
+               COUNT(*) FILTER (WHERE a.published_at > NOW() - INTERVAL '24 hours') AS today
         FROM articles a
         LEFT JOIN user_reads ur ON ur.article_id = a.id AND ur.user_id = $1
         WHERE a.category IS NOT NULL AND a.category != ''
+          AND {database.PUBLIC} AND {' AND '.join(database.VISIBLE)}
         GROUP BY a.category
         ORDER BY a.category
     """, uid)
-    return [{"category": r["category"], "total": r["total"], "read": r["read_count"]} for r in rows]
+    return [{"category": r["category"], "total": r["total"], "read": r["read_count"],
+             "today": r["today"]} for r in rows]
 
 @app.post("/api/enrich")
 async def enrich_articles(limit: int = 500, admin: dict = Depends(require_admin_or_internal)):
@@ -964,6 +1003,7 @@ async def list_entities(user: Optional[dict] = Depends(get_optional_user)):
                MAX(published_at) as latest
         FROM articles, jsonb_array_elements_text(entities) e(entity)
         WHERE entities IS NOT NULL AND jsonb_array_length(entities) > 0
+          AND owner_user_id IS NULL AND published_at > NOW() - INTERVAL '30 days'
         GROUP BY e.entity
         ORDER BY article_count DESC
         LIMIT 100
@@ -982,7 +1022,8 @@ async def entity_detail(entity_name: str, limit: int = 50,
                (ur.id IS NOT NULL) as is_read
         FROM articles a
         LEFT JOIN user_reads ur ON ur.article_id = a.id AND ur.user_id = $1
-        WHERE a.entities @> $2::jsonb
+        WHERE a.entities @> $2::jsonb AND a.owner_user_id IS NULL
+          AND a.published_at <= NOW()
         ORDER BY a.published_at DESC
         LIMIT $3
     """, uid, json_lib.dumps([entity_name]), limit)
@@ -1019,7 +1060,7 @@ async def list_countries(user: Optional[dict] = Depends(get_optional_user)):
     rows = await pool.fetch("""
         SELECT country_code, COUNT(*) as count
         FROM articles
-        WHERE country_code IS NOT NULL AND country_code != ''
+        WHERE country_code IS NOT NULL AND country_code != '' AND owner_user_id IS NULL
         GROUP BY country_code ORDER BY count DESC
     """)
     return [dict(r) for r in rows]
@@ -1030,28 +1071,45 @@ async def trigger_translate(limit: int = 20, admin: dict = Depends(require_admin
     count = await translate_batch(pool, limit=limit)
     return {"translated": count}
 
+_OG = (re.compile(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', re.I),
+       re.compile(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', re.I))
+
+
+async def _og_image(url: str) -> Optional[str]:
+    """The og:image of a page, fetched through sources.safe_get(): an
+    article's URL can come from a reader's own source, so it gets the same
+    guard as any address a user typed."""
+    try:
+        final, status, headers, body = await sources.safe_get(url, {"Accept": "text/html"})
+    except sources.SourceError:
+        return None
+    if status >= 400:
+        return None
+    html = body[:60000].decode("utf-8", "replace")
+    for rx in _OG:
+        m = rx.search(html)
+        if m and m.group(1).startswith("http"):
+            return html_lib.unescape(m.group(1))
+    return None
+
+
 @app.get("/api/proxy/ogimage")
-async def get_og_image(url: str, token: str = "", request: Request = None):
-    """Fetch og:image from an article's page server-side to avoid CORS.
-    Only the URL of an article we hold is fetched: an arbitrary URL would let
-    anyone make this server request any address, its own network included."""
+async def get_og_image(url: str, user: Optional[dict] = Depends(get_optional_user)):
+    """og:image of an article's page, for a card without a picture. Only the
+    URL of an article this reader may see is fetched."""
     if not url or not url.startswith("http"):
         raise HTTPException(400, "Invalid URL")
-    if not await pool.fetchval("SELECT 1 FROM articles WHERE url = $1 LIMIT 1", url):
+    uid = user["id"] if user else 0
+    if not await pool.fetchval(
+            "SELECT 1 FROM articles WHERE url = $1 AND (owner_user_id IS NULL OR owner_user_id = $2) LIMIT 1",
+            url, uid):
         raise HTTPException(404, "Unknown article URL")
-    try:
-        async with httpx.AsyncClient(timeout=8, follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; AXNews/1.0)"}) as client:
-            r = await client.get(url)
-            html = r.text[:50000]
-        m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html, re.I)
-        if not m:
-            m = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html, re.I)
-        if m:
-            return {"image_url": m.group(1)}
-        return {"image_url": None}
-    except Exception:
-        return {"image_url": None}
+    img = await _og_image(url)
+    if img:
+        # Kept, so the next reader (and the reader view) has it at once.
+        await pool.execute("UPDATE articles SET image_url = $1 WHERE url = $2 AND image_url IS NULL", img, url)
+    return {"image_url": img}
+
 
 @app.post("/api/fetch-images")
 async def fetch_missing_images(limit: int = 30, admin: dict = Depends(require_admin_or_internal)):
@@ -1059,28 +1117,15 @@ async def fetch_missing_images(limit: int = 30, admin: dict = Depends(require_ad
     rows = await pool.fetch("""
         SELECT id, url FROM articles
         WHERE image_url IS NULL AND url IS NOT NULL AND url != ''
+          AND published_at > NOW() - INTERVAL '30 days'
         ORDER BY ingested_at DESC LIMIT $1
     """, limit)
     count = 0
-    async with httpx.AsyncClient(timeout=8, follow_redirects=True,
-        headers={"User-Agent": "Mozilla/5.0 (compatible; AXNews/1.0)"}) as client:
-        for row in rows:
-            try:
-                r = await client.get(row["url"])
-                html = r.text[:30000]
-                m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html, re.I)
-                if not m:
-                    m = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html, re.I)
-                if m:
-                    img_url = m.group(1)
-                    if img_url.startswith('http'):
-                        await pool.execute(
-                            "UPDATE articles SET image_url = $1 WHERE id = $2",
-                            img_url, row["id"]
-                        )
-                        count += 1
-            except Exception:
-                pass
+    for row in rows:
+        img = await _og_image(row["url"])
+        if img:
+            await pool.execute("UPDATE articles SET image_url = $1 WHERE id = $2", img, row["id"])
+            count += 1
     return {"fetched": count}
 
 @app.post("/api/articles/{article_id}/image")
@@ -1115,6 +1160,29 @@ async def purge_old_articles(admin: dict = Depends(require_admin_or_internal)):
     logger.info(f"Purged {deleted} articles")
     return {"deleted": deleted}
 
+@app.get("/api/admin/stats")
+async def admin_stats(user: dict = Depends(require_admin)):
+    """The administration's dashboard: the feed, the accounts, their sources."""
+    row = await pool.fetchrow("""
+        SELECT (SELECT count(*) FROM articles WHERE owner_user_id IS NULL
+                  AND published_at > NOW() - INTERVAL '24 hours' AND published_at <= NOW()) AS last24h,
+               (SELECT count(*) FROM articles WHERE owner_user_id IS NULL
+                  AND published_at > NOW() - INTERVAL '30 days') AS month,
+               (SELECT count(*) FROM articles WHERE translation_status = 'pending') AS translation_pending,
+               (SELECT count(*) FROM users) AS users,
+               (SELECT count(*) FROM users WHERE approved = false) AS pending,
+               (SELECT count(*) FROM user_feeds WHERE kind IS NOT NULL) AS sources,
+               (SELECT count(*) FROM user_feeds WHERE kind IS NOT NULL AND last_error IS NOT NULL) AS sources_failing,
+               (SELECT count(*) FROM articles WHERE owner_user_id IS NOT NULL) AS personal_articles,
+               (SELECT max(ingested_at) FROM articles WHERE owner_user_id IS NULL) AS last_ingest
+    """)
+    per_user = await pool.fetch("""
+        SELECT u.id, count(f.id) AS sources, count(f.id) FILTER (WHERE f.last_error IS NOT NULL) AS failing
+          FROM users u LEFT JOIN user_feeds f ON f.user_id = u.id AND f.kind IS NOT NULL
+         GROUP BY u.id""")
+    return {**serialize_row(dict(row)), "per_user": {r["id"]: {"sources": r["sources"], "failing": r["failing"]} for r in per_user}}
+
+
 @app.get("/api/admin/pending-users")
 async def get_pending_users(user: dict = Depends(require_admin)):
     rows = await pool.fetch("""
@@ -1141,6 +1209,7 @@ async def sitemap():
         SELECT id, title, published_at, category, feed_source
         FROM articles
         WHERE translation_status = 'done'
+          AND owner_user_id IS NULL
           AND published_at <= NOW()
           AND published_at >= NOW() - INTERVAL '30 days'
           AND title !~ '[가-힣]'
@@ -1189,6 +1258,7 @@ async def news_sitemap():
         SELECT id, title, published_at, feed_source, category
         FROM articles
         WHERE translation_status = 'done'
+          AND owner_user_id IS NULL
           AND published_at <= NOW()
           AND published_at >= NOW() - INTERVAL '48 hours'
           AND title !~ '[가-힣]'
@@ -1228,59 +1298,300 @@ async def reject_user(user_id: int, user: dict = Depends(require_admin)):
         "DELETE FROM users WHERE id = $1 AND is_admin = false", user_id)
     return {"rejected": True}
 
-@app.get("/about")
-async def about_page(request: Request):
-    """Public landing page for SEO — no auth required."""
-    return templates.TemplateResponse(request, "about.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+# ── Personal sources ──────────────────────────────────────────────────────────
+# Each account's own feeds (backend/sources.py). Their articles are the
+# account's alone (articles.owner_user_id).
 
-@app.get("/privacy")
-async def privacy_page(request: Request):
-    """Privacy policy — no auth required."""
-    return templates.TemplateResponse(request, "privacy.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+MAX_SOURCES = int(os.getenv("MAX_SOURCES_PER_USER", "150"))
+_discover_attempts: dict = defaultdict(list)
+_refresh_attempts: dict = defaultdict(list)
+SOURCE_FIELDS = """id, name, url, site_url, kind, category, active, added_at, last_fetched_at,
+                   last_ok_at, last_error, error_count, item_count"""
 
-# ── HTML page handlers (Jinja2 templates for CSP nonce injection) ─────────────
+
+async def _own_source(source_id: int, user: dict) -> dict:
+    row = await pool.fetchrow(f"SELECT {SOURCE_FIELDS}, user_id, etag, last_modified FROM user_feeds WHERE id = $1 AND user_id = $2",
+                              source_id, user["id"])
+    if not row:
+        raise HTTPException(404, "Source not found")
+    return dict(row)
+
+
+@app.get("/api/sources")
+async def list_sources(user: dict = Depends(get_current_user)):
+    rows = await pool.fetch(f"""
+        SELECT {SOURCE_FIELDS},
+               (SELECT count(*) FROM articles a WHERE a.user_feed_id = f.id
+                  AND a.published_at > NOW() - INTERVAL '7 days') AS week_count,
+               (SELECT max(published_at) FROM articles a WHERE a.user_feed_id = f.id) AS latest_at
+          FROM user_feeds f WHERE user_id = $1 AND kind IS NOT NULL
+         ORDER BY lower(name)""", user["id"])
+    return [serialize_row(dict(r)) for r in rows]
+
+
+@app.post("/api/sources/discover")
+async def discover_sources(req: DiscoverRequest, user: dict = Depends(get_current_user)):
+    """What the reader typed — a feed, a site, a YouTube channel, a subreddit,
+    a Mastodon account, a GitHub repository, "hn" — turned into feeds."""
+    if not _check_rate_limit(_discover_attempts, str(user["id"]), 12, 60):
+        raise HTTPException(429, "Too many searches. Wait a minute.")
+    text = (req.input or "").strip()
+    if not text or len(text) > 500:
+        raise HTTPException(400, "Type an address, a channel or a feed.")
+    try:
+        found = await asyncio.wait_for(sources.discover(text), 30)
+    except sources.SourceError as e:
+        raise HTTPException(422, str(e))
+    except asyncio.TimeoutError:
+        raise HTTPException(504, "The site took too long to answer.")
+    mine = {r["url"] for r in await pool.fetch("SELECT url FROM user_feeds WHERE user_id = $1", user["id"])}
+    for f in found:
+        f["already"] = f["url"] in mine
+    return found
+
+
+async def _add_source(user: dict, url: str, name: Optional[str], category: Optional[str],
+                      kind: Optional[str], fetch_now: bool = True) -> dict:
+    count = await pool.fetchval("SELECT count(*) FROM user_feeds WHERE user_id = $1 AND kind IS NOT NULL", user["id"])
+    if count >= MAX_SOURCES:
+        raise HTTPException(409, f"You already follow {MAX_SOURCES} sources.")
+    parsed = sources.recent_feed(url)
+    if parsed is None:
+        try:
+            final, status, headers, body = await sources.safe_get(url, {"Accept": ", ".join(sources.FEED_TYPES)})
+            if status >= 400:
+                raise sources.SourceError(f"The feed answered HTTP {status}.")
+            parsed = sources.parse_feed(final, body)
+        except sources.SourceError as e:
+            raise HTTPException(422, str(e))
+    title = (name or "").strip()[:120] or parsed["title"]
+    cat = (category or "").strip()[:60] or None
+    row = await pool.fetchrow(f"""
+        INSERT INTO user_feeds (user_id, freshrss_id, name, url, category, kind, site_url, active)
+        VALUES ($1, $2, $3, $2, $4, $5, $6, TRUE)
+        ON CONFLICT (user_id, freshrss_id) DO UPDATE
+           SET active = TRUE, name = EXCLUDED.name, category = EXCLUDED.category,
+               kind = EXCLUDED.kind
+        RETURNING {SOURCE_FIELDS}, user_id, etag, last_modified""",
+        user["id"], parsed["url"], title, cat, (kind or "rss")[:20], parsed["site_url"])
+    feed = dict(row)
+    if fetch_now:
+        new, total = await sources.store_entries(pool, feed, parsed["entries"])
+        await pool.execute("""UPDATE user_feeds SET last_fetched_at = now(), last_ok_at = now(),
+                              item_count = $2, last_error = NULL, error_count = 0 WHERE id = $1""",
+                           feed["id"], total)
+        feed["item_count"] = total
+    return feed
+
+
+@app.post("/api/sources", status_code=201)
+async def add_source(req: AddSourceRequest, user: dict = Depends(get_current_user)):
+    feed = await _add_source(user, req.url.strip(), req.name, req.category, req.kind)
+    feed.pop("etag", None); feed.pop("last_modified", None); feed.pop("user_id", None)
+    return serialize_row(feed)
+
+
+@app.patch("/api/sources/{source_id}")
+async def update_source(source_id: int, req: UpdateSourceRequest, user: dict = Depends(get_current_user)):
+    await _own_source(source_id, user)
+    if req.name is not None and req.name.strip():
+        await pool.execute("UPDATE user_feeds SET name = $1 WHERE id = $2", req.name.strip()[:120], source_id)
+        await pool.execute("UPDATE articles SET feed_source = $1 WHERE user_feed_id = $2", req.name.strip()[:120], source_id)
+    if req.category is not None:
+        cat = req.category.strip()[:60] or None
+        await pool.execute("UPDATE user_feeds SET category = $1 WHERE id = $2", cat, source_id)
+        await pool.execute("UPDATE articles SET category = COALESCE($1, 'My_Sources') WHERE user_feed_id = $2", cat, source_id)
+    if req.active is not None:
+        await pool.execute("UPDATE user_feeds SET active = $1, error_count = 0 WHERE id = $2", req.active, source_id)
+    return serialize_row(await _own_source(source_id, user) | {"etag": None, "last_modified": None})
+
+
+@app.delete("/api/sources/{source_id}")
+async def delete_source(source_id: int, user: dict = Depends(get_current_user)):
+    """The source and every article it brought (saved ones included)."""
+    await _own_source(source_id, user)
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute("""UPDATE user_knowledge SET source_article = NULL
+                                  WHERE source_article IN (SELECT id FROM articles WHERE user_feed_id = $1)""", source_id)
+            await conn.execute("DELETE FROM user_feeds WHERE id = $1 AND user_id = $2", source_id, user["id"])
+    return {"ok": True}
+
+
+@app.post("/api/sources/{source_id}/refresh")
+async def refresh_source(source_id: int, user: dict = Depends(get_current_user)):
+    if not _check_rate_limit(_refresh_attempts, f"{user['id']}:{source_id}", 2, 60):
+        raise HTTPException(429, "This source was refreshed a moment ago.")
+    feed = await _own_source(source_id, user)
+    feed["user_id"] = user["id"]
+    r = await asyncio.wait_for(sources.fetch_source(pool, feed), 45)
+    return r
+
+
+@app.get("/api/sources/opml")
+async def export_opml(user: dict = Depends(get_current_user)):
+    rows = await pool.fetch("SELECT name, url, site_url FROM user_feeds WHERE user_id = $1 AND kind IS NOT NULL ORDER BY lower(name)", user["id"])
+    return Response(sources.opml_document(user["username"], [dict(r) for r in rows]),
+                    media_type="text/x-opml",
+                    headers={"Content-Disposition": 'attachment; filename="ax-news-sources.opml"'})
+
+
+@app.post("/api/sources/opml")
+async def import_opml(req: OpmlRequest, user: dict = Depends(get_current_user)):
+    """Import an OPML file's feeds (the format every reader exports). Each is
+    checked and added; its articles arrive with the next fetch (5 minutes)."""
+    outlines = sources.opml_outlines(req.opml or "")[:MAX_SOURCES]
+    if not outlines:
+        raise HTTPException(422, "No feed found in this file.")
+    added, failed = [], []
+    for o in outlines:
+        try:
+            f = await asyncio.wait_for(_add_source(user, o["url"], o["name"], None, "rss", fetch_now=False), 25)
+            added.append(f["name"])
+        except (HTTPException, asyncio.TimeoutError) as e:
+            failed.append({"url": o["url"], "error": getattr(e, "detail", "timeout")})
+    return {"added": len(added), "failed": failed}
+
+
+# ── Saved articles, display preferences, trending ─────────────────────────────
+
+PREF_KEYS = {"view", "density", "theme", "hidden_categories", "pinned_categories", "scope", "open_in"}
+
+
+@app.get("/api/prefs")
+async def get_prefs(user: dict = Depends(get_current_user)):
+    v = await pool.fetchval("SELECT prefs FROM user_prefs WHERE user_id = $1", user["id"])
+    return json_lib.loads(v) if isinstance(v, str) else (v or {})
+
+
+@app.put("/api/prefs")
+async def put_prefs(prefs: dict, user: dict = Depends(get_current_user)):
+    clean = {k: v for k, v in prefs.items() if k in PREF_KEYS}
+    if len(json_lib.dumps(clean)) > 8000:
+        raise HTTPException(413, "Too many preferences")
+    await pool.execute("""
+        INSERT INTO user_prefs (user_id, prefs, updated_at) VALUES ($1, $2::jsonb, now())
+        ON CONFLICT (user_id) DO UPDATE SET prefs = user_prefs.prefs || EXCLUDED.prefs, updated_at = now()
+    """, user["id"], json_lib.dumps(clean))
+    return await get_prefs(user)
+
+
+_trending_cache: dict = {"at": 0.0, "data": None}
+
+
+@app.get("/api/trending")
+async def trending():
+    """What the last 24 hours talk about: entities and sources (public
+    articles). Cached for 5 minutes."""
+    if _trending_cache["data"] is not None and _time.time() - _trending_cache["at"] < 300:
+        return _trending_cache["data"]
+    ents = await pool.fetch("""
+        SELECT e.entity, count(*) AS n, avg(sentiment_score) AS score
+          FROM articles, jsonb_array_elements_text(entities) e(entity)
+         WHERE owner_user_id IS NULL AND published_at > NOW() - INTERVAL '24 hours'
+           AND published_at <= NOW()
+         GROUP BY e.entity ORDER BY n DESC LIMIT 14""")
+    srcs = await pool.fetch("""
+        SELECT feed_source, count(*) AS n FROM articles
+         WHERE owner_user_id IS NULL AND published_at > NOW() - INTERVAL '24 hours'
+           AND published_at <= NOW() AND feed_source <> ''
+         GROUP BY feed_source ORDER BY n DESC LIMIT 8""")
+    total = await pool.fetchval("""SELECT count(*) FROM articles WHERE owner_user_id IS NULL
+                                   AND published_at > NOW() - INTERVAL '24 hours' AND published_at <= NOW()""")
+    data = {"entities": [serialize_row(dict(r)) for r in ents],
+            "sources": [dict(r) for r in srcs], "last24h": total}
+    _trending_cache.update(at=_time.time(), data=data)
+    return data
+
+
+# ── Pages ─────────────────────────────────────────────────────────────────────
+# Jinja2 templates (backend/templates, on base.html), each response with its
+# own CSP nonce.
+
+def page(request: Request, name: str, **ctx):
+    return templates.TemplateResponse(request, name, {"csp_nonce": getattr(request.state, "csp_nonce", ""), **ctx})
+
+
+def _redirect(to: str):
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(to, status_code=301)
+
 
 @app.get("/", response_class=HTMLResponse)
 async def root_page(request: Request):
-    return templates.TemplateResponse(request, "index.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+    return page(request, "index.html", active="feed")
 
-@app.get("/index.html")
-async def index_html():
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse("/", status_code=301)
+@app.get("/saved", response_class=HTMLResponse)
+async def saved_page(request: Request):
+    return page(request, "index.html", active="saved")
+
+@app.get("/mine", response_class=HTMLResponse)
+async def mine_page(request: Request):
+    return page(request, "index.html", active="mine")
+
+@app.get("/account", response_class=HTMLResponse)
+async def account_page(request: Request):
+    return page(request, "account.html", active="account")
 
 @app.get("/login.html", response_class=HTMLResponse)
 async def login_html(request: Request):
-    return templates.TemplateResponse(request, "login.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+    return page(request, "login.html")
 
 @app.get("/admin.html", response_class=HTMLResponse)
 async def admin_html(request: Request):
-    return templates.TemplateResponse(request, "admin.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
-
-@app.get("/profile.html", response_class=HTMLResponse)
-async def profile_html(request: Request):
-    return templates.TemplateResponse(request, "profile.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+    return page(request, "admin.html", active="admin")
 
 @app.get("/tv.html", response_class=HTMLResponse)
 async def tv_html(request: Request):
-    return templates.TemplateResponse(request, "tv.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+    return page(request, "tv.html")
 
-@app.get("/about.html", response_class=HTMLResponse)
-async def about_html(request: Request):
-    return templates.TemplateResponse(request, "about.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+@app.get("/about", response_class=HTMLResponse)
+async def about_page(request: Request):
+    return page(request, "about.html")
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_page(request: Request):
+    return page(request, "privacy.html")
+
+@app.get("/architecture", response_class=HTMLResponse)
+async def architecture_page(request: Request):
+    return page(request, "architecture.html")
+
+@app.get("/contact", response_class=HTMLResponse)
+async def contact_page(request: Request):
+    return page(request, "contact.html")
 
 @app.get("/landing.html", response_class=HTMLResponse)
 async def landing_html(request: Request):
-    return templates.TemplateResponse(request, "landing.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+    return page(request, "landing.html")
 
-@app.get("/privacy.html", response_class=HTMLResponse)
-async def privacy_html(request: Request):
-    return templates.TemplateResponse(request, "privacy.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+# Old addresses
+@app.get("/index.html")
+async def index_html():
+    return _redirect("/")
 
-@app.get("/architecture")
-async def architecture_page(request: Request):
-    return templates.TemplateResponse(request, "architecture.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+@app.get("/profile.html")
+async def profile_html():
+    return _redirect("/account")
 
-@app.get("/contact")
-async def contact_page(request: Request):
-    return templates.TemplateResponse(request, "contact.html", {"csp_nonce": getattr(request.state, 'csp_nonce', '')})
+@app.get("/about.html")
+async def about_html():
+    return _redirect("/about")
+
+@app.get("/privacy.html")
+async def privacy_html():
+    return _redirect("/privacy")
+
+
+# In production nginx serves frontend/ itself. For a preview or local work,
+# AXNEWS_SERVE_STATIC=1 lets the backend serve it (registered last, so every
+# route above wins).
+if os.getenv("AXNEWS_SERVE_STATIC") == "1":
+    from fastapi.responses import FileResponse
+
+    @app.get("/{path:path}")
+    async def static_file(path: str):
+        f = (FRONTEND_DIR / path).resolve()
+        if f.is_file() and FRONTEND_DIR.resolve() in f.parents and not f.name.endswith(".html"):
+            return FileResponse(f)
+        raise HTTPException(404, "Not found")

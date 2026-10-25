@@ -1,5 +1,5 @@
 limit_req_zone $binary_remote_addr zone=ax_login:10m rate=5r/m;
-limit_req_zone $binary_remote_addr zone=ax_api:10m rate=60r/m;
+limit_req_zone $binary_remote_addr zone=ax_api:10m rate=120r/m;
 
 server {
     listen 80 default_server;
@@ -35,7 +35,7 @@ server {
     }
 
     location /api/ {
-        limit_req zone=ax_api burst=30 nodelay;
+        limit_req zone=ax_api burst=60 nodelay;
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

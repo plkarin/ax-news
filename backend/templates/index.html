@@ -1,126 +1,106 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AX-NEWS — Global Tech Intelligence Feed</title>
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <meta name="description" content="AX-NEWS — Global tech intelligence feed. Real-time news on AI, semiconductors, cybersecurity, energy and geopolitics from 200+ sources worldwide.">
-  <meta name="keywords" content="tech news, AI news, semiconductor news, cybersecurity, artificial intelligence, machine learning, chip industry, tech intelligence">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-  <meta name="author" content="AX-NEWS">
-  <meta name="language" content="English">
-  <meta property="og:title" content="AX-NEWS — Global Tech Intelligence">
-  <meta property="og:description" content="Real-time tech news from 200+ sources. AI, semiconductors, cybersecurity and more.">
-  <meta property="og:url" content="https://ax-news.com">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://ax-news.com/og-image.png">
-  <meta property="og:site_name" content="AX-NEWS">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AX-NEWS — Global Tech Intelligence">
-  <meta name="twitter:description" content="Real-time tech news from 200+ sources.">
-  <meta name="twitter:image" content="https://ax-news.com/og-image.png">
+{% extends "base.html" %}
+{% block title %}{% if active == 'saved' %}Saved — AX-NEWS{% elif active == 'mine' %}My sources — AX-NEWS{% else %}AX-NEWS — Global Tech Intelligence Feed{% endif %}{% endblock %}
+{% block head %}
   <link rel="canonical" href="https://ax-news.com/">
-  <meta name="theme-color" content="#000510">
-  <link rel="stylesheet" href="style.css?v=20260723b">
-  <!-- Structured Data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "AX-NEWS",
-    "description": "Global tech intelligence feed — AI, semiconductors, cybersecurity, energy and more from 200+ sources worldwide.",
-    "url": "https://ax-news.com",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://ax-news.com/?search={search_term_string}"
-      },
-      "query-input": "required name=search_term_string"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "AX-NEWS",
-      "url": "https://ax-news.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://ax-news.com/favicon.svg"
-      }
-    }
-  }
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta property="og:title" content="AX-NEWS — Global Tech Intelligence">
+  <meta property="og:description" content="Real-time tech news from 200+ sources: AI, semiconductors, cybersecurity and more.">
+  <meta property="og:url" content="https://ax-news.com">
+  <script type="application/ld+json" nonce="{{ csp_nonce }}">
+  {"@context":"https://schema.org","@type":"WebSite","name":"AX-NEWS","url":"https://ax-news.com",
+   "description":"Global tech intelligence feed — AI, semiconductors, cybersecurity, energy and more from 200+ sources worldwide.",
+   "potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://ax-news.com/?q={search_term_string}"},"query-input":"required name=search_term_string"}}
   </script>
-</head>
-<body>
-<h1 class="sr-only">AX-NEWS — Global Tech Intelligence Feed: AI, Semiconductors, Cybersecurity News</h1>
-<div id="app">
-  <header>
-    <div class="header-logo-zone">
-      <picture>
-        <source srcset="/logo.webp" type="image/webp">
-        <img src="/logo.png" alt="AXIOM" class="hdr-logo-img" width="416" height="208">
-      </picture>
+{% endblock %}
+{% block body_attrs %}data-feed="{{ active }}"{% endblock %}
+{% block content %}
+<h1 class="sr-only">AX-NEWS — Global Tech Intelligence Feed</h1>
+<div class="shell">
+  <aside class="rail rail-l" aria-label="Topics">
+    <div class="group" data-auth="in">
+      <h3>You</h3>
+      <a class="topic-link" href="/mine" data-scope-link="mine"><span class="thumb" style="background-image:url(/assets/img/topics/mine-sm.webp)"></span><span class="name">My sources</span><span class="count" data-mine-count></span></a>
+      <a class="topic-link" href="/saved" data-scope-link="saved"><span class="thumb" style="background-image:url(/assets/img/topics/default-sm.webp)"></span><span class="name">Saved</span></a>
+      <div data-my-sources></div>
     </div>
-    <div class="header-controls-row">
-      <button class="sync-btn" id="syncBtn" style="display:none">⟳ Sync</button>
-      <input type="text" id="searchInput" placeholder="Search…" class="header-search">
-      <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀</button>
-      <nav class="header-nav-links" aria-label="Site navigation">
-        <a href="/architecture" class="header-link">Architecture</a>
-        <a href="/privacy" class="header-link">Privacy</a>
-        <a href="/contact" class="header-link">Contact</a>
-        <a href="https://github.com/plkarin/ax-news" class="header-link" target="_blank" rel="noopener">GitHub</a>
-      </nav>
-      <details class="mobile-nav">
-        <summary title="Navigation">☰ Nav</summary>
-        <div class="mobile-nav-menu">
-          <a href="/architecture">Architecture</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/contact">Contact</a>
-          <a href="/profile.html">Profile</a>
-          <a href="https://github.com/plkarin/ax-news" target="_blank" rel="noopener">GitHub</a>
+    <div class="group">
+      <h3>Topics</h3>
+      <div data-topics><div class="skeleton" style="height:320px"></div></div>
+    </div>
+  </aside>
+
+  <main id="main" class="main" tabindex="-1">
+    <div class="topics-strip" data-topics-strip></div>
+    <div class="feed-head">
+      <div>
+        <h1 data-feed-title>Top stories</h1>
+        <div class="sub" data-feed-sub>&nbsp;</div>
+      </div>
+      <div class="feed-tools">
+        <div class="segmented" role="group" aria-label="Show" data-scope-tabs>
+          <button data-scope="public" aria-pressed="true">Everyone</button>
+          <button data-scope="all" data-auth="in" class="hidden">Everything</button>
+          <button data-scope="mine" data-auth="in" class="hidden">Mine</button>
         </div>
-      </details>
-      <span class="user-name" id="headerUser"></span>
-      <a href="/profile.html" class="header-link">Profile</a>
-      <a href="/admin.html" class="header-link admin" id="adminLink" style="display:none">Admin</a>
-      <button class="logout-btn" id="logoutBtn">Sign out</button>
+        <div class="segmented" role="group" aria-label="Layout" data-views></div>
+      </div>
     </div>
-  </header>
-  <div class="feed-layout">
-    <div class="cat-panel">
-      <div class="cat-pills" id="catPills"></div>
+    <button class="new-pill" data-new-pill type="button"></button>
+    <section id="feed" class="view-cards" aria-live="polite" aria-busy="true">
+      <div class="items" data-items></div>
+    </section>
+    <div class="sentinel" data-sentinel></div>
+  </main>
+
+  <aside class="rail rail-r" aria-label="Trending">
+    <div class="panel">
+      <h3>Last 24 hours</h3>
+      <div class="stat-big" data-last24>—</div>
+      <p>stories from the shared feeds</p>
     </div>
-    <div id="feedView">
-      <div class="article-grid" id="articleGrid"></div>
-      <div id="scrollSentinel"></div>
+    <div class="panel">
+      <h3>Trending</h3>
+      <div data-trending><div class="skeleton" style="height:260px"></div></div>
     </div>
-    <div id="entityView"></div>
-  </div>
+    <div class="panel">
+      <h3>Busiest sources</h3>
+      <div data-sources-top></div>
+    </div>
+    <div class="panel" data-auth="out">
+      <h3>Your own sources</h3>
+      <p class="muted" style="margin:0 0 12px;font-size:14px">Sign in to follow any site, YouTube channel, subreddit, Mastodon account or GitHub repository — privately, next to the shared feeds.</p>
+      <a class="btn sm primary" href="/login.html">Sign in</a>
+    </div>
+    <div class="panel">
+      <h3>Keyboard</h3>
+      <div class="shortcuts">
+        <kbd>/</kbd><span>Search</span>
+        <kbd>j</kbd><span>Next story · <kbd>k</kbd> previous</span>
+        <kbd>o</kbd><span>Open the story</span>
+        <kbd>s</kbd><span>Save it</span>
+        <kbd>v</kbd><span>Next layout</span>
+      </div>
+    </div>
+  </aside>
 </div>
 
-
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <img src="/logo.png" alt="AXIOM" style="height:22px;width:auto;opacity:.8">
-      <span>AX-NEWS — Global Tech Intelligence</span>
-    </div>
-    <div class="footer-links">
-      <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="https://github.com/plkarin/ax-news" rel="noopener" target="_blank">Source Code</a>
-    </div>
-    <div class="footer-legal">
-      &copy; 2026 Karin Pierre-Léonard &middot; Personal non-commercial project &middot;
-      Content aggregated from public RSS feeds — all articles remain property of their respective publishers &middot;
-      No cookies, no tracking — see <a href="/privacy">Privacy</a> &middot;
-      Built with Claude Code &middot; MIT License
-    </div>
+<div class="scrim" data-scrim></div>
+<aside class="reader" data-reader role="dialog" aria-modal="true" aria-label="Story" hidden>
+  <div class="reader-bar">
+    <button class="btn icon sm ghost" data-reader-prev title="Previous (←)" aria-label="Previous story"></button>
+    <button class="btn icon sm ghost" data-reader-next title="Next (→)" aria-label="Next story"></button>
+    <div class="grow"></div>
+    <button class="btn icon sm ghost" data-reader-save title="Save (s)" aria-label="Save"></button>
+    <button class="btn icon sm ghost" data-reader-share title="Share" aria-label="Share"></button>
+    <button class="btn icon sm ghost" data-reader-close title="Close (Esc)" aria-label="Close"></button>
   </div>
-</footer>
+  <div class="reader-body" data-reader-body></div>
+</aside>
 
-<script nonce="{{ csp_nonce }}" src="/marked.min.js"></script>
-<script nonce="{{ csp_nonce }}" src="app.js?v=20260723b"></script>
-</body>
-</html>
+<noscript>
+  <div class="page"><p>AX-NEWS needs JavaScript to show the feed. The <a href="/news-sitemap.xml">news sitemap</a> lists today's stories.</p></div>
+</noscript>
+{% endblock %}
+{% block scripts %}
+<script nonce="{{ csp_nonce }}" src="/assets/js/feed.js?v={{ asset_version }}"></script>
+{% endblock %}

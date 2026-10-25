@@ -66,70 +66,142 @@ async def upsert_article(pool, art: dict) -> int:
          art["content_raw"], art["image_url"], translation_status)
     return row["id"]
 
-async def get_articles(pool, limit=50, offset=0,
-                       category=None, search=None, user_id=1) -> list:
-    conditions = [
-        "a.published_at <= NOW()",
-        "a.published_at >= NOW() - INTERVAL '30 days'",
-        "(a.translation_status = 'done' OR a.original_lang = 'en')",
-        "a.title !~ '[가-힣]'",
-        "a.title !~ '[\\u4e00-\\u9fff]'",
-        "a.title !~ '[\\u3040-\\u309f]'"
-    ]
+# Who may see an article: everyone if it came from the shared feeds
+# (owner_user_id IS NULL), only its owner if it came from their own sources.
+PUBLIC = "a.owner_user_id IS NULL"
+VISIBLE = [
+    "a.published_at <= NOW()",
+    "a.published_at >= NOW() - INTERVAL '30 days'",
+    "(a.translation_status = 'done' OR a.original_lang = 'en')",
+    "a.title !~ '[가-힣]'",
+    "a.title !~ '[\\u4e00-\\u9fff]'",
+    "a.title !~ '[\\u3040-\\u309f]'",
+]
+
+
+import re as _re
+_CJK = _re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]")
+
+
+def _json_list(v):
+    if isinstance(v, str):
+        try:
+            return json.loads(v)
+        except Exception:
+            return []
+    return v or []
+
+
+def excerpt(html: str, n: int = 320) -> str:
+    """Plain text of an article's HTML, cut on a word near n characters."""
+    import html as html_lib, re
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html or "", flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", html_lib.unescape(text)).strip()
+    if len(text) <= n:
+        return text
+    cut = text[:n].rsplit(" ", 1)[0]
+    return cut.rstrip(",;:.-–—") + "…"
+
+
+def paragraphs(html: str, limit: int = 12000) -> list[str]:
+    """An article's text as plain paragraphs, for the reader: no markup from
+    a feed is ever rendered as HTML."""
+    import html as html_lib, re
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html or "", flags=re.S | re.I)
+    text = re.sub(r"<\s*(br|/p|/div|/li|/h[1-6]|/blockquote)[^>]*>", "\n", text, flags=re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = html_lib.unescape(text)[:limit]
+    out = [re.sub(r"[ \t\u00a0]+", " ", p).strip() for p in text.split("\n")]
+    return [p for p in out if len(p) > 1]
+
+
+def reading_minutes(html: str) -> int:
+    words = len(excerpt(html, 10**9).split())
+    return max(1, round(words / 220))
+
+
+async def get_articles(pool, limit=50, offset=0, category=None, search=None,
+                       user_id=0, scope="public", source=None, feed_id=None,
+                       saved=False, since=None, count_only=False):
+    """Articles a reader sees, newest first.
+
+    scope: "public" (the shared feeds), "mine" (the reader's own sources),
+    "all" (both). source: a feed's name; feed_id: one of the reader's own
+    sources. saved: only those the reader saved. since: only newer ones."""
+    conditions = list(VISIBLE)
     params = []
-    i = 1
+
+    def arg(v):
+        params.append(v)
+        return f"${len(params)}"
+
+    uid = arg(user_id or 0)
+    if scope == "mine":
+        conditions.append(f"a.owner_user_id = {uid}")
+    elif scope == "all":
+        conditions.append(f"(a.owner_user_id IS NULL OR a.owner_user_id = {uid})")
+    else:
+        conditions.append(PUBLIC)
+    if saved:
+        conditions[:] = [c for c in conditions if "30 days" not in c]
+        conditions.append(f"EXISTS (SELECT 1 FROM user_saves s WHERE s.article_id = a.id AND s.user_id = {uid})")
     if category:
-        conditions.append(f"a.category = ${i}"); params.append(category); i += 1
+        conditions.append(f"a.category = {arg(category)}")
+    if source:
+        conditions.append(f"a.feed_source = {arg(source)}")
+    if feed_id:
+        conditions.append(f"a.user_feed_id = {arg(feed_id)} AND a.owner_user_id = {uid}")
     if search:
-        conditions.append(f"(a.title ILIKE ${i} OR a.feed_source ILIKE ${i})"); params.append(f"%{search}%"); i += 1
+        q = arg(f"%{search}%")
+        conditions.append(f"(a.title ILIKE {q} OR a.feed_source ILIKE {q})")
+    if since:
+        conditions.append(f"a.published_at > {arg(since)}")
     where = "WHERE " + " AND ".join(conditions)
-    params += [user_id, limit, offset]
+    if count_only:
+        return await pool.fetchval(f"SELECT count(*) FROM articles a {where}", *params)
+    lim, off = arg(limit), arg(offset)
     rows = await pool.fetch(f"""
         SELECT a.id, a.title, a.feed_source, a.category,
-               a.published_at, a.ingested_at, a.content_raw, a.image_url, a.url,
-               a.country_code, a.entities, a.sentiment, a.sentiment_score,
-               a.original_lang,
-               (ur.id IS NOT NULL) as is_read
+               a.published_at, a.ingested_at, left(a.content_raw, 4000) AS content_raw,
+               a.image_url, a.url, a.country_code, a.entities, a.sentiment,
+               a.sentiment_score, a.original_lang, a.view_count,
+               a.owner_user_id IS NOT NULL AS personal, a.user_feed_id,
+               EXISTS (SELECT 1 FROM user_reads ur WHERE ur.article_id = a.id AND ur.user_id = {uid}) AS is_read,
+               EXISTS (SELECT 1 FROM user_saves us WHERE us.article_id = a.id AND us.user_id = {uid}) AS is_saved
         FROM articles a
-        LEFT JOIN user_reads ur
-          ON ur.article_id = a.id AND ur.user_id = ${i}
         {where}
         ORDER BY a.published_at DESC
-        LIMIT ${i+1} OFFSET ${i+2}
+        LIMIT {lim} OFFSET {off}
     """, *params)
-    import json as _json
     result = []
     for r in rows:
         row = dict(r)
-        if isinstance(row.get('entities'), str):
-            try:
-                row['entities'] = _json.loads(row['entities'])
-            except Exception:
-                row['entities'] = []
-        if row.get('entities') is None:
-            row['entities'] = []
+        row["entities"] = _json_list(row.get("entities"))
+        html = row.pop("content_raw") or ""
+        row["excerpt"] = excerpt(html)
+        # A translated title over a text still in its first language reads
+        # badly: no excerpt then.
+        if row.get("original_lang") not in (None, "en") and _CJK.search(row["excerpt"]):
+            row["excerpt"] = ""
+        row["reading_minutes"] = reading_minutes(html)
         result.append(row)
     return result
 
-async def get_article_by_id(pool, article_id: int, user_id=1) -> dict | None:
+
+async def get_article_by_id(pool, article_id: int, user_id=0) -> dict | None:
+    """One article, if this reader may see it."""
     row = await pool.fetchrow("""
-        SELECT a.*, (ur.id IS NOT NULL) as is_read
+        SELECT a.*,
+               EXISTS (SELECT 1 FROM user_reads ur WHERE ur.article_id = a.id AND ur.user_id = $2) AS is_read,
+               EXISTS (SELECT 1 FROM user_saves us WHERE us.article_id = a.id AND us.user_id = $2) AS is_saved
         FROM articles a
-        LEFT JOIN user_reads ur
-          ON ur.article_id = a.id AND ur.user_id = $2
-        WHERE a.id = $1
-    """, article_id, user_id)
+        WHERE a.id = $1 AND (a.owner_user_id IS NULL OR a.owner_user_id = $2)
+    """, article_id, user_id or 0)
     if not row:
         return None
-    import json as _json
     result = dict(row)
-    if isinstance(result.get('entities'), str):
-        try:
-            result['entities'] = _json.loads(result['entities'])
-        except Exception:
-            result['entities'] = []
-    if result.get('entities') is None:
-        result['entities'] = []
+    result["entities"] = _json_list(result.get("entities"))
     return result
 
 async def mark_read(pool, user_id: int, article_id: int):

@@ -50,12 +50,31 @@ async def fetch_articles(client: httpx.AsyncClient, token: str, n=500) -> list:
 
     return all_items
 
-def extract_image(html: str) -> str | None:
+# Tracking pixels and share buttons that feeds put in their HTML.
+_NOT_A_PICTURE = re.compile(r"(feedburner|/~r/|/pixel|tracking|1x1|spacer|blank\.gif|gravatar|emoji|/share|badge|feeds\.feedblitz)", re.I)
+
+
+def extract_image(html: str, item: dict | None = None) -> str | None:
+    """The article's picture: an enclosure or a media thumbnail of the feed
+    item, else the first real <img> of its HTML. (The pattern used before
+    required a space before "https", so it never matched: nearly every
+    article came in without a picture.)"""
+    for enc in (item or {}).get("enclosure") or []:
+        href = enc.get("href", "")
+        if href.startswith("http") and (enc.get("type") or "").startswith("image/"):
+            return href
+    thumb = ((item or {}).get("visual") or {}).get("url")
+    if thumb and thumb.startswith("http"):
+        return thumb
     if not html:
         return None
-    m = re.search(r'<img[^>]+src=["\']( https?://[^"\']+\.(?:jpg|jpeg|png|webp)[^"\']*)["\']', html, re.I)
-    if m:
-        return m.group(1)
+    for m in re.finditer(r'<img\b[^>]*?\bsrc=["\'](https?://[^"\']+)["\'][^>]*>', html, re.I):
+        tag, url = m.group(0), m.group(1)
+        if _NOT_A_PICTURE.search(url):
+            continue
+        if re.search(r'\b(width|height)=["\']?(0|1|2)["\'\s>]', tag):
+            continue
+        return url
     return None
 
 def extract_category(item: dict) -> str:
@@ -79,5 +98,5 @@ def parse_article(item: dict) -> dict:
         "url":          (item.get("canonical") or item.get("alternate") or [{}])[0].get("href", ""),
         "published_at": datetime.fromtimestamp(pub, tz=timezone.utc) if pub else None,
         "content_raw":  content,
-        "image_url":    extract_image(content),
+        "image_url":    extract_image(content, item),
     }
