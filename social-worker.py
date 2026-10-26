@@ -6,6 +6,11 @@ Run by ax-news-social.timer every 5 minutes.
 Off until the accounts are set in backend/.env:
   MASTODON_BASE_URL=https://infosec.exchange   MASTODON_TOKEN=…   (scope write:statuses)
   BLUESKY_HANDLE=axnews.bsky.social            BLUESKY_APP_PASSWORD=…   (an app password)
+
+Mastodon: at most one public post an hour (infosec.exchange's rule for
+automated accounts, 24 a day); the others of the hour go out "unlisted",
+which reaches followers without the public timelines.
+MASTODON_VISIBILITY=unlisted makes every post unlisted.
 """
 import asyncio
 import json
@@ -45,21 +50,25 @@ def text_for(b: dict, limit: int) -> str:
     return body + tail
 
 
-async def mastodon(client, b) -> bool:
+def mastodon_on() -> bool:
+    return bool(os.getenv("MASTODON_BASE_URL") and os.getenv("MASTODON_TOKEN"))
+
+
+def bluesky_on() -> bool:
+    return bool(os.getenv("BLUESKY_HANDLE") and os.getenv("BLUESKY_APP_PASSWORD"))
+
+
+async def mastodon(client, b, visibility) -> bool:
     base, token = os.getenv("MASTODON_BASE_URL"), os.getenv("MASTODON_TOKEN")
-    if not base or not token:
-        return False
     r = await client.post(f"{base.rstrip('/')}/api/v1/statuses", headers={"Authorization": f"Bearer {token}",
                           "Idempotency-Key": f"ax-news-{b['label']}"},
-                          data={"status": text_for(b, 500), "visibility": "public", "language": "en"})
-    log.info("mastodon %s → HTTP %s", b["label"], r.status_code)
+                          data={"status": text_for(b, 500), "visibility": visibility, "language": "en"})
+    log.info("mastodon %s (%s) → HTTP %s", b["label"], visibility, r.status_code)
     return r.status_code < 300
 
 
 async def bluesky(client, b) -> bool:
     handle, password = os.getenv("BLUESKY_HANDLE"), os.getenv("BLUESKY_APP_PASSWORD")
-    if not handle or not password:
-        return False
     s = await client.post("https://bsky.social/xrpc/com.atproto.server.createSession",
                           json={"identifier": handle, "password": password})
     if s.status_code >= 300:
@@ -86,26 +95,42 @@ async def bluesky(client, b) -> bool:
 
 
 async def main():
-    if not (os.getenv("MASTODON_TOKEN") or os.getenv("BLUESKY_APP_PASSWORD")):
+    if not (mastodon_on() or bluesky_on()):
         log.info("no Mastodon or Bluesky account set: nothing posted")
         return
     pool = await asyncpg.create_pool(os.environ["DATABASE_URL"], min_size=1, max_size=2)
     try:
-        posted = await pool.fetchval("SELECT value FROM app_meta WHERE key = 'social_posted'")
-        posted = json.loads(posted) if posted else {}
+        state = await pool.fetchval("SELECT value FROM app_meta WHERE key = 'social_posted'")
+        state = json.loads(state) if state else {}
+        if "posts" not in state:
+            # v1.3.0 kept {cve: when}, one date for both networks.
+            state = {"posts": {k: {"mastodon": v, "bluesky": v} for k, v in state.items()}}
+        posts = state["posts"]
+        now = datetime.now(timezone.utc)
         async with httpx.AsyncClient(timeout=30, headers={"User-Agent": "AX-NEWS social-worker"}) as client:
             feed = (await client.get(f"{LOCAL}/api/tv/public/feed")).json()
             for b in feed.get("breaking") or []:
-                if b["label"] in posted:
-                    continue
-                ok = [await mastodon(client, b), await bluesky(client, b)]
-                if any(ok):
-                    posted[b["label"]] = datetime.now(timezone.utc).isoformat()
+                done = posts.setdefault(b["label"], {})
+                # A network that failed is tried again on the next run, while the CVE is still breaking.
+                if mastodon_on() and "mastodon" not in done:
+                    last = state.get("mastodon_public")
+                    hour_free = not last or (now - datetime.fromisoformat(last)).total_seconds() >= 3600
+                    visibility = os.getenv("MASTODON_VISIBILITY") or "public"
+                    if visibility == "public" and not hour_free:
+                        visibility = "unlisted"
+                    if await mastodon(client, b, visibility):
+                        done["mastodon"] = now.isoformat()
+                        if visibility == "public":
+                            state["mastodon_public"] = now.isoformat()
+                if bluesky_on() and "bluesky" not in done:
+                    if await bluesky(client, b):
+                        done["bluesky"] = now.isoformat()
         # Remember a week of posts.
-        cutoff = datetime.now(timezone.utc).timestamp() - 7 * 86400
-        posted = {k: v for k, v in posted.items() if datetime.fromisoformat(v).timestamp() > cutoff}
+        cutoff = now.timestamp() - 7 * 86400
+        state["posts"] = {k: v for k, v in posts.items()
+                          if v and max(datetime.fromisoformat(t).timestamp() for t in v.values()) > cutoff}
         await pool.execute("""INSERT INTO app_meta (key, value) VALUES ('social_posted', $1)
-                              ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()""", json.dumps(posted))
+                              ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()""", json.dumps(state))
     finally:
         await pool.close()
 

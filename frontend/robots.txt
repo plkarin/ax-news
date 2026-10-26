@@ -10,5 +10,6 @@ Disallow: /go/
 Disallow: /tv/
 Disallow: /tv.html
 Disallow: /login.html
+Disallow: /news/
 
 Sitemap: https://ax-news.com/sitemap.xml

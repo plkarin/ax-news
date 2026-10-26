@@ -4,6 +4,17 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.1 — 2026-10-26
+
+- `social-worker.py` keeps to the rule of infosec.exchange for automated
+  accounts. It makes at most one public Mastodon post an hour (24 a day);
+  the other breaking CVEs of that hour go out unlisted, so they still reach
+  followers. `MASTODON_VISIBILITY=unlisted` makes every post unlisted.
+- When one network fails, the worker tries it again on the next run, for as
+  long as the CVE is still breaking, without posting again on the other.
+- `robots.txt` keeps search engines out of `/news/`, the FreshRSS
+  interface.
+
 ## v1.3.0 — 2026-10-26
 
 ### Found by search engines
