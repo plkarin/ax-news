@@ -4,6 +4,32 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.1.0 — 2026-10-26
+
+### TV
+- **Impacted if**, in the CVE watch band, left of the QR code: in broad lines,
+  which products and versions a vulnerability touches ("PHP < 8.2.35 ·
+  < 8.3.36 · < 8.4.27 +1", "Windows 10 1607 < 10.0.14393.9512 and 7 other
+  products") and what it takes ("Use after free · over the network · no
+  login", "Heap overflow · local access · any logged-in user"). From the
+  vendor's own record on cve.org, or the NVD's version ranges when that
+  record is unclear; the kind of flaw from its CWE, the conditions from its
+  CVSS vector.
+- Backgrounds made with Canva for the six themes (aurora, broadcast, paper,
+  terminal, clinic, nebula).
+- On an account's screen, the QR code of an alert from the account's own
+  sources opens (it needed the screen's key).
+
+### Topics
+- 39 new illustrations made with Canva, for the fields the catalog added:
+  medical breakthroughs, clinical journals, oncology, cardiology,
+  neuroscience, infectious disease, public health, genomics, pharma,
+  digital health, mental health, science, physics, chemistry, astronomy,
+  mathematics, climate, nature, markets, economy, crypto, world, politics,
+  law, defense, cars, aviation, film, music, books, design, games, sports,
+  football, education, food, travel, open source, data. No topic falls back
+  to the default picture any more.
+
 ## v1.0.0 — 2026-10-26
 
 The first numbered release: everything since the repository's first

@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.0.0](https://github.com/plkarin/ax-news/releases/tag/v1.0.0)** ([changes](CHANGELOG.md))
+Latest release: **[v1.1.0](https://github.com/plkarin/ax-news/releases/tag/v1.1.0)** ([changes](CHANGELOG.md))
 
 ---
 
@@ -71,8 +71,9 @@ Latest release: **[v1.0.0](https://github.com/plkarin/ax-news/releases/tag/v1.0.
   **flag of the outlet's country** at its top right.
 - **CVE watch**: a band that turns through the 20 vulnerabilities that
   mattered most in the last 60 days — exploited in the wild (CISA KEV,
-  ransomware), severity (NVD CVSS), coverage, recency — each with a QR code
-  to its official record on cve.org. Or a band of the screen's own words
+  ransomware), severity (NVD CVSS), coverage, recency — each with an
+  **Impacted if** summary (products and versions touched, kind of flaw, what
+  an attacker needs) and a QR code to its official record on cve.org. Or a band of the screen's own words
   ("FDA approval", "phase 3"…).
 - Made to run unattended for months: refresh every two minutes, the last
   news kept through network cuts, reload on a new version and every night,
@@ -93,7 +94,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.0.0
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.1.0
 ```
 
 ## Architecture
@@ -232,7 +233,7 @@ Not covered by the MIT licence:
 | The **AXIOM** and **AX-NEWS** names and logos | `frontend/assets/brand/`, `frontend/logo.*`, favicons | Not licensed: they identify this project. A fork uses its own. |
 | Inter and Space Grotesk fonts | `frontend/assets/fonts/` | SIL Open Font License 1.1 — `frontend/assets/fonts/LICENSE.txt` |
 | Country flags ([flag-icons](https://github.com/lipis/flag-icons) 7.5.0) | `frontend/assets/img/flags/` | MIT — `frontend/assets/img/flags/LICENSE.txt` |
-| Topic illustrations and sign-in picture, made with Canva | `frontend/assets/img/topics/`, `login-hero.webp` | [Canva's Content License](https://www.canva.com/policies/content-license-agreement/) |
+| Topic illustrations, TV backgrounds and sign-in picture, made with Canva | `frontend/assets/img/topics/`, `frontend/assets/img/tv/`, `login-hero.webp` | [Canva's Content License](https://www.canva.com/policies/content-license-agreement/) |
 | News: titles, excerpts, pictures | shown from the feeds | Their publishers'. AX-NEWS shows a story's title, a short excerpt and a link to the original. |
 
 Data sources: vulnerability severities come from the National Vulnerability

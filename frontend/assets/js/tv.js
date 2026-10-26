@@ -380,13 +380,22 @@
     const body = $('[data-alert-body]');
     body.innerHTML = `<div class="tv-alert-line">${a.label ? `<b class="cve">${esc(a.label)}</b>` : ''}${badges}</div>
       <div class="tv-alert-title">${esc(a.title)}</div><div class="tv-alert-meta">${esc(facts)}</div>`;
+    // Impacted if: which products and versions, and what the flaw needs —
+    // the broad lines, from the vendor's record and the NVD.
+    const imp = $('[data-alert-impact]');
+    const lines = isCve ? (a.impact || []).slice(0, 2) : [];
+    if (lines.length || (isCve && a.theme)) {
+      imp.innerHTML = `<b>Impacted if</b>${lines.map((l) => `<span class="v">${esc(l)}</span>`).join('')}${a.theme ? `<span class="th">${esc(a.theme)}</span>` : ''}`;
+      imp.classList.remove('hidden');
+    } else { imp.innerHTML = ''; imp.classList.add('hidden'); }
     const qrBox = $('[data-alert-qr]');
     if (state.config.show_qr && (isCve || a.id)) {
-      const src = isCve ? `/api/tv/qr/cve/${encodeURIComponent(a.cves[0])}` : `/api/tv/qr/${a.id}`;
+      // A story from the screen owner's own sources needs the screen's key.
+      const src = isCve ? `/api/tv/qr/cve/${encodeURIComponent(a.cves[0])}` : `/api/tv/qr/${a.id}${boot.token ? `?s=${encodeURIComponent(boot.token)}` : ''}`;
       qrBox.innerHTML = `<img alt="" src="${src}" width="96" height="96"><span>${isCve ? `<b>${esc(a.cves[0])}</b>Official record<br>cve.org` : 'Read the story'}</span>`;
       qrBox.classList.remove('hidden');
     } else { qrBox.innerHTML = ''; qrBox.classList.add('hidden'); }
-    [body, qrBox].forEach((el) => { el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in'); });
+    [body, imp, qrBox].forEach((el) => { el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in'); });
   }
   let justInTimer;
   function justIn(s) {
