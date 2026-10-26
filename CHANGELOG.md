@@ -4,6 +4,18 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## Unreleased
+
+### TV
+- **Breaking CVEs**: a CVE the shared stories quote for the first time,
+  scored 8 or more (CVSS from the NVD, or from its record on cve.org while
+  the NVD has not scored it), becomes breaking news for one hour from when
+  AX-NEWS first received it. In Spotlight it takes the side column under
+  "Up next" — CRITICAL and BREAKING NEWS, its score, title, "Impacted if",
+  QR code and the minutes left; several turn every 10 seconds. In the other
+  layouts the CVE band shows them, marked BREAKING, for their hour. A CVE
+  already quoted in the last 60 days is not new.
+
 ## v1.1.0 — 2026-10-26
 
 ### TV

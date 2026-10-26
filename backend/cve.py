@@ -31,7 +31,12 @@ DAYS = 60
 LIMIT = 20
 TTL = 15 * 60
 
+BREAKING_SCORE = 8.0     # CVSS from which a new CVE is breaking news
+BREAKING_SECS = 3600     # how long it stays on screen after we first got it
+
 _kev: dict = {"at": 0.0, "tried": 0.0, "data": {}}
+_breaking: dict = {"at": 0.0, "items": []}
+_prio: list = []         # CVEs whose scores are wanted first (breaking candidates)
 _top: dict = {}          # scope key → (at, list)
 _busy: set = set()
 _nvd_running = False
@@ -237,6 +242,19 @@ def _severity(cve: dict) -> tuple[float | None, str | None]:
     return None, None
 
 
+def _cna_score(containers: dict) -> tuple[float | None, str | None, str | None]:
+    """A score from the CVE record itself — the CNA's, or CISA's ADP — for a
+    CVE the NVD has not scored yet (often the first days)."""
+    blocks = [containers.get("cna") or {}] + list(containers.get("adp") or [])
+    for b in blocks:
+        for m in b.get("metrics") or []:
+            for key in ("cvssV3_1", "cvssV4_0", "cvssV3_0", "cvssV2_0"):
+                d = m.get(key) or {}
+                if d.get("baseScore") is not None:
+                    return float(d["baseScore"]), (d.get("baseSeverity") or "").upper() or None, d.get("vectorString")
+    return None, None, None
+
+
 def _vector(cve: dict) -> str | None:
     metrics = cve.get("metrics") or {}
     for key in ("cvssMetricV40", "cvssMetricV31", "cvssMetricV30"):
@@ -253,11 +271,17 @@ async def _fetch_nvd(pool, ids: list[str]):
     if _nvd_running:
         return
     _nvd_running = True
+    queue = list(ids)
     try:
-        for cid in ids:
+        while queue or _prio:
+            urgent = bool(_prio)
+            cid = _prio.pop(0) if urgent else queue.pop(0)
             cache = await _nvd_cache(pool)
             hit = cache.get(cid)
-            if hit and "impact" in hit and time.time() - hit.get("at", 0) < (3 * 86400 if hit.get("score") is not None else 86400):
+            # A breaking candidate without a score is asked again every 15
+            # minutes; the others once a day, or every three days once scored.
+            ttl = (900 if urgent else 86400) if not hit or hit.get("score") is None else 3 * 86400
+            if hit and "impact" in hit and time.time() - hit.get("at", 0) < ttl:
                 continue
             entry = {"at": time.time(), "score": None, "severity": None, "desc": None, "impact": [], "theme": None}
             nvd_cve, cwes, vector = None, [], None
@@ -282,7 +306,11 @@ async def _fetch_nvd(pool, ids: list[str]):
             try:
                 _, status, _, body = await sources.safe_get(CNA_URL + cid, {"Accept": "application/json"})
                 if status == 200:
-                    cna = (json.loads(body).get("containers") or {}).get("cna") or {}
+                    containers = json.loads(body).get("containers") or {}
+                    cna = containers.get("cna") or {}
+                    if entry["score"] is None:
+                        entry["score"], entry["severity"], v = _cna_score(containers)
+                        vector = vector or v
                     if not cwes:
                         cwes = [d.get("cweId") or d.get("description", "") for p in cna.get("problemTypes") or []
                                 for d in p.get("descriptions") or []]
@@ -382,6 +410,86 @@ async def _compute(pool, owner_id: int, scope: str) -> list[dict]:
     # Scores for the leading candidates, for the next rounds.
     asyncio.create_task(_fetch_nvd(pool, [x["label"] for x in out[:40]]))
     return top
+
+
+async def _first_seen(pool) -> dict:
+    v = await pool.fetchval("SELECT value FROM app_meta WHERE key = 'cve_first_seen'")
+    try:
+        return json.loads(v) if v else {}
+    except ValueError:
+        return {}
+
+
+async def breaking(pool) -> list[dict]:
+    """New and severe: a CVE the shared stories quote for the first time in
+    the last hour, scored 8 or more. Each stays an hour from when we first
+    got it ("until")."""
+    now = datetime.now(timezone.utc)
+    if time.time() - _breaking["at"] < 90:
+        return [x for x in _breaking["items"] if datetime.fromisoformat(x["until"]) > now]
+    _breaking["at"] = time.time()
+    try:
+        rows = await pool.fetch("""
+            SELECT upper('CVE-' || x[1]) AS cve, min(a.ingested_at) AS first,
+                   (array_agg(a.id ORDER BY a.ingested_at))[1] AS article_id,
+                   (array_agg(a.title ORDER BY a.ingested_at))[1] AS title,
+                   (array_agg(a.feed_source ORDER BY a.ingested_at))[1] AS source,
+                   count(DISTINCT a.feed_source) AS sources
+              FROM articles a,
+                   LATERAL regexp_matches(a.title || ' ' || left(coalesce(a.content_raw, ''), 6000),
+                                          'CVE-([0-9]{4}-[0-9]{4,8})', 'gi') x
+             WHERE a.ingested_at > now() - make_interval(secs => $1)
+               AND a.owner_user_id IS NULL
+               AND (a.title ~* 'CVE-[0-9]' OR a.content_raw ~* 'CVE-[0-9]')
+             GROUP BY 1""", BREAKING_SECS + 900)
+        seen = await _first_seen(pool)
+        changed = False
+        for r in rows:
+            if r["cve"] in seen:
+                continue
+            # First time we get it, or an old one quoted again?
+            older = await pool.fetchval("""
+                SELECT 1 FROM articles
+                 WHERE ingested_at < $1 AND ingested_at > now() - interval '60 days'
+                   AND owner_user_id IS NULL
+                   AND (title ILIKE $2 OR content_raw ILIKE $2) LIMIT 1""", r["first"], f"%{r['cve']}%")
+            seen[r["cve"]] = {"first": r["first"].isoformat(), "new": not older}
+            changed = True
+        if changed:
+            limit = (now - timedelta(days=3)).isoformat()
+            seen = {k: v for k, v in seen.items() if v["first"] > limit}
+            await pool.execute("""INSERT INTO app_meta (key, value) VALUES ('cve_first_seen', $1)
+                                  ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()""",
+                               json.dumps(seen))
+        nvd = await _nvd_cache(pool)
+        kev = _kev["data"]
+        items = []
+        for r in rows:
+            first = datetime.fromisoformat(seen[r["cve"]]["first"])
+            if not seen[r["cve"]]["new"] or now - first > timedelta(seconds=BREAKING_SECS):
+                continue
+            n = nvd.get(r["cve"])
+            if not n or n.get("score") is None:
+                if r["cve"] not in _prio:
+                    _prio.append(r["cve"])
+                continue
+            if n["score"] < BREAKING_SCORE:
+                continue
+            k = kev.get(r["cve"])
+            items.append({
+                "id": r["article_id"], "label": r["cve"], "cves": [r["cve"]],
+                "title": html.unescape(r["title"] or "")[:240], "source": r["source"], "sources": r["sources"],
+                "cvss": n["score"], "severity": "CRITICAL", "impact": n.get("impact") or [], "theme": n.get("theme"),
+                "kev": bool(k), "first_seen": first.isoformat(),
+                "until": (first + timedelta(seconds=BREAKING_SECS)).isoformat(), "record": RECORD_URL + r["cve"],
+            })
+        items.sort(key=lambda x: (-x["cvss"], x["first_seen"]))
+        _breaking["items"] = items
+        if _prio:
+            asyncio.create_task(_fetch_nvd(pool, []))
+    except Exception:
+        logger.exception("cve: breaking failed")
+    return [x for x in _breaking["items"] if datetime.fromisoformat(x["until"]) > now]
 
 
 async def top(pool, owner_id: int = 0, scope: str = "public") -> list[dict]:

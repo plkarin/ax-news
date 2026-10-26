@@ -73,7 +73,9 @@ Latest release: **[v1.1.0](https://github.com/plkarin/ax-news/releases/tag/v1.1.
   mattered most in the last 60 days — exploited in the wild (CISA KEV,
   ransomware), severity (NVD CVSS), coverage, recency — each with an
   **Impacted if** summary (products and versions touched, kind of flaw, what
-  an attacker needs) and a QR code to its official record on cve.org. Or a band of the screen's own words
+  an attacker needs) and a QR code to its official record on cve.org. A
+  CVE seen for the first time with a score of 8 or more is **breaking news**
+  for an hour: CRITICAL, in Spotlight's side column or in the band. Or a band of the screen's own words
   ("FDA approval", "phase 3"…).
 - Made to run unattended for months: refresh every two minutes, the last
   news kept through network cuts, reload on a new version and every night,

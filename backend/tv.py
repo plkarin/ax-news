@@ -157,7 +157,10 @@ async def feed(pool, config: dict, owner_id: int = 0, limit: int = 160) -> dict:
                count(*) FILTER (WHERE a.published_at > NOW() - INTERVAL '24 hours') AS day,
                count(DISTINCT a.feed_source) FILTER (WHERE a.published_at > NOW() - INTERVAL '24 hours') AS sources
           FROM articles a WHERE {where}""", *params)
+    import cve
     return {"stories": stories, "alerts": await alerts(pool, config, owner_id),
+            # A new CVE scored 8 or more: breaking news for an hour.
+            "breaking": await cve.breaking(pool) if config["alerts"] == "cve" else [],
             "counts": {k: counts[k] for k in ("hour", "day", "sources")}}
 
 

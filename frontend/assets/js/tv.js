@@ -25,8 +25,10 @@
   const state = {
     config: null, stories: [], alerts: [], counts: {}, idx: 0, paused: false,
     timer: null, tick: 0, failures: 0, lastOk: 0, known: new Set(), reload: false,
-    layout: null, alertIdx: 0,
+    layout: null, alertIdx: 0, breaking: [], breakIdx: 0,
   };
+  // Breaking CVEs (score 8+, first seen within the hour) still on air.
+  const liveBreaking = () => state.breaking.filter((b) => new Date(b.until) > Date.now());
 
   // ── Small helpers ────────────────────────────────────────────────────────
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -163,7 +165,8 @@
   const render = {
     spotlight(i) {
       const s = at(i);
-      const next = [1, 2, 3, 4].map((k) => at(i + k));
+      const brk = liveBreaking().length > 0;
+      const next = (brk ? [1, 2] : [1, 2, 3, 4]).map((k) => at(i + k));
       stage.innerHTML = `
         <article class="spot fade-in">
           ${pic(s, 'kb')}<div class="shade"></div>${flag(s)}
@@ -173,7 +176,9 @@
         </article>
         <aside class="queue"><h3>Up next</h3>${next.map((n) => `
           <div class="q fade-in">${flag(n, true)}${pic(n)}<div><div class="t">${esc(n.title)}</div><div class="m">${esc(n.source)} · ${esc(ago(n.published_at))}</div></div></div>`).join('')}
+          ${brk ? '<section class="brk" data-breaking></section>' : ''}
         </aside>`;
+      if (brk) renderBreaking();
       return s;
     },
     newsroom(i) {
@@ -300,10 +305,17 @@
     const current = state.stories.length ? at(state.idx) : null;
     state.stories = fresh;
     state.alerts = data.alerts || [];
+    const before = new Set(liveBreaking().map((b) => b.label));
+    state.breaking = data.breaking || [];
+    const arrived = liveBreaking().filter((b) => !before.has(b.label));
+    if (!fromCache && arrived.length) state.breakIdx = liveBreaking().indexOf(arrived[0]);   // the newest first
     state.counts = data.counts || {};
     // Keep the story on screen where it is in the new list.
     if (current) { const k = fresh.findIndex((s) => s.id === current.id); state.idx = k >= 0 ? k : 0; }
     renderCounts(); renderTicker(); renderAlert();
+    // A breaking CVE appears (or goes) at once in Spotlight's side column.
+    if (currentLayout() === 'spotlight' && stage.firstElementChild && !!stage.querySelector('[data-breaking]') !== liveBreaking().length > 0) show(state.idx);
+    else renderBreaking();
     // The columns are drawn once per list: redraw them with the new one.
     if (!fromCache && state.layout === 'columns' && stage.firstElementChild) show(state.idx);
     if (!fromCache && data.version && boot.version && data.version !== boot.version) {
@@ -359,20 +371,47 @@
   // CVE mode: the most important vulnerabilities of the last 60 days, each
   // with a QR code to its official record on cve.org.
   const SEV = { CRITICAL: 'critical', HIGH: 'high', MEDIUM: 'medium', LOW: 'low' };
+  const minutesLeft = (b) => Math.max(1, Math.ceil((new Date(b.until) - Date.now()) / 60000));
+  // The breaking panel (Spotlight): one CVE at a time, turning every 10 s.
+  function renderBreaking() {
+    const box = stage.querySelector('[data-breaking]');
+    const list = liveBreaking();
+    if (!box) return;
+    if (!list.length) { box.remove(); return; }
+    const k = state.breakIdx % list.length, b = list[k];
+    const left = minutesLeft(b), pct = Math.min(100, Math.max(0, (new Date(b.until) - Date.now()) / 36000));
+    box.innerHTML = `
+      <div class="brk-head"><span class="brk-flash">Breaking news</span><span class="badge sev critical">Critical ${esc(Number(b.cvss).toFixed(1))}</span>${b.kev ? '<span class="badge exploited">Exploited</span>' : ''}${list.length > 1 ? `<span class="brk-n">${k + 1} / ${list.length}</span>` : ''}</div>
+      <div class="brk-main">
+        ${state.config.show_qr ? `<img class="brk-qr" alt="" src="/api/tv/qr/cve/${encodeURIComponent(b.label)}" width="96" height="96">` : ''}
+        <div class="brk-txt"><b class="cve">${esc(b.label)}</b><div class="t">${esc(b.title)}</div></div>
+      </div>
+      ${(b.impact || []).length || b.theme ? `<div class="brk-imp"><b>Impacted if</b>${(b.impact || []).slice(0, 2).map((l) => `<span class="v">${esc(l)}</span>`).join('')}${b.theme ? `<span class="th">${esc(b.theme)}</span>` : ''}</div>` : ''}
+      <div class="brk-time"><span>Received ${esc(hhmm(b.first_seen))} · ${esc(b.source || '')} · ${left} min left</span><div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div></div>`;
+    box.classList.remove('fade-in'); void box.offsetWidth; box.classList.add('fade-in');
+  }
   function renderAlert() {
     const band = $('[data-alert]');
-    if (!state.alerts.length) { band.classList.add('hidden'); return; }
+    // Outside Spotlight (which has its own panel), breaking CVEs take the
+    // band for their hour.
+    const brk = currentLayout() !== 'spotlight' ? liveBreaking() : [];
+    const list = brk.length ? brk : state.alerts;
+    if (!list.length) { band.classList.add('hidden'); return; }
     band.classList.remove('hidden');
-    const n = state.alerts.length, k = state.alertIdx++ % n, a = state.alerts[k];
+    band.classList.toggle('breaking', brk.length > 0);
+    const n = list.length, k = state.alertIdx++ % n, a = list[k];
     const isCve = !!(a.cves && a.cves.length);
-    $('[data-alert-label]').textContent = isCve ? 'CVE WATCH' : 'ALERT';
-    $('[data-alert-count]').textContent = isCve ? `${k + 1} / ${n} · 60 days` : `${k + 1} / ${n}`;
+    $('[data-alert-label]').textContent = brk.length ? 'BREAKING NEWS' : isCve ? 'CVE WATCH' : 'ALERT';
+    $('[data-alert-count]').textContent = brk.length ? `${k + 1} / ${n} · ${minutesLeft(a)} min left` : isCve ? `${k + 1} / ${n} · 60 days` : `${k + 1} / ${n}`;
     const badges = isCve ? [
       a.kev ? '<span class="badge exploited">Exploited</span>' : '',
       a.ransomware ? '<span class="badge ransom">Ransomware</span>' : '',
       a.cvss != null ? `<span class="badge sev ${SEV[a.severity] || ''}">${esc((a.severity || 'CVSS').toLowerCase())} ${esc(Number(a.cvss).toFixed(1))}</span>` : '',
+      a.until ? '<span class="badge breaking">Breaking</span>' : '',
     ].join('') : '';
-    const facts = isCve ? [
+    const facts = a.until ? [
+      `received ${hhmm(a.first_seen)}`, a.source || '', `${minutesLeft(a)} min left`,
+    ].filter(Boolean).join(' · ') : isCve ? [
       a.sources ? `${a.sources} source${a.sources > 1 ? 's' : ''} · ${a.stories} stor${a.stories > 1 ? 'ies' : 'y'}` : '',
       a.kev_added ? `in CISA KEV since ${new Date(a.kev_added).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : '',
       a.published_at ? `latest ${ago(a.published_at)}` : '',
@@ -439,7 +478,15 @@
     document.documentElement.style.setProperty('--dy', r());
   }
   setInterval(drift, 4 * 60000);
-  setInterval(() => { if (state.alerts.length > 1) renderAlert(); }, 12000);
+  setInterval(() => { if (state.alerts.length > 1 || liveBreaking().length > 1) renderAlert(); }, 12000);
+  // The breaking panel turns every 10 s and counts its minutes down; it
+  // leaves when its hour is over.
+  setInterval(() => {
+    if (currentLayout() !== 'spotlight') return;
+    const has = !!stage.querySelector('[data-breaking]'), live = liveBreaking().length;
+    if (has !== (live > 0)) { show(state.idx); return; }
+    if (live) { state.breakIdx++; renderBreaking(); }
+  }, 10000);
   // A fresh page once a night, between 4 and 5 o'clock, if the site answers.
   (function nightly() {
     const now = new Date(), at = new Date(now);
