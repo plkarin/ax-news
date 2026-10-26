@@ -4,6 +4,7 @@ A screen belongs to an account (tv_screens) and is opened at /tv/<token>,
 with no sign-in: the token is its only key. /tv.html is the public screen —
 the shared tech feeds — whose layout and theme the address may choose
 (?layout=…&theme=…)."""
+import html
 import re
 import secrets
 
@@ -113,7 +114,8 @@ async def feed(pool, config: dict, owner_id: int = 0, limit: int = 160) -> dict:
         url = r["url"] if re.match(r"^https?://", r["url"] or "", re.I) else ""
         img = r["image_url"] if re.match(r"^https?://", r["image_url"] or "", re.I) else None
         stories.append({
-            "id": r["id"], "title": r["title"], "excerpt": text, "source": src,
+            # Some feeds send their titles HTML-escaped ("&#x5b;Guest Diary&#x5d;").
+            "id": r["id"], "title": html.unescape(r["title"] or ""), "excerpt": text, "source": src,
             "category": r["category"], "published_at": r["published_at"].isoformat() if r["published_at"] else None,
             "image_url": img, "host": re.sub(r"^www\.", "", re.sub(r"^https?://([^/]+).*$", r"\1", url)) if url else "",
             "lang": r["original_lang"] if r["original_lang"] not in (None, "en") else None,
@@ -163,6 +165,6 @@ async def alerts(pool, config: dict, owner_id: int = 0) -> list[dict]:
             label = " · ".join(ids)
         else:
             label = next((w for w in config["alert_words"] if w.lower() in (r["title"] or "").lower()), "")
-        out.append({"id": r["id"], "title": r["title"], "source": r["feed_source"], "label": label,
+        out.append({"id": r["id"], "title": html.unescape(r["title"] or ""), "source": r["feed_source"], "label": label,
                     "published_at": r["published_at"].isoformat() if r["published_at"] else None})
     return out

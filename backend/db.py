@@ -185,6 +185,9 @@ async def get_articles(pool, limit=50, offset=0, category=None, search=None,
     for r in rows:
         row = dict(r)
         row["entities"] = _json_list(row.get("entities"))
+        # Some feeds send their titles HTML-escaped ("&#x5b;Guest Diary&#x5d;").
+        import html as html_lib
+        row["title"] = html_lib.unescape(row.get("title") or "")
         html = row.pop("content_raw") or ""
         row["excerpt"] = excerpt(html)
         # A translated title over a text still in its first language reads

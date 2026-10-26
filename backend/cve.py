@@ -10,6 +10,7 @@ covered it, how recent. Each links to its official record on cve.org.
 Computing it reads two months of stories (seconds): it is done at most every
 15 minutes per process, in the background, and served from memory."""
 import asyncio
+import html
 import json
 import logging
 import math
@@ -178,7 +179,7 @@ async def _compute(pool, owner_id: int, scope: str) -> list[dict]:
         else:
             text = n.get("desc") or r["title"] or ""
         out.append({
-            "id": r["article_id"], "label": cid, "cves": [cid], "title": text[:240],
+            "id": r["article_id"], "label": cid, "cves": [cid], "title": html.unescape(text)[:240],
             "source": r["source"] or ("CISA KEV" if k else ""), "stories": r["stories"], "sources": r["sources"],
             "published_at": last.isoformat(), "kev": bool(k), "kev_added": k.get("dateAdded") if k else None,
             "ransomware": ransom, "cvss": score, "severity": n.get("severity"),
