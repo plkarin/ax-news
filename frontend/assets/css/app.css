@@ -610,6 +610,7 @@ kbd { font: 600 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 6px; b
 .cat-rows { display: grid; }
 .cat-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 11px 4px; border-top: 1px solid var(--line); }
 .cat-row .t { font-weight: 600; font-size: 14.5px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cat-row .cflag { width: 20px; height: 15px; border-radius: 3px; object-fit: cover; box-shadow: 0 0 0 1px var(--line-2); }
 .cat-row .s { margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
 .cat-row .ops { display: flex; gap: 8px; align-items: center; }
 

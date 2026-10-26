@@ -8,6 +8,9 @@ import html
 import re
 import secrets
 
+import time
+
+import countries
 from db import PUBLIC, VISIBLE, _CJK, _json_list, excerpt
 
 LAYOUTS = ("spotlight", "newsroom", "wall", "columns", "headlines", "magazine")
@@ -87,6 +90,28 @@ def _where(config: dict, owner_id: int, params: list) -> str:
     return " AND ".join(cond)
 
 
+_origins: dict = {"at": 0.0, "titles": {}, "feeds": {}}
+
+
+async def _origin_maps(pool) -> tuple[dict, dict]:
+    """Source → country of the outlet: catalog feeds by title (the shared
+    stories' feed_source), accounts' sources by id. Rebuilt every 10 minutes."""
+    if time.time() - _origins["at"] > 600:
+        titles = {}
+        for r in await pool.fetch("SELECT title, url, site_url, region FROM feed_catalog"):
+            c = countries.country(r["site_url"] or r["url"], r["title"], r["region"])
+            if c:
+                titles[r["title"]] = c
+        feeds = {}
+        for r in await pool.fetch("""SELECT f.id, f.name, f.url, f.site_url, c.title AS ctitle, c.region
+                                       FROM user_feeds f LEFT JOIN feed_catalog c ON c.id = f.catalog_id"""):
+            c = countries.country(r["site_url"] or r["url"], r["ctitle"] or r["name"], r["region"])
+            if c:
+                feeds[r["id"]] = c
+        _origins.update(at=time.time(), titles=titles, feeds=feeds)
+    return _origins["titles"], _origins["feeds"]
+
+
 async def feed(pool, config: dict, owner_id: int = 0, limit: int = 160) -> dict:
     """The stories a screen cycles through, newest first, no source more than
     a quarter of them (a busy feed would fill the screen), plus its alerts."""
@@ -95,11 +120,12 @@ async def feed(pool, config: dict, owner_id: int = 0, limit: int = 160) -> dict:
     rows = await pool.fetch(f"""
         SELECT a.id, a.title, a.feed_source, a.category, a.published_at, a.image_url, a.url,
                left(a.content_raw, 3000) AS content_raw, a.original_lang, a.entities,
-               a.owner_user_id IS NOT NULL AS personal
+               a.owner_user_id IS NOT NULL AS personal, a.user_feed_id
           FROM articles a
          WHERE {where}
          ORDER BY a.published_at DESC
          LIMIT {int(limit) * 3}""", *params)
+    by_title, by_feed = await _origin_maps(pool)
     per_source: dict = {}
     cap = max(4, limit // 4)
     stories = []
@@ -121,6 +147,8 @@ async def feed(pool, config: dict, owner_id: int = 0, limit: int = 160) -> dict:
             "lang": r["original_lang"] if r["original_lang"] not in (None, "en") else None,
             "entities": [e.get("name") if isinstance(e, dict) else str(e) for e in _json_list(r["entities"])][:4],
             "personal": r["personal"],
+            # Where the outlet is from (not the story): a flag on screen.
+            "country": by_feed.get(r["user_feed_id"]) or by_title.get(src) or countries.country(url),
         })
         if len(stories) >= limit:
             break

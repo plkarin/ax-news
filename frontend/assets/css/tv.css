@@ -118,6 +118,19 @@ body.idle { cursor: none; }
 .qr img { width: 7.2rem; height: 7.2rem; border-radius: .7rem; background: #fff; padding: .35rem; box-shadow: 0 .6rem 2rem rgba(0, 0, 0, .3); }
 .qr span { font: 600 .9rem/1.3 var(--font); color: var(--muted); max-width: 8rem; }
 .tv[data-show-qr="off"] .qr, .tv[data-show-qr="off"] .tv-alert-qr { display: none; }
+/* The outlet's country, top right of a story. */
+.flag { position: absolute; z-index: 3; top: 2rem; right: 2rem; display: inline-flex; align-items: center; gap: .6rem; padding: .45rem .8rem .45rem .45rem; border-radius: .7rem; background: rgba(8, 12, 24, .72); backdrop-filter: blur(.6rem); color: #fff; font: 650 .95rem/1 var(--font); letter-spacing: .02em; box-shadow: 0 .4rem 1.4rem rgba(0, 0, 0, .3); }
+.flag img { width: 2.6rem; height: 1.95rem; border-radius: .25rem; object-fit: cover; box-shadow: 0 0 0 1px rgba(255, 255, 255, .25); }
+.flag.sm { top: .7rem; right: .7rem; padding: .25rem; border-radius: .4rem; background: rgba(8, 12, 24, .55); }
+.flag.sm img { width: 1.9rem; height: 1.42rem; }
+.q, .nr-item, .ci, .hl > div:last-child { position: relative; }
+.q .t, .nr-item .t, .ci .t { padding-right: 2.6rem; }
+.hl .flag { top: 0; right: 0; }
+.hl > div:last-child { padding-right: 3.4rem; }
+.hl.now > div:last-child { padding-right: 12rem; }
+.tile .flag.sm { top: 1rem; right: 1rem; }
+.tv-ticker-inner .flag.sm { position: static; display: inline-flex; vertical-align: -.25rem; margin-right: .5rem; padding: 0; background: none; box-shadow: none; }
+.tv-ticker-inner .flag.sm img { width: 1.6rem; height: 1.2rem; }
 /* A story's QR code: a white card in the story's top-left corner, readable
    over any picture, in every theme. */
 .qr.corner { position: absolute; z-index: 3; top: 2rem; left: 2rem; flex-direction: column; align-items: center; gap: .45rem; padding: .55rem .55rem .6rem; border-radius: 1rem; background: rgba(255, 255, 255, .95); box-shadow: 0 .8rem 2.4rem rgba(0, 0, 0, .35); }
@@ -145,11 +158,15 @@ body.idle { cursor: none; }
 .spot .pic { position: absolute; inset: 0; }
 .spot .shade { position: absolute; inset: 0; background: var(--veil); }
 .spot .body { text-shadow: 0 .1rem 1.2rem color-mix(in srgb, var(--bg) 55%, transparent); }
-.spot .body { position: absolute; left: 3.4rem; bottom: 3rem; right: 38%; display: grid; gap: 1.4rem; }
+.spot .body { position: absolute; left: 3.4rem; bottom: 3rem; right: 34%; display: grid; gap: 1.4rem; }
+.spot .txt, .tile .txt { display: grid; gap: 1.4rem; min-width: 0; }
+/* The QR code beside the text, at the top of it: it never covers a title. */
+.body.with-qr { grid-template-columns: auto minmax(0, 1fr); column-gap: 2.2rem; align-items: start; }
+.body.with-qr .qr.corner { position: static; }
 .spot .headline { font-size: 4.1rem; }
 .spot .headline.long { font-size: 3.3rem; }
 .spot .excerpt { font-size: 1.45rem; -webkit-line-clamp: 3; }
-.spot .qr.corner { top: 2.4rem; left: 2.4rem; }
+
 .spot .progress { position: absolute; left: 3.4rem; right: 3.4rem; bottom: 1.3rem; }
 .queue { display: grid; grid-auto-rows: min-content; gap: 1rem; align-content: start; min-height: 0; overflow: hidden; }
 .queue h3 { margin: .4rem 0 .4rem; font: 700 .85rem/1 var(--font); letter-spacing: .18em; color: var(--faint); text-transform: uppercase; }
@@ -189,7 +206,8 @@ body.idle { cursor: none; }
 .tile.big .excerpt { font-size: 1.3rem; -webkit-line-clamp: 2; color: rgba(255, 255, 255, .8); }
 .tile .meta { font-size: .9rem; color: rgba(255, 255, 255, .75); }
 .tile .meta .src { color: #fff; }
-.tile.big .qr.corner { top: 1.4rem; left: 1.4rem; }
+.tile .txt { gap: .7rem; }
+.tile.big .body.with-qr .qr.corner img { width: 6.6rem; height: 6.6rem; }
 .tile.flip { animation: flip 1.1s cubic-bezier(.2, .7, .2, 1) both; }
 @keyframes flip { from { opacity: 0; transform: scale(.96); filter: blur(.6rem); } }
 

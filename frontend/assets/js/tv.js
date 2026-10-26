@@ -146,6 +146,16 @@
     const q = boot.token && s.personal ? `?s=${encodeURIComponent(boot.token)}` : '';
     return `<div class="qr corner"><img alt="" src="/api/tv/qr/${s.id}${q}" width="120" height="120"><span>Scan to read</span></div>`;
   }
+  // Where the outlet is from: its country's flag, top right of the story.
+  let REGION = null;
+  try { REGION = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) { /* old browser: the code */ }
+  const countryName = (c) => { try { return (REGION && REGION.of(c)) || c; } catch (e) { return c; } };
+  function flag(s, small) {
+    const c = s && /^[A-Z]{2}$/.test(s.country || '') ? s.country : '';
+    if (!c) return '';
+    const name = countryName(c);
+    return `<span class="flag${small ? ' sm' : ''}" title="${esc(name)}"><img alt="" src="/assets/img/flags/${c.toLowerCase()}.svg" width="32" height="24">${small ? '' : `<span>${esc(name)}</span>`}</span>`;
+  }
   const long = (s) => (s.title || '').length > 95 ? ' long' : '';
   const at = (i) => state.stories[((i % state.stories.length) + state.stories.length) % state.stories.length];
 
@@ -156,13 +166,13 @@
       const next = [1, 2, 3, 4].map((k) => at(i + k));
       stage.innerHTML = `
         <article class="spot fade-in">
-          ${pic(s, 'kb')}<div class="shade"></div>${qr(s)}
-          <div class="body">${kicker(s)}<h1 class="headline${long(s)}">${esc(s.title)}</h1>
-            ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}${meta(s)}</div>
+          ${pic(s, 'kb')}<div class="shade"></div>${flag(s)}
+          <div class="body${state.config.show_qr ? ' with-qr' : ''}">${qr(s)}<div class="txt">${kicker(s)}<h1 class="headline${long(s)}">${esc(s.title)}</h1>
+            ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}${meta(s)}</div></div>
           <div class="progress"><i></i></div>
         </article>
         <aside class="queue"><h3>Up next</h3>${next.map((n) => `
-          <div class="q fade-in">${pic(n)}<div><div class="t">${esc(n.title)}</div><div class="m">${esc(n.source)} · ${esc(ago(n.published_at))}</div></div></div>`).join('')}
+          <div class="q fade-in">${flag(n, true)}${pic(n)}<div><div class="t">${esc(n.title)}</div><div class="m">${esc(n.source)} · ${esc(ago(n.published_at))}</div></div></div>`).join('')}
         </aside>`;
       return s;
     },
@@ -172,12 +182,12 @@
       const start = Math.floor((i % state.stories.length) / n) * n;
       const list = Array.from({ length: n }, (_, k) => [start + k, at(start + k)]);
       stage.innerHTML = `
-        <article class="nr-main fade-in">${pic(s, 'kb')}${qr(s)}
+        <article class="nr-main fade-in">${pic(s, 'kb')}${qr(s)}${flag(s)}
           <div class="lower"><div class="progress"><i></i></div>${kicker(s)}<h1 class="headline">${esc(s.title)}</h1>
             ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}${meta(s)}</div>
         </article>
         <aside class="nr-list"><h3><span>Latest</span><span>${esc(state.counts.day || '')} today</span></h3>
-          ${list.map(([k, x]) => `<div class="nr-item${k % state.stories.length === i % state.stories.length ? ' now' : ''}"><div class="time">${esc(hhmm(x.published_at))}</div>
+          ${list.map(([k, x]) => `<div class="nr-item${k % state.stories.length === i % state.stories.length ? ' now' : ''}">${flag(x, true)}<div class="time">${esc(hhmm(x.published_at))}</div>
             <div><div class="t">${esc(x.title)}</div><div class="m">${esc(x.source)} · ${esc(topic(x.category).label)}</div></div></div>`).join('')}
         </aside>`;
       return s;
@@ -186,9 +196,9 @@
       // Five tiles: one big, four small. The first call fills them; then one
       // tile turns at each step.
       const tiles = stage.querySelectorAll('.tile');
-      const tile = (s, big) => `${pic(s, big ? 'kb' : '')}<div class="shade"></div>${big ? qr(s) : ''}<div class="body">${kicker(s)}
+      const tile = (s, big) => `${pic(s, big ? 'kb' : '')}<div class="shade"></div>${flag(s, !big)}<div class="body${big && state.config.show_qr ? ' with-qr' : ''}">${big ? qr(s) : ''}<div class="txt">${kicker(s)}
         <h2 class="headline">${esc(s.title)}</h2>${big && s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}
-        <div class="meta"><span class="src">${esc(s.source)}</span><span class="dot"></span><span>${esc(ago(s.published_at))}</span></div></div>`;
+        <div class="meta"><span class="src">${esc(s.source)}</span><span class="dot"></span><span>${esc(ago(s.published_at))}</span></div></div></div>`;
       if (!step || tiles.length !== 5) {
         stage.innerHTML = [0, 1, 2, 3, 4].map((k) => `<article class="tile${k === 0 ? ' big' : ''} flip" data-k="${k}">${tile(at(i + k), k === 0)}</article>`).join('');
         state.wallNext = i + 5;
@@ -213,7 +223,7 @@
       stage.innerHTML = keys.map((k) => {
         const t = topic(k);
         const items = state.stories.filter((s) => s.category === k).slice(0, 16);
-        const html = items.map((s) => `<div class="ci"><div class="t">${esc(s.title)}</div><div class="m"><b>${esc(hhmm(s.published_at))}</b> · ${esc(s.source)}</div></div>`).join('');
+        const html = items.map((s) => `<div class="ci">${flag(s, true)}<div class="t">${esc(s.title)}</div><div class="m"><b>${esc(hhmm(s.published_at))}</b> · ${esc(s.source)}</div></div>`).join('');
         return `<section class="col fade-in" style="--topic:${esc(t.color)}">
           <div class="col-head">${pic({ category: k, image_url: '' })}<div class="shade"></div><h2>${esc(t.label)}<small>${items.length} stories</small></h2></div>
           <div class="col-list"><div class="col-scroll">${html}${html}</div></div></section>`;
@@ -234,7 +244,7 @@
       stage.innerHTML = `
         <div class="hl-list">${Array.from({ length: Math.min(n, len) }, (_, k) => at(start + k)).map((x) => `
           <div class="hl${x === s ? ' now' : ''}"><div class="time">${x === s && state.config.show_qr ? qr(x) : ''}${esc(hhmm(x.published_at))}</div>
-            <div><div class="t">${esc(x.title)}</div>${x.excerpt ? `<p class="excerpt">${esc(x.excerpt)}</p>` : ''}
+            <div>${flag(x, x !== s)}<div class="t">${esc(x.title)}</div>${x.excerpt ? `<p class="excerpt">${esc(x.excerpt)}</p>` : ''}
             <div class="m">${esc(x.source)} · ${esc(topic(x.category).label)}</div></div></div>`).join('')}
         </div>
         <aside class="hl-side">${pic(s, 'kb')}<div class="progress"><i></i></div></aside>`;
@@ -244,7 +254,7 @@
       const s = at(i);
       const d = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       stage.innerHTML = `
-        <div class="mag-left">${pic(s, 'kb')}${qr(s)}</div>
+        <div class="mag-left">${pic(s, 'kb')}${qr(s)}${flag(s)}</div>
         <article class="mag-body fade-in">
           <div class="mag-mast"><span>AX·NEWS — ${esc(state.config.title || '')}</span><span>${esc(d)}</span></div>
           ${kicker(s)}<h1 class="headline${long(s)}">${esc(s.title)}</h1>
@@ -338,7 +348,7 @@
   function renderTicker() {
     const inner = $('[data-ticker-inner]');
     const items = state.stories.slice(0, 40);
-    inner.innerHTML = items.map((s) => `<span>${esc(s.title)}<em>${esc(s.source)}</em></span>`).join('');
+    inner.innerHTML = items.map((s) => `<span>${esc(s.title)}<em>${flag(s, true)}${esc(s.source)}</em></span>`).join('');
     requestAnimationFrame(() => {
       const px = inner.scrollWidth + inner.parentElement.clientWidth;
       const speed = parseFloat(getComputedStyle(document.documentElement).fontSize) * 6; // 6 rem a second

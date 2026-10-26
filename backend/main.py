@@ -19,6 +19,7 @@ import freshrss
 import db as database
 import sources
 import catalog
+import countries
 import tv
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
@@ -1527,6 +1528,7 @@ async def catalog_list(request: Request, domain: Optional[str] = None, category:
         d = serialize_row(dict(r))
         d["translatable"] = catalog.translatable(d["lang"])
         d["lang_name"] = catalog.LANG_NAMES.get(d["lang"], d["lang"])
+        d["country"] = countries.country(d["site_url"] or d["url"], d["title"], d["region"])
         out.append(d)
     return out
 

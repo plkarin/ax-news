@@ -48,7 +48,7 @@
     const host = (f.site_url || f.url).replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, '');
     return `<div class="cat-row">
       <div style="min-width:0">
-        <div class="t">${esc(f.title)}${f.lang !== 'en' ? ` <span class="tag translated" title="Written in ${esc(f.lang_name)}, shown in English">${esc(f.lang.toUpperCase())} → EN</span>` : ''}</div>
+        <div class="t">${/^[A-Z]{2}$/.test(f.country || '') ? `<img class="cflag" src="/assets/img/flags/${f.country.toLowerCase()}.svg" alt="" title="${esc(f.country)}" width="20" height="15">` : ''}${esc(f.title)}${f.lang !== 'en' ? ` <span class="tag translated" title="Written in ${esc(f.lang_name)}, shown in English">${esc(f.lang.toUpperCase())} → EN</span>` : ''}</div>
         <div class="s"><span>${esc(host)}</span>${f.region && f.region !== 'global' ? `<span>${esc(f.region)}</span>` : ''}<span>${AX.num(f.items)} recent</span>${f.newest ? `<span>latest ${ago(f.newest)}</span>` : ''}</div>
       </div>
       <div class="ops">${share}${action}</div>
