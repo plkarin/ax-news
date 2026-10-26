@@ -230,7 +230,9 @@ async def _translate_row(pool, loop, row, installed) -> int:
     result = await loop.run_in_executor(_executor, _translate_story, title, content, lang)
     new_title = (result or ("", ""))[0]
     cjk = sum(1 for c in new_title[:20] if unicodedata.east_asian_width(c) in ('W', 'F'))
-    if not result or not new_title.strip() or cjk > 3:
+    # Argos sometimes loops on a word ("tο tο tο tο…"): not a translation.
+    looping = re.search(r"(\b\S{1,20}\b)(?:\W+\1\b){3,}", new_title, re.I)
+    if not result or not new_title.strip() or cjk > 3 or looping:
         # Argos returned the original script, or a loop of it:
         # failed, not pending, or the same articles would be
         # retried on every run and the queue would never move.
