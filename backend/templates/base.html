@@ -6,7 +6,10 @@
   <title>{% block title %}AX-NEWS — Global Tech Intelligence Feed{% endblock %}</title>
   <meta name="description" content="{% block description %}AX-NEWS — global tech intelligence: AI, semiconductors, cybersecurity, energy and geopolitics from 200+ sources worldwide, in beautiful micro news.{% endblock %}">
   <meta name="theme-color" content="#060a13">
-  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/favicon.svg?v={{ asset_version }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v={{ asset_version }}">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/app.css?v={{ asset_version }}">
@@ -28,7 +31,7 @@
 {% block topbar %}
 <header class="topbar">
   <a class="brand" href="/" aria-label="AX-NEWS home">
-    <img src="/logo.webp" alt="" width="60" height="30">
+    {% include "_brand_mark.html" %}
     <span class="word">AX<span>·</span>NEWS</span>
   </a>
   <nav class="nav" aria-label="Main">

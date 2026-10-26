@@ -194,6 +194,9 @@ textarea.input { height: auto; min-height: 96px; padding: 10px 14px; resize: ver
 }
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
 .brand img { height: 30px; width: auto; }
+.brand .brand-mark { height: 30px; width: auto; }
+.on-light, [data-theme="light"] .on-dark { display: none !important; }
+[data-theme="light"] .on-light { display: block !important; }
 .brand .word { font: 700 17px/1 var(--font-display); letter-spacing: .02em; }
 .brand .word span { color: var(--accent); }
 .nav { display: flex; gap: 4px; }
@@ -484,6 +487,8 @@ kbd { font: 600 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 6px; b
 .auth-form { display: grid; place-items: center; padding: 40px 24px; background: var(--bg); }
 .auth-card { width: min(400px, 100%); }
 .auth-card .brand { margin-bottom: 30px; }
+.auth-logo { display: block; width: min(330px, 86%); margin: -18px 0 18px -14px; }
+.auth-logo img { width: 100%; height: auto; }
 .auth-card h1 { margin: 0 0 6px; font: 700 28px/1.15 var(--font-display); }
 .auth-card > p { margin: 0 0 22px; color: var(--muted); }
 .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12.5px; margin: 18px 0; }

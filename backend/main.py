@@ -1565,6 +1565,12 @@ async def contact_page(request: Request):
 async def landing_html(request: Request):
     return page(request, "landing.html")
 
+@app.get("/site.webmanifest")
+async def web_manifest():
+    # nginx serves frontend/ by file extension, and .webmanifest is not one.
+    from fastapi.responses import FileResponse
+    return FileResponse(FRONTEND_DIR / "site.webmanifest", media_type="application/manifest+json")
+
 # Old addresses
 @app.get("/index.html")
 async def index_html():
