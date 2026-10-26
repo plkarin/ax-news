@@ -1,0 +1,211 @@
+# World news by region and language, Politics, Law & Defense. Inactive.
+# category | lang | region | title | feed url | site url
+World_News|en|global|BBC News — World|https://feeds.bbci.co.uk/news/world/rss.xml|https://www.bbc.com/news/world
+World_News|en|global|BBC News — Top stories|https://feeds.bbci.co.uk/news/rss.xml|https://www.bbc.com/news
+World_News|en|global|The Guardian — World|https://www.theguardian.com/world/rss|https://www.theguardian.com/world
+World_News|en|global|NYT — World|https://rss.nytimes.com/services/xml/rss/nyt/World.xml|https://www.nytimes.com/section/world
+World_News|en|global|Al Jazeera English|https://www.aljazeera.com/xml/rss/all.xml|https://www.aljazeera.com
+World_News|en|global|DW — Top stories|https://rss.dw.com/rdf/rss-en-top|https://www.dw.com/en
+World_News|en|global|France 24 — English|https://www.france24.com/en/rss|https://www.france24.com/en
+World_News|en|global|NPR — World|https://feeds.npr.org/1004/rss.xml|https://www.npr.org/sections/world
+World_News|en|global|CNN — World|http://rss.cnn.com/rss/edition_world.rss|https://edition.cnn.com/world
+World_News|en|global|Reuters via Google News|https://news.google.com/rss/search?q=source:Reuters&hl=en-US&gl=US&ceid=US:en|https://www.reuters.com
+World_News|en|global|AP News via Google News|https://news.google.com/rss/search?q=source:Associated+Press&hl=en-US&gl=US&ceid=US:en|https://apnews.com
+World_News|en|global|The Economist — The world this week|https://www.economist.com/the-world-this-week/rss.xml|https://www.economist.com
+World_News|en|global|UN News|https://news.un.org/feed/subscribe/en/news/all/rss.xml|https://news.un.org
+World_News|en|global|Euronews|https://www.euronews.com/rss|https://www.euronews.com
+World_News|en|global|Rest of World|https://restofworld.org/feed/latest|https://restofworld.org
+World_News|en|global|The Independent — World|https://www.independent.co.uk/news/world/rss|https://www.independent.co.uk/news/world
+World_News|en|global|Washington Post — World|https://feeds.washingtonpost.com/rss/world|https://www.washingtonpost.com/world
+World_News|en|global|Global Voices|https://globalvoices.org/feed/|https://globalvoices.org
+World_News|en|global|The Christian Science Monitor — World|https://rss.csmonitor.com/feeds/world|https://www.csmonitor.com/World
+World_News|en|global|Semafor|https://www.semafor.com/rss.xml|https://www.semafor.com
+# Europe
+Europe|en|EU|Politico Europe|https://www.politico.eu/feed/|https://www.politico.eu
+Europe|en|EU|Euractiv|https://www.euractiv.com/feed/|https://www.euractiv.com
+Europe|en|GB|BBC News — UK|https://feeds.bbci.co.uk/news/uk/rss.xml|https://www.bbc.co.uk/news/uk
+Europe|en|GB|Sky News|https://feeds.skynews.com/feeds/rss/home.xml|https://news.sky.com
+Europe|en|IE|The Irish Times|https://www.irishtimes.com/arc/outboundfeeds/feed-irish-news/?outputType=xml|https://www.irishtimes.com
+Europe|en|UA|The Kyiv Independent|https://kyivindependent.com/rss/|https://kyivindependent.com
+Europe|en|EU|Balkan Insight|https://balkaninsight.com/feed/|https://balkaninsight.com
+Europe|en|EU|Notes from Poland|https://notesfrompoland.com/feed/|https://notesfrompoland.com
+Europe|fr|FR|Le Monde — À la une|https://www.lemonde.fr/rss/une.xml|https://www.lemonde.fr
+Europe|fr|FR|Le Monde — International|https://www.lemonde.fr/international/rss_full.xml|https://www.lemonde.fr/international
+Europe|fr|FR|Le Figaro — Actualités|https://www.lefigaro.fr/rss/figaro_actualites.xml|https://www.lefigaro.fr
+Europe|fr|FR|Libération|https://www.liberation.fr/arc/outboundfeeds/rss-all/?outputType=xml|https://www.liberation.fr
+Europe|fr|FR|France Info|https://www.francetvinfo.fr/titres.rss|https://www.francetvinfo.fr
+Europe|fr|FR|RFI — Monde|https://www.rfi.fr/fr/monde/rss|https://www.rfi.fr
+Europe|fr|FR|Le Parisien|https://feeds.leparisien.fr/leparisien/rss|https://www.leparisien.fr
+Europe|fr|BE|Le Soir|https://www.lesoir.be/rss/81853/cible_principale_gratuit|https://www.lesoir.be
+Europe|fr|CH|RTS Info|https://www.rts.ch/info/?format=rss/news|https://www.rts.ch/info
+Europe|de|DE|Tagesschau|https://www.tagesschau.de/xml/rss2|https://www.tagesschau.de
+Europe|de|DE|DER SPIEGEL — Schlagzeilen|https://www.spiegel.de/schlagzeilen/index.rss|https://www.spiegel.de
+Europe|de|DE|ZEIT ONLINE|https://newsfeed.zeit.de/index|https://www.zeit.de
+Europe|de|DE|Frankfurter Allgemeine|https://www.faz.net/rss/aktuell/|https://www.faz.net
+Europe|de|DE|Süddeutsche Zeitung|https://rss.sueddeutsche.de/rss/Topthemen|https://www.sueddeutsche.de
+Europe|de|AT|Der Standard|https://www.derstandard.at/rss|https://www.derstandard.at
+Europe|de|CH|NZZ|https://www.nzz.ch/recent.rss|https://www.nzz.ch
+Europe|de|DE|Deutsche Welle — Deutsch|https://rss.dw.com/xml/rss-de-all|https://www.dw.com/de
+Europe|es|ES|El País|https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada|https://elpais.com
+Europe|es|ES|El Mundo|https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml|https://www.elmundo.es
+Europe|es|ES|RTVE Noticias|https://www.rtve.es/api/noticias.rss|https://www.rtve.es/noticias
+Europe|es|ES|La Vanguardia|https://www.lavanguardia.com/rss/home.xml|https://www.lavanguardia.com
+Europe|it|IT|ANSA|https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml|https://www.ansa.it
+Europe|it|IT|Corriere della Sera|https://xml2.corriereobjects.it/rss/homepage.xml|https://www.corriere.it
+Europe|it|IT|la Repubblica|https://www.repubblica.it/rss/homepage/rss2.0.xml|https://www.repubblica.it
+Europe|it|IT|Il Post|https://www.ilpost.it/feed/|https://www.ilpost.it
+Europe|pt|PT|Público|https://feeds.feedburner.com/PublicoRSS|https://www.publico.pt
+Europe|pt|PT|RTP Notícias|https://www.rtp.pt/noticias/rss|https://www.rtp.pt/noticias
+Europe|nl|NL|NOS Nieuws|https://feeds.nos.nl/nosnieuwsalgemeen|https://nos.nl
+Europe|nl|NL|de Volkskrant|https://www.volkskrant.nl/voorpagina/rss.xml|https://www.volkskrant.nl
+Europe|nl|BE|VRT NWS|https://www.vrt.be/vrtnws/nl.rss.articles.xml|https://www.vrt.be/vrtnws
+Europe|pl|PL|TVN24|https://tvn24.pl/najnowsze.xml|https://tvn24.pl
+Europe|pl|PL|Rzeczpospolita|https://www.rp.pl/rss_main|https://www.rp.pl
+Europe|sv|SE|SVT Nyheter|https://www.svt.se/nyheter/rss.xml|https://www.svt.se/nyheter
+Europe|sv|SE|Dagens Nyheter|https://www.dn.se/rss/|https://www.dn.se
+Europe|da|DK|DR Nyheder|https://www.dr.dk/nyheder/service/feeds/allenyheder|https://www.dr.dk/nyheder
+Europe|nb|NO|NRK|https://www.nrk.no/toppsaker.rss|https://www.nrk.no
+Europe|fi|FI|Yle Uutiset|https://feeds.yle.fi/uutiset/v1/majorHeadlines/YLE_UUTISET.rss|https://yle.fi/uutiset
+Europe|cs|CZ|ČT24|https://ct24.ceskatelevize.cz/rss/hlavni-zpravy|https://ct24.ceskatelevize.cz
+Europe|el|GR|Kathimerini|https://www.kathimerini.gr/infeeds/rss/nx-rss-feed.xml|https://www.kathimerini.gr
+Europe|ro|RO|Digi24|https://www.digi24.ro/rss|https://www.digi24.ro
+Europe|hu|HU|Telex|https://telex.hu/rss|https://telex.hu
+Europe|uk|UA|Українська правда|https://www.pravda.com.ua/rss/|https://www.pravda.com.ua
+Europe|tr|TR|BBC Türkçe|https://feeds.bbci.co.uk/turkce/rss.xml|https://www.bbc.com/turkce
+Europe|ru|RU|Meduza|https://meduza.io/rss/all|https://meduza.io
+Europe|ru|RU|BBC Русская служба|https://feeds.bbci.co.uk/russian/rss.xml|https://www.bbc.com/russian
+# Americas
+Americas|en|US|NPR — News|https://feeds.npr.org/1001/rss.xml|https://www.npr.org
+Americas|en|US|NYT — U.S.|https://rss.nytimes.com/services/xml/rss/nyt/US.xml|https://www.nytimes.com/section/us
+Americas|en|US|ABC News|https://abcnews.go.com/abcnews/topstories|https://abcnews.go.com
+Americas|en|US|CBS News|https://www.cbsnews.com/latest/rss/main|https://www.cbsnews.com
+Americas|en|US|PBS NewsHour|https://www.pbs.org/newshour/feeds/rss/headlines|https://www.pbs.org/newshour
+Americas|en|US|Los Angeles Times|https://www.latimes.com/local/rss2.0.xml|https://www.latimes.com
+Americas|en|US|USA Today|https://rssfeeds.usatoday.com/usatoday-NewsTopStories|https://www.usatoday.com
+Americas|en|US|Axios|https://api.axios.com/feed/|https://www.axios.com
+Americas|en|CA|CBC News|https://www.cbc.ca/webfeed/rss/rss-topstories|https://www.cbc.ca/news
+Americas|en|CA|The Globe and Mail|https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/canada/|https://www.theglobeandmail.com
+Americas|fr|CA|Radio-Canada Info|https://ici.radio-canada.ca/rss/4159|https://ici.radio-canada.ca/info
+Americas|fr|CA|Le Devoir|https://www.ledevoir.com/rss/manchettes.xml|https://www.ledevoir.com
+Americas|es|MX|El Universal|https://www.eluniversal.com.mx/arc/outboundfeeds/rss/?outputType=xml|https://www.eluniversal.com.mx
+Americas|es|MX|Animal Político|https://www.animalpolitico.com/feed/|https://www.animalpolitico.com
+Americas|es|AR|Clarín|https://www.clarin.com/rss/lo-ultimo/|https://www.clarin.com
+Americas|es|AR|La Nación|https://www.lanacion.com.ar/arc/outboundfeeds/rss/?outputType=xml|https://www.lanacion.com.ar
+Americas|es|CL|La Tercera|https://www.latercera.com/arc/outboundfeeds/rss/?outputType=xml|https://www.latercera.com
+Americas|es|CO|El Tiempo|https://www.eltiempo.com/rss/colombia.xml|https://www.eltiempo.com
+Americas|es|global|BBC Mundo|https://feeds.bbci.co.uk/mundo/rss.xml|https://www.bbc.com/mundo
+Americas|pt|BR|G1|https://g1.globo.com/rss/g1/|https://g1.globo.com
+Americas|pt|BR|Folha de S.Paulo|https://feeds.folha.uol.com.br/emcimadahora/rss091.xml|https://www.folha.uol.com.br
+Americas|pt|BR|BBC News Brasil|https://feeds.bbci.co.uk/portuguese/rss.xml|https://www.bbc.com/portuguese
+Americas|en|global|Americas Quarterly|https://www.americasquarterly.org/feed/|https://www.americasquarterly.org
+# Asia-Pacific
+Asia_Pacific|en|JP|NHK World — News|https://www3.nhk.or.jp/nhkworld/en/news/feeds/|https://www3.nhk.or.jp/nhkworld
+Asia_Pacific|en|JP|The Japan Times|https://www.japantimes.co.jp/feed/|https://www.japantimes.co.jp
+Asia_Pacific|en|HK|South China Morning Post|https://www.scmp.com/rss/91/feed|https://www.scmp.com
+Asia_Pacific|en|KR|Yonhap — English|https://en.yna.co.kr/RSS/news.xml|https://en.yna.co.kr
+Asia_Pacific|en|KR|The Korea Herald|https://www.koreaherald.com/common/rss_xml.php?ct=102|https://www.koreaherald.com
+Asia_Pacific|en|IN|The Hindu|https://www.thehindu.com/news/national/feeder/default.rss|https://www.thehindu.com
+Asia_Pacific|en|IN|Times of India|https://timesofindia.indiatimes.com/rssfeedstopstories.cms|https://timesofindia.indiatimes.com
+Asia_Pacific|en|IN|Hindustan Times|https://www.hindustantimes.com/feeds/rss/latest/rssfeed.xml|https://www.hindustantimes.com
+Asia_Pacific|en|SG|CNA|https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml|https://www.channelnewsasia.com
+Asia_Pacific|en|AU|ABC News (Australia)|https://www.abc.net.au/news/feed/51120/rss.xml|https://www.abc.net.au/news
+Asia_Pacific|en|AU|The Sydney Morning Herald|https://www.smh.com.au/rss/feed.xml|https://www.smh.com.au
+Asia_Pacific|en|NZ|RNZ News|https://www.rnz.co.nz/rss/national.xml|https://www.rnz.co.nz
+Asia_Pacific|en|PH|Rappler|https://www.rappler.com/feed/|https://www.rappler.com
+Asia_Pacific|en|global|The Diplomat|https://thediplomat.com/feed/|https://thediplomat.com
+Asia_Pacific|en|global|Nikkei Asia — Politics|https://asia.nikkei.com/rss/feed/nar|https://asia.nikkei.com
+Asia_Pacific|ja|JP|NHK ニュース|https://www3.nhk.or.jp/rss/news/cat0.xml|https://www3.nhk.or.jp/news
+Asia_Pacific|ja|JP|朝日新聞デジタル|https://www.asahi.com/rss/asahi/newsheadlines.rdf|https://www.asahi.com
+Asia_Pacific|ko|KR|연합뉴스|https://www.yna.co.kr/rss/news.xml|https://www.yna.co.kr
+Asia_Pacific|ko|KR|한겨레|https://www.hani.co.kr/rss/|https://www.hani.co.kr
+Asia_Pacific|zh|CN|BBC 中文|https://feeds.bbci.co.uk/zhongwen/simp/rss.xml|https://www.bbc.com/zhongwen/simp
+Asia_Pacific|zh|TW|中央社|https://feeds.feedburner.com/rsscna/politics|https://www.cna.com.tw
+Asia_Pacific|zh|HK|明報|https://news.mingpao.com/rss/pns/s00001.xml|https://news.mingpao.com
+Asia_Pacific|vi|VN|VnExpress|https://vnexpress.net/rss/tin-moi-nhat.rss|https://vnexpress.net
+Asia_Pacific|id|ID|Kompas|https://www.kompas.com/|https://www.kompas.com
+Asia_Pacific|id|ID|Tempo|https://rss.tempo.co/nasional|https://www.tempo.co
+Asia_Pacific|en|TH|Bangkok Post|https://www.bangkokpost.com/rss/data/topstories.xml|https://www.bangkokpost.com
+Asia_Pacific|hi|IN|BBC हिन्दी|https://feeds.bbci.co.uk/hindi/rss.xml|https://www.bbc.com/hindi
+# Middle East
+Middle_East|en|global|Al-Monitor|https://www.al-monitor.com/rss|https://www.al-monitor.com
+Middle_East|en|IL|The Times of Israel|https://www.timesofisrael.com/feed/|https://www.timesofisrael.com
+Middle_East|en|IL|Haaretz|https://www.haaretz.com/srv/haaretz-latest-headlines|https://www.haaretz.com
+Middle_East|en|global|Middle East Eye|https://www.middleeasteye.net/rss|https://www.middleeasteye.net
+Middle_East|en|AE|The National|https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml|https://www.thenationalnews.com
+Middle_East|en|global|Arab News|https://www.arabnews.com/rss.xml|https://www.arabnews.com
+Middle_East|en|TR|Daily Sabah|https://www.dailysabah.com/rssFeed/10|https://www.dailysabah.com
+Middle_East|en|IR|Iran International|https://www.iranintl.com/en/feed|https://www.iranintl.com/en
+Middle_East|ar|global|BBC عربي|https://feeds.bbci.co.uk/arabic/rss.xml|https://www.bbc.com/arabic
+Middle_East|ar|global|الجزيرة|https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9|https://www.aljazeera.net
+Middle_East|fa|IR|BBC فارسی|https://feeds.bbci.co.uk/persian/rss.xml|https://www.bbc.com/persian
+Middle_East|he|IL|ynet|https://www.ynet.co.il/Integration/StoryRss2.xml|https://www.ynet.co.il
+# Africa
+Africa|en|global|AllAfrica — Top headlines|https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf|https://allafrica.com
+Africa|en|ZA|News24|https://feeds.news24.com/articles/news24/TopStories/rss|https://www.news24.com
+Africa|en|ZA|Daily Maverick|https://www.dailymaverick.co.za/dmrss/|https://www.dailymaverick.co.za
+Africa|en|NG|Premium Times|https://www.premiumtimesng.com/feed|https://www.premiumtimesng.com
+Africa|en|KE|Nation Africa|https://nation.africa/kenya/rss.xml|https://nation.africa
+Africa|en|global|The Africa Report|https://www.theafricareport.com/feed/|https://www.theafricareport.com
+Africa|en|global|BBC News — Africa|https://feeds.bbci.co.uk/news/world/africa/rss.xml|https://www.bbc.com/news/world/africa
+Africa|en|global|TechCabal|https://techcabal.com/feed/|https://techcabal.com
+Africa|en|global|Semafor Africa|https://www.semafor.com/vertical/africa/rss.xml|https://www.semafor.com/vertical/africa
+Africa|fr|global|Jeune Afrique|https://www.jeuneafrique.com/feed/|https://www.jeuneafrique.com
+Africa|fr|global|RFI — Afrique|https://www.rfi.fr/fr/afrique/rss|https://www.rfi.fr/fr/afrique
+Africa|fr|global|Le Monde Afrique|https://www.lemonde.fr/afrique/rss_full.xml|https://www.lemonde.fr/afrique
+Africa|fr|SN|Seneweb|https://www.seneweb.com/feed/|https://www.seneweb.com
+Africa|ar|EG|Ahram Online|https://english.ahram.org.eg/rss/1/0/0/Egypt.aspx|https://english.ahram.org.eg
+Africa|sw|global|BBC Swahili|https://feeds.bbci.co.uk/swahili/rss.xml|https://www.bbc.com/swahili
+# Politics
+Politics|en|US|Politico|https://rss.politico.com/politics-news.xml|https://www.politico.com
+Politics|en|US|The Hill|https://thehill.com/feed/|https://thehill.com
+Politics|en|US|NPR — Politics|https://feeds.npr.org/1014/rss.xml|https://www.npr.org/sections/politics
+Politics|en|US|NYT — Politics|https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml|https://www.nytimes.com/section/politics
+Politics|en|US|Silver Bulletin|https://www.natesilver.net/feed|https://www.natesilver.net
+Politics|en|GB|The Guardian — Politics|https://www.theguardian.com/politics/rss|https://www.theguardian.com/politics
+Politics|en|GB|BBC News — Politics|https://feeds.bbci.co.uk/news/politics/rss.xml|https://www.bbc.co.uk/news/politics
+Politics|en|global|Politico Europe — Politics|https://www.politico.eu/section/politics/feed/|https://www.politico.eu
+Politics|en|global|The Conversation — Politics|https://theconversation.com/global/topics/politics-1192/articles.atom|https://theconversation.com
+Politics|fr|FR|Le Monde — Politique|https://www.lemonde.fr/politique/rss_full.xml|https://www.lemonde.fr/politique
+Politics|fr|FR|Public Sénat|https://www.publicsenat.fr/rss.xml|https://www.publicsenat.fr
+Politics|de|DE|Tagesschau — Inland|https://www.tagesschau.de/inland/index~rss2.xml|https://www.tagesschau.de/inland
+International_Affairs|en|global|Foreign Affairs|https://www.foreignaffairs.com/rss.xml|https://www.foreignaffairs.com
+International_Affairs|en|global|Foreign Policy|https://foreignpolicy.com/feed/|https://foreignpolicy.com
+International_Affairs|en|global|Council on Foreign Relations|https://www.cfr.org/rss.xml|https://www.cfr.org
+International_Affairs|en|global|Chatham House|https://www.chathamhouse.org/rss.xml|https://www.chathamhouse.org
+International_Affairs|en|global|Brookings|https://www.brookings.edu/feed/|https://www.brookings.edu
+International_Affairs|en|global|Carnegie Endowment|https://carnegieendowment.org/rss/solr/?fa=analysis|https://carnegieendowment.org
+International_Affairs|en|global|Crisis Group|https://www.crisisgroup.org/rss.xml|https://www.crisisgroup.org
+International_Affairs|en|global|The Atlantic — Global|https://www.theatlantic.com/feed/channel/international/|https://www.theatlantic.com/international
+International_Affairs|en|global|ECFR|https://ecfr.eu/feed/|https://ecfr.eu
+International_Affairs|en|global|RAND — Commentary|https://www.rand.org/pubs/commentary.xml|https://www.rand.org
+International_Affairs|en|global|Responsible Statecraft|https://responsiblestatecraft.org/feed/|https://responsiblestatecraft.org
+International_Affairs|fr|FR|IFRI|https://www.ifri.org/fr/rss.xml|https://www.ifri.org
+International_Affairs|fr|FR|Le Grand Continent|https://legrandcontinent.eu/fr/feed/|https://legrandcontinent.eu
+Law_Justice|en|US|SCOTUSblog|https://www.scotusblog.com/feed/|https://www.scotusblog.com
+Law_Justice|en|US|Law.com|https://www.law.com/rss/|https://www.law.com
+Law_Justice|en|US|Above the Law|https://abovethelaw.com/feed/|https://abovethelaw.com
+Law_Justice|en|US|ABA Journal|https://www.abajournal.com/feed|https://www.abajournal.com
+Law_Justice|en|US|Volokh Conspiracy|https://reason.com/volokh/feed/|https://reason.com/volokh
+Law_Justice|en|global|IAPP — Privacy news|https://iapp.org/rss/daily-dashboard/|https://iapp.org
+Law_Justice|en|global|JURIST|https://www.jurist.org/news/feed/|https://www.jurist.org
+Law_Justice|en|global|EFF — Deeplinks|https://www.eff.org/rss/updates.xml|https://www.eff.org
+Law_Justice|en|global|Human Rights Watch|https://www.hrw.org/rss/news|https://www.hrw.org
+Law_Justice|en|global|Amnesty International|https://www.amnesty.org/en/feed/|https://www.amnesty.org
+Law_Justice|en|GB|The Law Society Gazette|https://www.lawgazette.co.uk/rss|https://www.lawgazette.co.uk
+Law_Justice|fr|FR|Dalloz Actualité|https://www.dalloz-actualite.fr/rss.xml|https://www.dalloz-actualite.fr
+Law_Justice|de|DE|Legal Tribune Online|https://www.lto.de/rss/feed/|https://www.lto.de
+Defense|en|global|Defense News|https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml|https://www.defensenews.com
+Defense|en|global|Breaking Defense|https://breakingdefense.com/feed/|https://breakingdefense.com
+Defense|en|global|The War Zone|https://www.twz.com/feed|https://www.twz.com
+Defense|en|global|Defense One|https://www.defenseone.com/rss/all/|https://www.defenseone.com
+Defense|en|global|Janes|https://www.janes.com/feeds/news|https://www.janes.com
+Defense|en|global|Military Times|https://www.militarytimes.com/arc/outboundfeeds/rss/?outputType=xml|https://www.militarytimes.com
+Defense|en|global|The Defense Post|https://www.thedefensepost.com/feed/|https://www.thedefensepost.com
+Defense|en|global|Naval News|https://www.navalnews.com/feed/|https://www.navalnews.com
+Defense|en|global|Bellingcat|https://www.bellingcat.com/feed/|https://www.bellingcat.com
+Defense|en|global|Institute for the Study of War|https://www.understandingwar.org/rss.xml|https://www.understandingwar.org
+Defense|en|global|Small Wars Journal|https://smallwarsjournal.com/rss.xml|https://smallwarsjournal.com
+Defense|en|global|Army Recognition|https://www.armyrecognition.com/feed|https://www.armyrecognition.com
+Defense|fr|FR|Opex360|https://www.opex360.com/feed/|https://www.opex360.com
+Defense|fr|FR|Meta-Defense|https://meta-defense.fr/feed/|https://meta-defense.fr
+Defense|de|DE|Hartpunkt|https://www.hartpunkt.de/feed/|https://www.hartpunkt.de

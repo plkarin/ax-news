@@ -1,0 +1,579 @@
+{
+ "domains": [
+  {
+   "key": "technology",
+   "label": "Technology",
+   "icon": "cpu"
+  },
+  {
+   "key": "health",
+   "label": "Health & Medicine",
+   "icon": "pulse"
+  },
+  {
+   "key": "science",
+   "label": "Science",
+   "icon": "atom"
+  },
+  {
+   "key": "climate",
+   "label": "Climate & Environment",
+   "icon": "leaf"
+  },
+  {
+   "key": "business",
+   "label": "Business & Finance",
+   "icon": "chart"
+  },
+  {
+   "key": "world",
+   "label": "World News",
+   "icon": "globe"
+  },
+  {
+   "key": "politics",
+   "label": "Politics, Law & Defense",
+   "icon": "landmark"
+  },
+  {
+   "key": "mobility",
+   "label": "Mobility & Aviation",
+   "icon": "plane"
+  },
+  {
+   "key": "culture",
+   "label": "Culture & Entertainment",
+   "icon": "film"
+  },
+  {
+   "key": "sports",
+   "label": "Sports",
+   "icon": "trophy"
+  },
+  {
+   "key": "society",
+   "label": "Education, Work & Living",
+   "icon": "book"
+  }
+ ],
+ "categories": [
+  {
+   "key": "AI",
+   "label": "Artificial Intelligence",
+   "domain": "technology",
+   "color": "#7c8cff",
+   "art": "ai"
+  },
+  {
+   "key": "AI_YouTube",
+   "label": "AI — Video",
+   "domain": "technology",
+   "color": "#e879f9",
+   "art": "video"
+  },
+  {
+   "key": "Semiconductors",
+   "label": "Semiconductors",
+   "domain": "technology",
+   "color": "#a78bfa",
+   "art": "semiconductors"
+  },
+  {
+   "key": "Asia_Semiconductors",
+   "label": "Asia Semiconductors",
+   "domain": "technology",
+   "color": "#a78bfa",
+   "art": "semiconductors"
+  },
+  {
+   "key": "Cybersecurity",
+   "label": "Cybersecurity",
+   "domain": "technology",
+   "color": "#fb7185",
+   "art": "cybersecurity"
+  },
+  {
+   "key": "Cyber_YouTube",
+   "label": "Cyber — Video",
+   "domain": "technology",
+   "color": "#e879f9",
+   "art": "video"
+  },
+  {
+   "key": "Cloud_Infrastructure",
+   "label": "Cloud & Infrastructure",
+   "domain": "technology",
+   "color": "#60a5fa",
+   "art": "cloud"
+  },
+  {
+   "key": "DevOps_SRE",
+   "label": "DevOps & SRE",
+   "domain": "technology",
+   "color": "#22d3ee",
+   "art": "devops"
+  },
+  {
+   "key": "Software_Engineering",
+   "label": "Software Engineering",
+   "domain": "technology",
+   "color": "#38bdf8",
+   "art": "software"
+  },
+  {
+   "key": "Open_Source",
+   "label": "Open Source & Linux",
+   "domain": "technology",
+   "color": "#f97316",
+   "art": "open-source"
+  },
+  {
+   "key": "Data_Science",
+   "label": "Data & Analytics",
+   "domain": "technology",
+   "color": "#818cf8",
+   "art": "data"
+  },
+  {
+   "key": "Hardware",
+   "label": "Hardware",
+   "domain": "technology",
+   "color": "#fbbf24",
+   "art": "hardware"
+  },
+  {
+   "key": "Consumer_Tech",
+   "label": "Gadgets & Consumer Tech",
+   "domain": "technology",
+   "color": "#f59e0b",
+   "art": "hardware"
+  },
+  {
+   "key": "Robotics_Automation",
+   "label": "Robotics & Automation",
+   "domain": "technology",
+   "color": "#4ade80",
+   "art": "robotics"
+  },
+  {
+   "key": "Quantum_Computing",
+   "label": "Quantum Computing",
+   "domain": "technology",
+   "color": "#c084fc",
+   "art": "quantum"
+  },
+  {
+   "key": "Biotech_Medtech",
+   "label": "Biotech & Medtech",
+   "domain": "technology",
+   "color": "#2dd4bf",
+   "art": "biotech"
+  },
+  {
+   "key": "Space_Aerospace",
+   "label": "Space & Aerospace",
+   "domain": "technology",
+   "color": "#93c5fd",
+   "art": "space"
+  },
+  {
+   "key": "Energy_GreenTech",
+   "label": "Energy & Green Tech",
+   "domain": "technology",
+   "color": "#86efac",
+   "art": "energy"
+  },
+  {
+   "key": "Telecom_5G",
+   "label": "Telecom & 5G",
+   "domain": "technology",
+   "color": "#67e8f9",
+   "art": "telecom"
+  },
+  {
+   "key": "Tech_Market",
+   "label": "Tech Market & VC",
+   "domain": "technology",
+   "color": "#facc15",
+   "art": "market"
+  },
+  {
+   "key": "Tech_International",
+   "label": "Tech Around the World",
+   "domain": "technology",
+   "color": "#38bdf8",
+   "art": "world"
+  },
+  {
+   "key": "Geopolitics_TechPolicy",
+   "label": "Geopolitics & Policy",
+   "domain": "technology",
+   "color": "#fb923c",
+   "art": "geopolitics"
+  },
+  {
+   "key": "Research_Papers",
+   "label": "Research Papers",
+   "domain": "technology",
+   "color": "#cbd5e1",
+   "art": "research"
+  },
+  {
+   "key": "Quant_Finance",
+   "label": "Quant Finance",
+   "domain": "technology",
+   "color": "#34d399",
+   "art": "quant-finance"
+  },
+  {
+   "key": "Medical_Research",
+   "label": "Medical Breakthroughs",
+   "domain": "health",
+   "color": "#2dd4bf",
+   "art": "medicine"
+  },
+  {
+   "key": "Clinical_Journals",
+   "label": "Clinical Journals",
+   "domain": "health",
+   "color": "#5eead4",
+   "art": "clinical"
+  },
+  {
+   "key": "Oncology",
+   "label": "Oncology",
+   "domain": "health",
+   "color": "#f472b6",
+   "art": "oncology"
+  },
+  {
+   "key": "Cardiology",
+   "label": "Cardiology",
+   "domain": "health",
+   "color": "#f87171",
+   "art": "cardio"
+  },
+  {
+   "key": "Neuroscience",
+   "label": "Neuroscience",
+   "domain": "health",
+   "color": "#a78bfa",
+   "art": "neuro"
+  },
+  {
+   "key": "Infectious_Disease",
+   "label": "Infectious Disease",
+   "domain": "health",
+   "color": "#fbbf24",
+   "art": "infection"
+  },
+  {
+   "key": "Public_Health",
+   "label": "Public Health",
+   "domain": "health",
+   "color": "#34d399",
+   "art": "public-health"
+  },
+  {
+   "key": "Genomics",
+   "label": "Genomics & Precision Medicine",
+   "domain": "health",
+   "color": "#22d3ee",
+   "art": "genomics"
+  },
+  {
+   "key": "Pharma",
+   "label": "Pharma & Drug Development",
+   "domain": "health",
+   "color": "#60a5fa",
+   "art": "pharma"
+  },
+  {
+   "key": "Digital_Health",
+   "label": "Digital Health & Medtech",
+   "domain": "health",
+   "color": "#38bdf8",
+   "art": "digital-health"
+  },
+  {
+   "key": "Mental_Health",
+   "label": "Mental Health",
+   "domain": "health",
+   "color": "#c4b5fd",
+   "art": "mental-health"
+  },
+  {
+   "key": "Science_News",
+   "label": "Science",
+   "domain": "science",
+   "color": "#93c5fd",
+   "art": "science"
+  },
+  {
+   "key": "Physics",
+   "label": "Physics",
+   "domain": "science",
+   "color": "#818cf8",
+   "art": "physics"
+  },
+  {
+   "key": "Chemistry_Materials",
+   "label": "Chemistry & Materials",
+   "domain": "science",
+   "color": "#4ade80",
+   "art": "chemistry"
+  },
+  {
+   "key": "Life_Sciences",
+   "label": "Life Sciences",
+   "domain": "science",
+   "color": "#2dd4bf",
+   "art": "genomics"
+  },
+  {
+   "key": "Astronomy",
+   "label": "Astronomy",
+   "domain": "science",
+   "color": "#a5b4fc",
+   "art": "astronomy"
+  },
+  {
+   "key": "Mathematics",
+   "label": "Mathematics",
+   "domain": "science",
+   "color": "#e2e8f0",
+   "art": "math"
+  },
+  {
+   "key": "Climate",
+   "label": "Climate",
+   "domain": "climate",
+   "color": "#4ade80",
+   "art": "climate"
+  },
+  {
+   "key": "Environment",
+   "label": "Environment & Nature",
+   "domain": "climate",
+   "color": "#86efac",
+   "art": "nature"
+  },
+  {
+   "key": "Energy_Markets",
+   "label": "Energy & Utilities",
+   "domain": "climate",
+   "color": "#fde047",
+   "art": "energy"
+  },
+  {
+   "key": "Markets",
+   "label": "Markets & Finance",
+   "domain": "business",
+   "color": "#34d399",
+   "art": "finance"
+  },
+  {
+   "key": "Economy",
+   "label": "Economy",
+   "domain": "business",
+   "color": "#facc15",
+   "art": "economy"
+  },
+  {
+   "key": "Business_News",
+   "label": "Business",
+   "domain": "business",
+   "color": "#fbbf24",
+   "art": "economy"
+  },
+  {
+   "key": "Crypto",
+   "label": "Crypto & Web3",
+   "domain": "business",
+   "color": "#f59e0b",
+   "art": "crypto"
+  },
+  {
+   "key": "World_News",
+   "label": "World",
+   "domain": "world",
+   "color": "#60a5fa",
+   "art": "world"
+  },
+  {
+   "key": "Europe",
+   "label": "Europe",
+   "domain": "world",
+   "color": "#818cf8",
+   "art": "world"
+  },
+  {
+   "key": "Americas",
+   "label": "Americas",
+   "domain": "world",
+   "color": "#f87171",
+   "art": "world"
+  },
+  {
+   "key": "Asia_Pacific",
+   "label": "Asia-Pacific",
+   "domain": "world",
+   "color": "#fb7185",
+   "art": "world"
+  },
+  {
+   "key": "Middle_East",
+   "label": "Middle East",
+   "domain": "world",
+   "color": "#fbbf24",
+   "art": "world"
+  },
+  {
+   "key": "Africa",
+   "label": "Africa",
+   "domain": "world",
+   "color": "#4ade80",
+   "art": "world"
+  },
+  {
+   "key": "Politics",
+   "label": "Politics",
+   "domain": "politics",
+   "color": "#f87171",
+   "art": "politics"
+  },
+  {
+   "key": "International_Affairs",
+   "label": "International Affairs",
+   "domain": "politics",
+   "color": "#fb923c",
+   "art": "geopolitics"
+  },
+  {
+   "key": "Law_Justice",
+   "label": "Law & Justice",
+   "domain": "politics",
+   "color": "#cbd5e1",
+   "art": "law"
+  },
+  {
+   "key": "Defense",
+   "label": "Defense & Security",
+   "domain": "politics",
+   "color": "#94a3b8",
+   "art": "defense"
+  },
+  {
+   "key": "Automotive",
+   "label": "Cars & EVs",
+   "domain": "mobility",
+   "color": "#60a5fa",
+   "art": "auto"
+  },
+  {
+   "key": "Aviation",
+   "label": "Aviation",
+   "domain": "mobility",
+   "color": "#93c5fd",
+   "art": "aviation"
+  },
+  {
+   "key": "Film_TV",
+   "label": "Film & TV",
+   "domain": "culture",
+   "color": "#f472b6",
+   "art": "film"
+  },
+  {
+   "key": "Music",
+   "label": "Music",
+   "domain": "culture",
+   "color": "#e879f9",
+   "art": "music"
+  },
+  {
+   "key": "Books_Ideas",
+   "label": "Books & Ideas",
+   "domain": "culture",
+   "color": "#fcd34d",
+   "art": "books"
+  },
+  {
+   "key": "Design",
+   "label": "Design & Architecture",
+   "domain": "culture",
+   "color": "#fda4af",
+   "art": "design"
+  },
+  {
+   "key": "Gaming",
+   "label": "Video Games",
+   "domain": "culture",
+   "color": "#a78bfa",
+   "art": "gaming"
+  },
+  {
+   "key": "Media",
+   "label": "Media & Journalism",
+   "domain": "culture",
+   "color": "#cbd5e1",
+   "art": "books"
+  },
+  {
+   "key": "Sports",
+   "label": "Sports",
+   "domain": "sports",
+   "color": "#4ade80",
+   "art": "sports"
+  },
+  {
+   "key": "Football",
+   "label": "Football",
+   "domain": "sports",
+   "color": "#22c55e",
+   "art": "football"
+  },
+  {
+   "key": "Motorsport",
+   "label": "Motorsport",
+   "domain": "sports",
+   "color": "#ef4444",
+   "art": "auto"
+  },
+  {
+   "key": "Education",
+   "label": "Education",
+   "domain": "society",
+   "color": "#60a5fa",
+   "art": "education"
+  },
+  {
+   "key": "Work_Careers",
+   "label": "Work & Careers",
+   "domain": "society",
+   "color": "#a5b4fc",
+   "art": "education"
+  },
+  {
+   "key": "Food_Agriculture",
+   "label": "Food & Agriculture",
+   "domain": "society",
+   "color": "#fbbf24",
+   "art": "food"
+  },
+  {
+   "key": "Travel",
+   "label": "Travel",
+   "domain": "society",
+   "color": "#38bdf8",
+   "art": "travel"
+  },
+  {
+   "key": "My_Sources",
+   "label": "My sources",
+   "domain": null,
+   "color": "#f472b6",
+   "art": "mine"
+  }
+ ]
+}

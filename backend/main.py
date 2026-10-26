@@ -18,6 +18,8 @@ load_dotenv()
 import freshrss
 import db as database
 import sources
+import catalog
+import tv
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
 from keyword_analysis import enrich_batch_static, enrich_article_static
@@ -86,6 +88,10 @@ async def lifespan(app: FastAPI):
     global pool
     pool = await asyncpg.create_pool(DATABASE_URL, min_size=2, max_size=10)
     logger.info("Database pool created")
+    try:
+        await catalog.sync(pool)
+    except Exception:
+        logger.exception("catalog: not loaded")
     yield
     await pool.close()
 
@@ -101,8 +107,8 @@ app.add_middleware(
 )
 
 # Pages whose scripts still use inline handlers (onclick=…): they keep the
-# old, permissive policy until they are rebuilt.
-LEGACY_CSP_PAGES = {"/tv.html"}
+# old, permissive policy until they are rebuilt. (None left.)
+LEGACY_CSP_PAGES: set = set()
 _GOOGLE = "https://accounts.google.com https://apis.google.com"
 
 
@@ -146,6 +152,9 @@ def _asset_version() -> str:
 
 
 templates.env.globals["asset_version"] = _asset_version()
+# The topic taxonomy (catalog/taxonomy.json), embedded in every page as JSON:
+# "<" escaped, so nothing in it can close the script element.
+templates.env.globals["taxonomy_json"] = json_lib.dumps(catalog.public_taxonomy(), ensure_ascii=False).replace("<", "\\u003c")
 COOKIE_SECURE = os.getenv("APP_URL", "https://ax-news.com").startswith("https://")
 
 @app.middleware("http")
@@ -1306,7 +1315,7 @@ MAX_SOURCES = int(os.getenv("MAX_SOURCES_PER_USER", "150"))
 _discover_attempts: dict = defaultdict(list)
 _refresh_attempts: dict = defaultdict(list)
 SOURCE_FIELDS = """id, name, url, site_url, kind, category, active, added_at, last_fetched_at,
-                   last_ok_at, last_error, error_count, item_count"""
+                   last_ok_at, last_error, error_count, item_count, lang, catalog_id"""
 
 
 async def _own_source(source_id: int, user: dict) -> dict:
@@ -1323,10 +1332,18 @@ async def list_sources(user: dict = Depends(get_current_user)):
         SELECT {SOURCE_FIELDS},
                (SELECT count(*) FROM articles a WHERE a.user_feed_id = f.id
                   AND a.published_at > NOW() - INTERVAL '7 days') AS week_count,
-               (SELECT max(published_at) FROM articles a WHERE a.user_feed_id = f.id) AS latest_at
+               (SELECT max(published_at) FROM articles a WHERE a.user_feed_id = f.id) AS latest_at,
+               (SELECT count(*) FROM articles a WHERE a.user_feed_id = f.id
+                  AND a.translation_status = 'pending') AS translating
           FROM user_feeds f WHERE user_id = $1 AND kind IS NOT NULL
          ORDER BY lower(name)""", user["id"])
-    return [serialize_row(dict(r)) for r in rows]
+    out = []
+    for r in rows:
+        d = serialize_row(dict(r))
+        d["translatable"] = catalog.translatable(d.get("lang"))
+        d["lang_name"] = catalog.LANG_NAMES.get(d.get("lang") or "en", d.get("lang"))
+        out.append(d)
+    return out
 
 
 @app.post("/api/sources/discover")
@@ -1351,7 +1368,8 @@ async def discover_sources(req: DiscoverRequest, user: dict = Depends(get_curren
 
 
 async def _add_source(user: dict, url: str, name: Optional[str], category: Optional[str],
-                      kind: Optional[str], fetch_now: bool = True) -> dict:
+                      kind: Optional[str], fetch_now: bool = True, catalog_id: Optional[int] = None,
+                      lang: Optional[str] = None) -> dict:
     count = await pool.fetchval("SELECT count(*) FROM user_feeds WHERE user_id = $1 AND kind IS NOT NULL", user["id"])
     if count >= MAX_SOURCES:
         raise HTTPException(409, f"You already follow {MAX_SOURCES} sources.")
@@ -1366,14 +1384,18 @@ async def _add_source(user: dict, url: str, name: Optional[str], category: Optio
             raise HTTPException(422, str(e))
     title = (name or "").strip()[:120] or parsed["title"]
     cat = (category or "").strip()[:60] or None
+    # The source's language, from its stories: a feed in another language is
+    # translated into English (catalog.translatable says whether it can be).
+    lang = lang or catalog.detect_feed_language(parsed["entries"]) or "en"
     row = await pool.fetchrow(f"""
-        INSERT INTO user_feeds (user_id, freshrss_id, name, url, category, kind, site_url, active)
-        VALUES ($1, $2, $3, $2, $4, $5, $6, TRUE)
+        INSERT INTO user_feeds (user_id, freshrss_id, name, url, category, kind, site_url, active, catalog_id, lang)
+        VALUES ($1, $2, $3, $2, $4, $5, $6, TRUE, $7, $8)
         ON CONFLICT (user_id, freshrss_id) DO UPDATE
            SET active = TRUE, name = EXCLUDED.name, category = EXCLUDED.category,
-               kind = EXCLUDED.kind
-        RETURNING {SOURCE_FIELDS}, user_id, etag, last_modified""",
-        user["id"], parsed["url"], title, cat, (kind or "rss")[:20], parsed["site_url"])
+               kind = EXCLUDED.kind, catalog_id = COALESCE(EXCLUDED.catalog_id, user_feeds.catalog_id),
+               lang = EXCLUDED.lang
+        RETURNING {SOURCE_FIELDS}, user_id, etag, last_modified, lang""",
+        user["id"], parsed["url"], title, cat, (kind or "rss")[:20], parsed["site_url"], catalog_id, lang)
     feed = dict(row)
     if fetch_now:
         new, total = await sources.store_entries(pool, feed, parsed["entries"])
@@ -1453,6 +1475,125 @@ async def import_opml(req: OpmlRequest, user: dict = Depends(get_current_user)):
     return {"added": len(added), "failed": failed}
 
 
+# ── The world feed catalog ────────────────────────────────────────────────────
+# catalog/feeds.json in feed_catalog (backend/catalog.py). Anyone may browse
+# it; an account follows a feed as one of its own sources; an admin may share
+# a feed with everyone (sources-worker.py then fetches it, ownerless).
+
+CATALOG_FIELDS = "c.id, c.url, c.title, c.site_url, c.category, c.domain, c.lang, c.region, c.provider, c.active, c.items, c.newest"
+
+
+@app.get("/api/catalog/taxonomy")
+async def catalog_taxonomy():
+    rows = await pool.fetch("""SELECT domain, category, count(*) AS feeds, count(*) FILTER (WHERE active) AS active
+                                 FROM feed_catalog WHERE listed GROUP BY 1, 2""")
+    langs = await pool.fetch("SELECT lang, count(*) AS feeds FROM feed_catalog WHERE listed GROUP BY 1 ORDER BY 2 DESC")
+    return {**catalog.public_taxonomy(),
+            "counts": [dict(r) for r in rows],
+            "languages": [{"code": r["lang"], "name": catalog.LANG_NAMES.get(r["lang"], r["lang"]),
+                           "feeds": r["feeds"], "translatable": catalog.translatable(r["lang"])} for r in langs]}
+
+
+@app.get("/api/catalog")
+async def catalog_list(request: Request, domain: Optional[str] = None, category: Optional[str] = None,
+                       q: Optional[str] = None, lang: Optional[str] = None, active: Optional[bool] = None,
+                       limit: int = Query(200, ge=1, le=1000), offset: int = Query(0, ge=0)):
+    user = await get_optional_user(request)
+    cond, args = ["c.listed"], []
+    def arg(v):
+        args.append(v)
+        return f"${len(args)}"
+    if domain:
+        cond.append(f"c.domain = {arg(domain)}")
+    if category:
+        cond.append(f"c.category = {arg(category)}")
+    if lang:
+        cond.append(f"c.lang = {arg(lang)}")
+    if active is not None:
+        cond.append(f"c.active = {arg(active)}")
+    if q and q.strip():
+        like = arg("%" + q.strip()[:80].replace("%", r"\%").replace("_", r"\_") + "%")
+        cond.append(f"(c.title ILIKE {like} OR c.url ILIKE {like} OR c.category ILIKE {like})")
+    uid = arg(user["id"] if user else 0)
+    rows = await pool.fetch(f"""
+        SELECT {CATALOG_FIELDS},
+               EXISTS (SELECT 1 FROM user_feeds f WHERE f.catalog_id = c.id AND f.user_id = {uid}) AS followed
+          FROM feed_catalog c
+         WHERE {' AND '.join(cond)}
+         ORDER BY c.active DESC, c.domain, c.category, (c.lang = 'en') DESC, lower(c.title)
+         LIMIT {arg(limit)} OFFSET {arg(offset)}""", *args)
+    out = []
+    for r in rows:
+        d = serialize_row(dict(r))
+        d["translatable"] = catalog.translatable(d["lang"])
+        d["lang_name"] = catalog.LANG_NAMES.get(d["lang"], d["lang"])
+        out.append(d)
+    return out
+
+
+async def _catalog_feed(feed_id: int) -> dict:
+    row = await pool.fetchrow(f"SELECT {CATALOG_FIELDS} FROM feed_catalog c WHERE c.id = $1 AND c.listed", feed_id)
+    if not row:
+        raise HTTPException(404, "This feed is not in the catalog.")
+    return dict(row)
+
+
+@app.post("/api/catalog/{feed_id}/follow", status_code=201)
+async def catalog_follow(feed_id: int, user: dict = Depends(get_current_user)):
+    """Follow a catalog feed: it becomes one of the account's sources, in the
+    catalog's category and language (translated into English)."""
+    c = await _catalog_feed(feed_id)
+    if c["active"]:
+        raise HTTPException(409, "Everyone already gets this feed: its stories are in the shared feed.")
+    if not catalog.translatable(c["lang"]):
+        raise HTTPException(422, f"Stories in {catalog.LANG_NAMES.get(c['lang'], c['lang'])} cannot be translated into English yet.")
+    if not _check_rate_limit(_discover_attempts, str(user["id"]), 20, 60):
+        raise HTTPException(429, "Too many feeds at once. Wait a minute.")
+    feed = await asyncio.wait_for(
+        _add_source(user, c["url"], c["title"], c["category"], "rss", fetch_now=False,
+                    catalog_id=c["id"], lang=c["lang"]), 30)
+    # Its first stories now, not in five minutes.
+    try:
+        await asyncio.wait_for(sources.fetch_source(pool, {**feed, "user_id": user["id"]}), 25)
+    except Exception:
+        pass
+    return {"ok": True, "source_id": feed["id"]}
+
+
+@app.delete("/api/catalog/{feed_id}/follow")
+async def catalog_unfollow(feed_id: int, user: dict = Depends(get_current_user)):
+    ids = [r["id"] for r in await pool.fetch(
+        "SELECT id FROM user_feeds WHERE catalog_id = $1 AND user_id = $2", feed_id, user["id"])]
+    for sid in ids:
+        await delete_source(sid, user)
+    return {"ok": True, "removed": len(ids)}
+
+
+class ShareRequest(BaseModel):
+    active: bool
+
+
+@app.post("/api/admin/catalog/{feed_id}/share")
+async def catalog_share(feed_id: int, req: ShareRequest, admin: dict = Depends(require_admin)):
+    """Share a catalog feed with everyone (or stop): an ownerless source that
+    sources-worker.py fetches into the shared feed."""
+    c = await _catalog_feed(feed_id)
+    if c["provider"] == "freshrss":
+        raise HTTPException(409, "This feed comes from FreshRSS: change it there.")
+    if req.active and not catalog.translatable(c["lang"]):
+        raise HTTPException(422, f"Install the {catalog.LANG_NAMES.get(c['lang'], c['lang'])} model first (deploy/install-argos-models.sh).")
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute("""
+                INSERT INTO user_feeds (user_id, freshrss_id, name, url, category, kind, site_url, active, catalog_id, lang)
+                VALUES (NULL, $1, $2, $1, $3, 'rss', $4, $5, $6, $7)
+                ON CONFLICT (catalog_id) WHERE user_id IS NULL DO UPDATE SET active = EXCLUDED.active, error_count = 0""",
+                c["url"], c["title"], c["category"], c["site_url"], req.active, c["id"], c["lang"])
+            await conn.execute("UPDATE feed_catalog SET active = $2, updated_at = now() WHERE id = $1", c["id"], req.active)
+    logger.info("catalog: %s %s by %s", "shared" if req.active else "unshared", c["url"], admin["username"])
+    return {"ok": True, "active": req.active}
+
+
 # ── Saved articles, display preferences, trending ─────────────────────────────
 
 PREF_KEYS = {"view", "density", "theme", "hidden_categories", "pinned_categories", "scope", "open_in"}
@@ -1504,6 +1645,196 @@ async def trending():
     return data
 
 
+# ── TV screens ────────────────────────────────────────────────────────────────
+# backend/tv.py. A screen polls its feed every two minutes, day and night:
+# answers are cached a minute per screen, so a hundred screens cost the
+# database what one does.
+
+MAX_SCREENS = 20
+_tv_cache: dict = {}
+
+
+def _app_version() -> str:
+    """Changes when the pages or their assets change: a screen reloads itself
+    when it sees a new one."""
+    newest = 0.0
+    for d in (FRONTEND_DIR / "assets", BASE_DIR / "templates"):
+        for f in d.rglob("*"):
+            if f.is_file():
+                newest = max(newest, f.stat().st_mtime)
+    return hashlib.sha1(f"{newest}:{templates.env.globals['asset_version']}".encode()).hexdigest()[:12]
+
+
+APP_VERSION = _app_version()
+
+
+class ScreenRequest(BaseModel):
+    name: Optional[str] = None
+    config: Optional[dict] = None
+
+
+def _screen_out(r) -> dict:
+    d = dict(r)
+    cfg = d.get("config")
+    d["config"] = tv.clean_config(json_lib.loads(cfg) if isinstance(cfg, str) else cfg)
+    d["url"] = f"{APP_URL}/tv/{d['token']}"
+    return serialize_row(d)
+
+
+async def _tv_feed_cached(key: str, config: dict, owner_id: int) -> dict:
+    hit = _tv_cache.get(key)
+    if hit and _time.time() - hit[0] < 60:
+        return hit[1]
+    data = await tv.feed(pool, config, owner_id)
+    data["version"] = APP_VERSION
+    data["generated_at"] = datetime.utcnow().isoformat() + "Z"
+    if len(_tv_cache) > 500:
+        _tv_cache.clear()
+    _tv_cache[key] = (_time.time(), data)
+    return data
+
+
+async def _screen_by_token(token: str) -> dict:
+    if not re.fullmatch(r"[A-Za-z0-9_-]{16,64}", token or ""):
+        raise HTTPException(404, "No such screen")
+    row = await pool.fetchrow("SELECT * FROM tv_screens WHERE token = $1", token)
+    if not row:
+        raise HTTPException(404, "No such screen")
+    return _screen_out(row)
+
+
+def _public_config(request: Request) -> dict:
+    """The public screen (/tv.html): the shared feeds; the address may pick a
+    layout, a theme, topics and the alerts."""
+    q = request.query_params
+    raw = {k: q.get(k) for k in ("layout", "theme", "alerts") if q.get(k)}
+    if q.get("topics"):
+        raw["topics"] = q.get("topics").split(",")
+    if q.get("dwell"):
+        raw["dwell"] = q.get("dwell")
+    for k in ("show_qr", "show_ticker", "show_clock", "rotate_layouts", "night_dim"):
+        if q.get(k) in ("0", "1"):
+            raw[k] = q.get(k) == "1"
+    cfg = tv.clean_config(raw)
+    cfg["scope"] = "public"
+    return cfg
+
+
+@app.get("/api/tv/version")
+async def tv_version():
+    return {"version": APP_VERSION}
+
+
+@app.get("/api/tv/public/feed")
+async def tv_public_feed(request: Request):
+    cfg = _public_config(request)
+    key = "public:" + json_lib.dumps({k: cfg[k] for k in ("topics", "hours", "alerts", "alert_words")}, sort_keys=True)
+    return await _tv_feed_cached(key, cfg, 0)
+
+
+@app.get("/api/tv/s/{token}")
+async def tv_screen(token: str):
+    s = await _screen_by_token(token)
+    return {"name": s["name"], "config": s["config"], "version": APP_VERSION}
+
+
+@app.get("/api/tv/s/{token}/feed")
+async def tv_screen_feed(token: str, request: Request):
+    s = await _screen_by_token(token)
+    # Seen: the account panel says when each screen last asked for news.
+    if not s.get("last_seen_at") or _time.time() - datetime.fromisoformat(s["last_seen_at"]).timestamp() > 300:
+        await pool.execute("UPDATE tv_screens SET last_seen_at = now(), last_seen_ua = $2 WHERE id = $1",
+                           s["id"], request.headers.get("user-agent", "")[:200])
+    return await _tv_feed_cached(f"screen:{s['id']}:{s['updated_at']}", s["config"], s["user_id"])
+
+
+# No ".svg" in the address: nginx serves every *.svg from frontend/.
+@app.get("/api/tv/qr/{article_id}")
+async def tv_qr(article_id: int, s: Optional[str] = None):
+    """A QR code to read a story on a phone: /go/<id> for a shared story,
+    the story's own address for one of the screen owner's sources."""
+    import io
+    import segno
+    row = await pool.fetchrow("SELECT url, owner_user_id FROM articles WHERE id = $1", article_id)
+    if not row or not re.match(r"^https?://", row["url"] or "", re.I):
+        raise HTTPException(404, "No such story")
+    if row["owner_user_id"] is None:
+        target = f"{APP_URL}/go/{article_id}"
+    else:
+        screen = await _screen_by_token(s or "")
+        if screen["user_id"] != row["owner_user_id"]:
+            raise HTTPException(404, "No such story")
+        target = row["url"]
+    buf = io.BytesIO()
+    segno.make(target, error="m").save(buf, kind="svg", scale=8, border=2, dark="#0b1220", light="#ffffff", xmldecl=False, svgns=True)
+    return Response(buf.getvalue(), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/go/{article_id}")
+async def go_to_story(article_id: int):
+    """Short address of a shared story (the TV's QR codes): to its publisher."""
+    from fastapi.responses import RedirectResponse
+    url = await pool.fetchval("SELECT url FROM articles WHERE id = $1 AND owner_user_id IS NULL", article_id)
+    if not url or not re.match(r"^https?://", url, re.I):
+        raise HTTPException(404, "No such story")
+    return RedirectResponse(url, status_code=302)
+
+
+@app.get("/api/tv/screens")
+async def list_screens(user: dict = Depends(get_current_user)):
+    rows = await pool.fetch("SELECT * FROM tv_screens WHERE user_id = $1 ORDER BY created_at", user["id"])
+    return {"screens": [_screen_out(r) for r in rows], "defaults": tv.DEFAULT,
+            "layouts": tv.LAYOUTS, "themes": tv.THEMES}
+
+
+@app.post("/api/tv/screens", status_code=201)
+async def create_screen(req: ScreenRequest, user: dict = Depends(get_current_user)):
+    n = await pool.fetchval("SELECT count(*) FROM tv_screens WHERE user_id = $1", user["id"])
+    if n >= MAX_SCREENS:
+        raise HTTPException(409, f"An account has {MAX_SCREENS} screens at most.")
+    name = (req.name or "").strip()[:80] or f"Screen {n + 1}"
+    cfg = tv.clean_config(req.config)
+    row = await pool.fetchrow("""INSERT INTO tv_screens (user_id, token, name, config)
+                                 VALUES ($1, $2, $3, $4::jsonb) RETURNING *""",
+                              user["id"], tv.new_token(), name, json_lib.dumps(cfg))
+    return _screen_out(row)
+
+
+async def _own_screen(screen_id: int, user: dict):
+    row = await pool.fetchrow("SELECT * FROM tv_screens WHERE id = $1 AND user_id = $2", screen_id, user["id"])
+    if not row:
+        raise HTTPException(404, "No such screen")
+    return row
+
+
+@app.patch("/api/tv/screens/{screen_id}")
+async def update_screen(screen_id: int, req: ScreenRequest, user: dict = Depends(get_current_user)):
+    row = await _own_screen(screen_id, user)
+    cur = row["config"]
+    cur = json_lib.loads(cur) if isinstance(cur, str) else (cur or {})
+    cfg = tv.clean_config(req.config, base=tv.clean_config(cur)) if req.config is not None else tv.clean_config(cur)
+    name = (req.name or "").strip()[:80] or row["name"]
+    row = await pool.fetchrow("""UPDATE tv_screens SET name = $2, config = $3::jsonb, updated_at = now()
+                                 WHERE id = $1 RETURNING *""", screen_id, name, json_lib.dumps(cfg))
+    return _screen_out(row)
+
+
+@app.post("/api/tv/screens/{screen_id}/token")
+async def rotate_screen_token(screen_id: int, user: dict = Depends(get_current_user)):
+    """A new address: the old one stops working at once."""
+    await _own_screen(screen_id, user)
+    row = await pool.fetchrow("UPDATE tv_screens SET token = $2, updated_at = now() WHERE id = $1 RETURNING *",
+                              screen_id, tv.new_token())
+    return _screen_out(row)
+
+
+@app.delete("/api/tv/screens/{screen_id}")
+async def delete_screen(screen_id: int, user: dict = Depends(get_current_user)):
+    await _own_screen(screen_id, user)
+    await pool.execute("DELETE FROM tv_screens WHERE id = $1", screen_id)
+    return {"ok": True}
+
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 # Jinja2 templates (backend/templates, on base.html), each response with its
 # own CSP nonce.
@@ -1543,7 +1874,16 @@ async def admin_html(request: Request):
 
 @app.get("/tv.html", response_class=HTMLResponse)
 async def tv_html(request: Request):
-    return page(request, "tv.html")
+    return page(request, "tv.html", screen_token="", app_version=APP_VERSION)
+
+@app.get("/tv/{token}", response_class=HTMLResponse)
+async def tv_screen_page(request: Request, token: str):
+    await _screen_by_token(token)
+    return page(request, "tv.html", screen_token=token, app_version=APP_VERSION)
+
+@app.get("/tv", response_class=HTMLResponse)
+async def tv_bare():
+    return _redirect("/tv.html")
 
 @app.get("/about", response_class=HTMLResponse)
 async def about_page(request: Request):

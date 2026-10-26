@@ -11,7 +11,11 @@ def needs_translation(title: str) -> bool:
     return False
 
 async def upsert_article(pool, art: dict) -> int:
-    translation_status = 'pending' if needs_translation(art.get('title', '')) else 'done'
+    # A shared feed known to be in another language (catalog.FEED_LANGS)
+    # goes to translation whatever its title's script.
+    from catalog import FEED_LANGS
+    lang = FEED_LANGS.get(art.get('feed_source') or '')
+    translation_status = 'pending' if (lang or needs_translation(art.get('title', ''))) else 'done'
 
     # Skip if identical title already exists from same source in last 48h (no freshrss_id)
     if not art.get('freshrss_id'):
@@ -28,8 +32,8 @@ async def upsert_article(pool, art: dict) -> int:
     row = await pool.fetchrow("""
         INSERT INTO articles
           (freshrss_id, feed_source, category, title, url,
-           published_at, content_raw, image_url, translation_status)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+           published_at, content_raw, image_url, translation_status, original_lang)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
         ON CONFLICT (freshrss_id) DO UPDATE SET
             title = CASE
                 WHEN articles.translation_status = 'done' THEN articles.title
@@ -52,7 +56,7 @@ async def upsert_article(pool, art: dict) -> int:
                 ELSE EXCLUDED.translation_status
             END,
             translated_at = articles.translated_at,
-            original_lang = articles.original_lang,
+            original_lang = COALESCE(articles.original_lang, EXCLUDED.original_lang),
             original_title = articles.original_title,
             original_content = articles.original_content,
             enriched_at = articles.enriched_at,
@@ -63,7 +67,7 @@ async def upsert_article(pool, art: dict) -> int:
         RETURNING id
     """, art["freshrss_id"], art["feed_source"], art["category"],
          art["title"], art["url"], art["published_at"],
-         art["content_raw"], art["image_url"], translation_status)
+         art["content_raw"], art["image_url"], translation_status, lang)
     return row["id"]
 
 # Who may see an article: everyone if it came from the shared feeds

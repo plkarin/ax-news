@@ -1,0 +1,5 @@
+# Second addresses for feeds whose first one moved (checked 2026-10-26).
+# category | lang | region | title | feed url | site url
+Clinical_Journals|en|global|BMC Medicine|https://link.springer.com/search.rss?facet-journal-id=12916&channel-name=BMC%20Medicine|
+Chemistry_Materials|en|global|C&EN|https://cen.acs.org/feeds/rss/latestnews.xml|
+World_News|en|global|NHK World|https://www3.nhk.or.jp/nhkworld/data/en/news/backstory/rss.xml|

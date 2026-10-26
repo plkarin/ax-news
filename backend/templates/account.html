@@ -21,6 +21,8 @@
   <div data-auth="in" class="hidden">
     <div class="tabs" role="tablist">
       <button role="tab" data-tab="sources" aria-selected="true">My sources</button>
+      <button role="tab" data-tab="catalog" aria-selected="false">Feed catalog</button>
+      <button role="tab" data-tab="tv" aria-selected="false">TV screens</button>
       <button role="tab" data-tab="display" aria-selected="false">Display</button>
       <button role="tab" data-tab="profile" aria-selected="false">Profile & security</button>
       <button role="tab" data-tab="notes" aria-selected="false" class="hidden" data-notes-tab>AI notes</button>
@@ -61,6 +63,40 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- Feed catalog -->
+    <section data-panel="catalog" class="hidden">
+      <div class="panel">
+        <div class="cat-head">
+          <div>
+            <h3 style="margin-bottom:6px">Feeds from around the world</h3>
+            <p class="muted" style="margin:0;font-size:14px" data-cat-intro>Every feed here was checked and answers today. Follow one and its stories join your own sources — in English, whatever language it is written in.</p>
+          </div>
+          <div class="cat-tools">
+            <input class="input" type="search" placeholder="Search a feed, a site, a field…" data-cat-q aria-label="Search the catalog">
+            <select class="select" data-cat-lang aria-label="Language"><option value="">Every language</option></select>
+          </div>
+        </div>
+        <div class="cat-domains" data-cat-domains></div>
+      </div>
+      <div data-cat-list style="margin-top:20px"><div class="skeleton" style="height:240px"></div></div>
+    </section>
+
+    <!-- TV screens -->
+    <section data-panel="tv" class="hidden">
+      <div class="panel tv-intro">
+        <div>
+          <h3 style="margin-bottom:6px">News on a screen, around the clock</h3>
+          <p class="muted" style="margin:0;font-size:14px">A screen shows your topics on a TV in a lobby or a break room: it turns the stories by itself, refreshes every two minutes, keeps going through network cuts and needs nobody to sign in. Open its address once on the TV's browser, press <kbd>F</kbd> for full screen, and leave it.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn primary" data-tv-new>New screen</button>
+          <a class="btn" href="/tv.html" target="_blank" rel="noopener">Public screen</a>
+        </div>
+      </div>
+      <div class="tv-cards" data-tv-list style="margin-top:20px"><div class="skeleton" style="height:200px"></div></div>
+      <form class="panel tv-editor hidden" data-tv-form style="margin-top:20px"></form>
     </section>
 
     <!-- Display -->
@@ -116,5 +152,7 @@
 </main>
 {% endblock %}
 {% block scripts %}
+<script nonce="{{ csp_nonce }}" src="/assets/js/catalog.js?v={{ asset_version }}"></script>
+<script nonce="{{ csp_nonce }}" src="/assets/js/screens.js?v={{ asset_version }}"></script>
 <script nonce="{{ csp_nonce }}" src="/assets/js/account.js?v={{ asset_version }}"></script>
 {% endblock %}

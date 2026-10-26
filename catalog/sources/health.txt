@@ -1,0 +1,180 @@
+# Health & Medicine. Inactive: any account may follow them.
+# category | lang | region | title | feed url | site url
+# Breakthroughs, discoveries
+Medical_Research|en|global|ScienceDaily — Health & Medicine|https://www.sciencedaily.com/rss/health_medicine.xml|https://www.sciencedaily.com
+Medical_Research|en|global|ScienceDaily — Top Health|https://www.sciencedaily.com/rss/top/health.xml|https://www.sciencedaily.com
+Medical_Research|en|global|Medical Xpress|https://medicalxpress.com/rss-feed/|https://medicalxpress.com
+Medical_Research|en|global|Medical Xpress — Medical research|https://medicalxpress.com/rss-feed/breaking/medical-research-news/|https://medicalxpress.com
+Medical_Research|en|global|EurekAlert! — Medicine & Health|https://www.eurekalert.org/rss/medicine_health.xml|https://www.eurekalert.org
+Medical_Research|en|global|Nature Medicine|https://www.nature.com/nm.rss|https://www.nature.com/nm
+Medical_Research|en|global|Nature — Medical research|https://www.nature.com/subjects/medical-research.rss|https://www.nature.com
+Medical_Research|en|global|Science Translational Medicine|https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=stm|https://www.science.org/journal/stm
+Medical_Research|en|global|Cell Reports Medicine|https://www.cell.com/cell-reports-medicine/current.rss|https://www.cell.com/cell-reports-medicine
+Medical_Research|en|global|The Conversation — Health|https://theconversation.com/global/topics/health-26/articles.atom|https://theconversation.com
+Medical_Research|en|global|New Scientist — Health|https://www.newscientist.com/subject/health/feed/|https://www.newscientist.com
+Medical_Research|en|global|NIH News Releases|https://www.nih.gov/news-releases/feed.xml|https://www.nih.gov
+Medical_Research|en|global|NIH Research Matters|https://www.nih.gov/research-training/research-matters/feed.xml|https://www.nih.gov
+Medical_Research|en|global|Harvard Gazette — Health & Medicine|https://news.harvard.edu/gazette/section/health-medicine/feed/|https://news.harvard.edu/gazette
+Medical_Research|en|global|Stanford Medicine News|https://med.stanford.edu/news/all-news.rss.xml|https://med.stanford.edu/news
+Medical_Research|en|global|Mayo Clinic News Network|https://newsnetwork.mayoclinic.org/feed/|https://newsnetwork.mayoclinic.org
+Medical_Research|en|global|Johns Hopkins Medicine Newsroom|https://www.hopkinsmedicine.org/news/newsroom/rss|https://www.hopkinsmedicine.org/news/newsroom
+Medical_Research|en|global|MIT News — Health|https://news.mit.edu/rss/topic/health|https://news.mit.edu
+Medical_Research|en|global|UCSF News|https://www.ucsf.edu/news/feed|https://www.ucsf.edu/news
+Medical_Research|en|global|Wellcome Trust News|https://wellcome.org/rss/news|https://wellcome.org
+Medical_Research|en|global|The Scientist|https://www.the-scientist.com/rss|https://www.the-scientist.com
+Medical_Research|en|global|STAT — Health|https://www.statnews.com/category/health/feed/|https://www.statnews.com
+Medical_Research|en|global|News-Medical|https://www.news-medical.net/syndication.axd?format=rss|https://www.news-medical.net
+Medical_Research|en|global|medRxiv — all new preprints|https://connect.medrxiv.org/medrxiv_xml.php?subject=all|https://www.medrxiv.org
+Medical_Research|en|global|Healio|https://www.healio.com/rss/news|https://www.healio.com
+Medical_Research|fr|FR|Inserm — Actualités|https://presse.inserm.fr/feed/|https://presse.inserm.fr
+Medical_Research|fr|FR|Institut Pasteur — Actualités|https://www.pasteur.fr/fr/rss.xml|https://www.pasteur.fr
+Medical_Research|fr|FR|Le Quotidien du Médecin|https://www.lequotidiendumedecin.fr/rss.xml|https://www.lequotidiendumedecin.fr
+Medical_Research|fr|FR|Sciences et Avenir — Santé|https://www.sciencesetavenir.fr/sante/rss.xml|https://www.sciencesetavenir.fr
+Medical_Research|fr|FR|Futura Santé|https://www.futura-sciences.com/rss/sante/actualites.xml|https://www.futura-sciences.com/sante
+Medical_Research|de|DE|Deutsches Ärzteblatt|https://www.aerzteblatt.de/rss/news.asp|https://www.aerzteblatt.de
+Medical_Research|de|DE|Deutsches Krebsforschungszentrum|https://www.dkfz.de/de/presse/pressemitteilungen/rss.xml|https://www.dkfz.de
+Medical_Research|de|DE|Spektrum — Medizin|https://www.spektrum.de/medizin/rss/|https://www.spektrum.de
+Medical_Research|es|ES|Redacción Médica|https://www.redaccionmedica.com/rss/|https://www.redaccionmedica.com
+Medical_Research|es|ES|SINC — Biomedicina y salud|https://www.agenciasinc.es/rss/Ciencias/Biomedicina-y-salud|https://www.agenciasinc.es
+Medical_Research|it|IT|Quotidiano Sanità|https://www.quotidianosanita.it/rss/rss.php|https://www.quotidianosanita.it
+Medical_Research|pt|BR|Agência FAPESP|https://agencia.fapesp.br/rss/|https://agencia.fapesp.br
+Medical_Research|ja|JP|日経メディカル|https://medical.nikkeibp.co.jp/rss/index.rdf|https://medical.nikkeibp.co.jp
+# Clinical journals
+Clinical_Journals|en|global|New England Journal of Medicine|https://www.nejm.org/action/showFeed?type=etoc&feed=rss&jc=nejm|https://www.nejm.org
+Clinical_Journals|en|global|The Lancet|https://www.thelancet.com/rssfeed/lancet_current.xml|https://www.thelancet.com
+Clinical_Journals|en|global|The Lancet — Online First|https://www.thelancet.com/rssfeed/lancet_online.xml|https://www.thelancet.com
+Clinical_Journals|en|global|JAMA|https://jamanetwork.com/rss/site_3/67.xml|https://jamanetwork.com/journals/jama
+Clinical_Journals|en|global|JAMA Network Open|https://jamanetwork.com/rss/site_214/174.xml|https://jamanetwork.com/journals/jamanetworkopen
+Clinical_Journals|en|global|The BMJ|https://www.bmj.com/rss/recent.xml|https://www.bmj.com
+Clinical_Journals|en|global|Annals of Internal Medicine|https://www.acpjournals.org/action/showFeed?type=etoc&feed=rss&jc=aim|https://www.acpjournals.org/journal/aim
+Clinical_Journals|en|global|PLOS Medicine|https://journals.plos.org/plosmedicine/feed/atom|https://journals.plos.org/plosmedicine
+Clinical_Journals|en|global|BMC Medicine|https://bmcmedicine.biomedcentral.com/articles/most-recent/rss.xml|https://bmcmedicine.biomedcentral.com
+Clinical_Journals|en|global|CMAJ|https://www.cmaj.ca/rss/current.xml|https://www.cmaj.ca
+Clinical_Journals|en|global|eLife — Medicine|https://elifesciences.org/rss/subject/medicine.xml|https://elifesciences.org
+Clinical_Journals|en|global|MedPage Today|https://www.medpagetoday.com/rss/headlines.xml|https://www.medpagetoday.com
+Clinical_Journals|en|global|Cochrane Library — Editorials|https://www.cochranelibrary.com/cdsr/editorials/rss|https://www.cochranelibrary.com
+# Oncology
+Oncology|en|global|Nature Reviews Clinical Oncology|https://www.nature.com/nrclinonc.rss|https://www.nature.com/nrclinonc
+Oncology|en|global|Nature Cancer|https://www.nature.com/natcancer.rss|https://www.nature.com/natcancer
+Oncology|en|global|Nature — Cancer|https://www.nature.com/subjects/cancer.rss|https://www.nature.com
+Oncology|en|global|The Lancet Oncology|https://www.thelancet.com/rssfeed/lanonc_current.xml|https://www.thelancet.com/journals/lanonc
+Oncology|en|global|JAMA Oncology|https://jamanetwork.com/rss/site_159/174.xml|https://jamanetwork.com/journals/jamaoncology
+Oncology|en|global|Journal of Clinical Oncology|https://ascopubs.org/action/showFeed?type=etoc&feed=rss&jc=jco|https://ascopubs.org/journal/jco
+Oncology|en|global|ASCO Post|https://ascopost.com/rss/|https://ascopost.com
+Oncology|en|global|National Cancer Institute — News|https://www.cancer.gov/syndication/rss?feedid=100|https://www.cancer.gov
+Oncology|en|global|Cancer Research UK — Science blog|https://news.cancerresearchuk.org/feed/|https://news.cancerresearchuk.org
+Oncology|en|global|OncLive|https://www.onclive.com/rss|https://www.onclive.com
+Oncology|en|global|Medical Xpress — Oncology & Cancer|https://medicalxpress.com/rss-feed/oncology-cancer-news/|https://medicalxpress.com
+Oncology|en|global|ScienceDaily — Cancer|https://www.sciencedaily.com/rss/health_medicine/cancer.xml|https://www.sciencedaily.com
+Oncology|en|global|Fierce Biotech — Oncology|https://www.fiercebiotech.com/rss/xml|https://www.fiercebiotech.com
+Oncology|en|global|Targeted Oncology|https://www.targetedonc.com/rss|https://www.targetedonc.com
+Oncology|fr|FR|Gustave Roussy — Actualités|https://www.gustaveroussy.fr/fr/rss.xml|https://www.gustaveroussy.fr
+# Cardiology
+Cardiology|en|global|Circulation|https://www.ahajournals.org/action/showFeed?type=etoc&feed=rss&jc=circ|https://www.ahajournals.org/journal/circ
+Cardiology|en|global|European Heart Journal|https://academic.oup.com/rss/site_5375/3205.xml|https://academic.oup.com/eurheartj
+Cardiology|en|global|JACC|https://www.jacc.org/action/showFeed?type=etoc&feed=rss&jc=jacc|https://www.jacc.org
+Cardiology|en|global|Nature Reviews Cardiology|https://www.nature.com/nrcardio.rss|https://www.nature.com/nrcardio
+Cardiology|en|global|American Heart Association News|https://www.heart.org/en/news/rss|https://www.heart.org/en/news
+Cardiology|en|global|TCTMD|https://www.tctmd.com/rss.xml|https://www.tctmd.com
+Cardiology|en|global|Cardiovascular Business|https://cardiovascularbusiness.com/rss.xml|https://cardiovascularbusiness.com
+Cardiology|en|global|Medical Xpress — Cardiology|https://medicalxpress.com/rss-feed/cardiology-news/|https://medicalxpress.com
+Cardiology|en|global|ScienceDaily — Heart Disease|https://www.sciencedaily.com/rss/health_medicine/heart_disease.xml|https://www.sciencedaily.com
+# Neuroscience
+Neuroscience|en|global|Nature Neuroscience|https://www.nature.com/neuro.rss|https://www.nature.com/neuro
+Neuroscience|en|global|Nature Reviews Neuroscience|https://www.nature.com/nrn.rss|https://www.nature.com/nrn
+Neuroscience|en|global|Neuron|https://www.cell.com/neuron/current.rss|https://www.cell.com/neuron
+Neuroscience|en|global|The Lancet Neurology|https://www.thelancet.com/rssfeed/laneur_current.xml|https://www.thelancet.com/journals/laneur
+Neuroscience|en|global|JAMA Neurology|https://jamanetwork.com/rss/site_16/72.xml|https://jamanetwork.com/journals/jamaneurology
+Neuroscience|en|global|Neuroscience News|https://neurosciencenews.com/feed/|https://neurosciencenews.com
+Neuroscience|en|global|The Transmitter|https://www.thetransmitter.org/feed/|https://www.thetransmitter.org
+Neuroscience|en|global|Medical Xpress — Neuroscience|https://medicalxpress.com/rss-feed/neuroscience-news/|https://medicalxpress.com
+Neuroscience|en|global|ScienceDaily — Mind & Brain|https://www.sciencedaily.com/rss/mind_brain.xml|https://www.sciencedaily.com
+Neuroscience|en|global|bioRxiv — Neuroscience|https://connect.biorxiv.org/biorxiv_xml.php?subject=neuroscience|https://www.biorxiv.org
+Neuroscience|en|global|eLife — Neuroscience|https://elifesciences.org/rss/subject/neuroscience.xml|https://elifesciences.org
+Neuroscience|en|global|Alzforum|https://www.alzforum.org/rss.xml|https://www.alzforum.org
+# Infectious disease
+Infectious_Disease|en|global|CIDRAP|https://www.cidrap.umn.edu/news/rss.xml|https://www.cidrap.umn.edu
+Infectious_Disease|en|global|The Lancet Infectious Diseases|https://www.thelancet.com/rssfeed/laninf_current.xml|https://www.thelancet.com/journals/laninf
+Infectious_Disease|en|global|Emerging Infectious Diseases (CDC)|https://wwwnc.cdc.gov/eid/rss/ahead-of-print.xml|https://wwwnc.cdc.gov/eid
+Infectious_Disease|en|global|Eurosurveillance|https://www.eurosurveillance.org/rss/content/eurosurveillance/latestarticles?fmt=rss|https://www.eurosurveillance.org
+Infectious_Disease|en|global|Medical Xpress — Infectious diseases|https://medicalxpress.com/rss-feed/diseases-news/|https://medicalxpress.com
+Infectious_Disease|en|global|ScienceDaily — Infectious Diseases|https://www.sciencedaily.com/rss/health_medicine/infectious_diseases.xml|https://www.sciencedaily.com
+Infectious_Disease|en|global|Contagion Live|https://www.contagionlive.com/rss|https://www.contagionlive.com
+Infectious_Disease|en|global|Avian Flu Diary|https://afludiary.blogspot.com/feeds/posts/default|https://afludiary.blogspot.com
+Infectious_Disease|en|global|ProMED — Latest|https://promedmail.org/feed/|https://promedmail.org
+# Public health, agencies
+Public_Health|en|global|WHO — News|https://www.who.int/rss-feeds/news-english.xml|https://www.who.int
+Public_Health|en|global|WHO — Disease Outbreak News|https://www.who.int/feeds/entity/csr/don/en/rss.xml|https://www.who.int/emergencies/disease-outbreak-news
+Public_Health|en|US|CDC Newsroom|https://tools.cdc.gov/api/v2/resources/media/132608.rss|https://www.cdc.gov/media
+Public_Health|en|US|CDC MMWR|https://tools.cdc.gov/api/v2/resources/media/342778.rss|https://www.cdc.gov/mmwr
+Public_Health|en|US|FDA Press Announcements|https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml|https://www.fda.gov
+Public_Health|en|US|FDA — Drug approvals and databases|https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drugs/rss.xml|https://www.fda.gov
+Public_Health|en|US|FDA Medical Devices News|https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml|https://www.fda.gov
+Public_Health|en|EU|European Medicines Agency — News|https://www.ema.europa.eu/en/news.xml|https://www.ema.europa.eu
+Public_Health|en|EU|ECDC — News|https://www.ecdc.europa.eu/en/taxonomy/term/1307/feed|https://www.ecdc.europa.eu
+Public_Health|en|GB|NHS England — News|https://www.england.nhs.uk/feed/|https://www.england.nhs.uk
+Public_Health|en|GB|UK Health Security Agency|https://www.gov.uk/government/organisations/uk-health-security-agency.atom|https://www.gov.uk/government/organisations/uk-health-security-agency
+Public_Health|en|global|KFF Health News|https://kffhealthnews.org/feed/|https://kffhealthnews.org
+Public_Health|en|global|The Lancet Public Health|https://www.thelancet.com/rssfeed/lanpub_current.xml|https://www.thelancet.com/journals/lanpub
+Public_Health|en|global|Health Policy Watch|https://healthpolicy-watch.news/feed/|https://healthpolicy-watch.news
+Public_Health|en|global|Gavi — VaccinesWork|https://www.gavi.org/rss.xml|https://www.gavi.org
+Public_Health|en|global|Global Health Now|https://globalhealthnow.org/rss.xml|https://globalhealthnow.org
+Public_Health|fr|FR|Santé publique France|https://www.santepubliquefrance.fr/rss/actualites.xml|https://www.santepubliquefrance.fr
+Public_Health|fr|FR|HAS — Actualités|https://www.has-sante.fr/feeds/rss/actualites.xml|https://www.has-sante.fr
+Public_Health|de|DE|Robert Koch-Institut|https://www.rki.de/SiteGlobals/Functions/RSSFeed/RSSGenerator_nnn=true.xml|https://www.rki.de
+Public_Health|es|ES|Diario Médico|https://www.diariomedico.com/rss/portada.xml|https://www.diariomedico.com
+# Genomics, precision medicine
+Genomics|en|global|Nature Genetics|https://www.nature.com/ng.rss|https://www.nature.com/ng
+Genomics|en|global|Nature Reviews Genetics|https://www.nature.com/nrg.rss|https://www.nature.com/nrg
+Genomics|en|global|GenomeWeb|https://www.genomeweb.com/rss.xml|https://www.genomeweb.com
+Genomics|en|global|Genome Research|https://genome.cshlp.org/rss/current.xml|https://genome.cshlp.org
+Genomics|en|global|American Journal of Human Genetics|https://www.cell.com/ajhg/current.rss|https://www.cell.com/ajhg
+Genomics|en|global|bioRxiv — Genomics|https://connect.biorxiv.org/biorxiv_xml.php?subject=genomics|https://www.biorxiv.org
+Genomics|en|global|bioRxiv — Genetics|https://connect.biorxiv.org/biorxiv_xml.php?subject=genetics|https://www.biorxiv.org
+Genomics|en|global|Broad Institute News|https://www.broadinstitute.org/rss.xml|https://www.broadinstitute.org
+Genomics|en|global|CRISPR Medicine News|https://crisprmedicinenews.com/feed/|https://crisprmedicinenews.com
+Genomics|en|global|Front Line Genomics|https://frontlinegenomics.com/feed/|https://frontlinegenomics.com
+Genomics|en|global|ScienceDaily — Genes|https://www.sciencedaily.com/rss/plants_animals/genetics.xml|https://www.sciencedaily.com
+# Pharma, drug development
+Pharma|en|global|Endpoints News|https://endpts.com/feed/|https://endpts.com
+Pharma|en|global|Fierce Pharma|https://www.fiercepharma.com/rss/xml|https://www.fiercepharma.com
+Pharma|en|global|BioSpace|https://www.biospace.com/rss/news|https://www.biospace.com
+Pharma|en|global|Pharmaceutical Technology|https://www.pharmaceutical-technology.com/feed/|https://www.pharmaceutical-technology.com
+Pharma|en|global|PharmaTimes|https://www.pharmatimes.com/rss/news_rss.rss|https://www.pharmatimes.com
+Pharma|en|global|Drug Discovery News|https://www.drugdiscoverynews.com/rss|https://www.drugdiscoverynews.com
+Pharma|en|global|Nature Reviews Drug Discovery|https://www.nature.com/nrd.rss|https://www.nature.com/nrd
+Pharma|en|global|Nature Biotechnology|https://www.nature.com/nbt.rss|https://www.nature.com/nbt
+Pharma|en|global|GEN — Genetic Engineering & Biotechnology News|https://www.genengnews.com/feed/|https://www.genengnews.com
+Pharma|en|global|Labiotech.eu|https://www.labiotech.eu/feed/|https://www.labiotech.eu
+Pharma|en|global|In the Pipeline (Derek Lowe)|https://www.science.org/blogs/pipeline/feed|https://www.science.org/blogs/pipeline
+Pharma|en|global|Clinical Trials Arena|https://www.clinicaltrialsarena.com/feed/|https://www.clinicaltrialsarena.com
+Pharma|en|global|PharmaVoice|https://www.pharmavoice.com/feeds/news/|https://www.pharmavoice.com
+Pharma|en|global|BioPharma Reporter|https://www.biopharma-reporter.com/Info/RSS|https://www.biopharma-reporter.com
+Pharma|fr|FR|Industrie Pharma|https://www.industrie.com/pharma/rss.xml|https://www.industrie.com/pharma
+Pharma|de|DE|Deutsche Apotheker Zeitung|https://www.deutsche-apotheker-zeitung.de/rss/news|https://www.deutsche-apotheker-zeitung.de
+Pharma|ja|JP|日刊薬業|https://nk.jiho.jp/rss.xml|https://nk.jiho.jp
+# Digital health, medtech
+Digital_Health|en|global|Fierce Healthcare|https://www.fiercehealthcare.com/rss/xml|https://www.fiercehealthcare.com
+Digital_Health|en|global|MobiHealthNews|https://www.mobihealthnews.com/feed|https://www.mobihealthnews.com
+Digital_Health|en|global|Healthcare IT News|https://www.healthcareitnews.com/home/feed|https://www.healthcareitnews.com
+Digital_Health|en|global|MedTech Dive|https://www.medtechdive.com/feeds/news/|https://www.medtechdive.com
+Digital_Health|en|global|Healthcare Dive|https://www.healthcaredive.com/feeds/news/|https://www.healthcaredive.com
+Digital_Health|en|global|Medical Device Network|https://www.medicaldevice-network.com/feed/|https://www.medicaldevice-network.com
+Digital_Health|en|global|MassDevice|https://www.massdevice.com/feed/|https://www.massdevice.com
+Digital_Health|en|global|The Medical Futurist|https://medicalfuturist.com/feed/|https://medicalfuturist.com
+Digital_Health|en|global|npj Digital Medicine|https://www.nature.com/npjdigitalmed.rss|https://www.nature.com/npjdigitalmed
+Digital_Health|en|global|The Lancet Digital Health|https://www.thelancet.com/rssfeed/landig_current.xml|https://www.thelancet.com/journals/landig
+Digital_Health|en|global|Health Imaging|https://healthimaging.com/rss.xml|https://healthimaging.com
+Digital_Health|en|global|Radiology Business|https://radiologybusiness.com/rss.xml|https://radiologybusiness.com
+Digital_Health|en|global|Becker's Health IT|https://www.beckershospitalreview.com/healthcare-information-technology.feed?type=rss|https://www.beckershospitalreview.com
+Digital_Health|fr|FR|TICsanté|https://www.ticsante.com/rss.xml|https://www.ticsante.com
+Digital_Health|de|DE|E-HEALTH-COM|https://e-health-com.de/rss.xml|https://e-health-com.de
+# Mental health
+Mental_Health|en|global|The Lancet Psychiatry|https://www.thelancet.com/rssfeed/lanpsy_current.xml|https://www.thelancet.com/journals/lanpsy
+Mental_Health|en|global|JAMA Psychiatry|https://jamanetwork.com/rss/site_14/70.xml|https://jamanetwork.com/journals/jamapsychiatry
+Mental_Health|en|global|Psychiatric Times|https://www.psychiatrictimes.com/rss|https://www.psychiatrictimes.com
+Mental_Health|en|global|PsyPost|https://www.psypost.org/feed/|https://www.psypost.org
+Mental_Health|en|global|Medical Xpress — Psychology & Psychiatry|https://medicalxpress.com/rss-feed/psychology-psychiatry-news/|https://medicalxpress.com
+Mental_Health|en|global|NIMH — News|https://www.nimh.nih.gov/site-info/index-rss.atom|https://www.nimh.nih.gov
+Mental_Health|en|global|BPS Research Digest|https://www.bps.org.uk/research-digest/rss.xml|https://www.bps.org.uk/research-digest
+Mental_Health|en|global|Mad in America|https://www.madinamerica.com/feed/|https://www.madinamerica.com

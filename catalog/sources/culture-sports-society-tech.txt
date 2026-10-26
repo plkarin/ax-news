@@ -1,0 +1,273 @@
+# Mobility, Culture, Sports, Education/Work/Living, and more Technology. Inactive.
+# category | lang | region | title | feed url | site url
+Automotive|en|global|Electrek — EVs|https://electrek.co/guides/electric-vehicles/feed/|https://electrek.co
+Automotive|en|global|InsideEVs|https://insideevs.com/rss/news/all/|https://insideevs.com
+Automotive|en|global|Motor1|https://www.motor1.com/rss/news/all/|https://www.motor1.com
+Automotive|en|global|Autocar|https://www.autocar.co.uk/rss|https://www.autocar.co.uk
+Automotive|en|global|Car and Driver|https://www.caranddriver.com/rss/all.xml/|https://www.caranddriver.com
+Automotive|en|global|Jalopnik|https://jalopnik.com/rss|https://jalopnik.com
+Automotive|en|global|The Drive|https://www.thedrive.com/feed|https://www.thedrive.com
+Automotive|en|global|Automotive News Europe|https://europe.autonews.com/rss|https://europe.autonews.com
+Automotive|en|global|CleanTechnica — Cars|https://cleantechnica.com/category/clean-transport-2/feed/|https://cleantechnica.com
+Automotive|en|global|Teslarati|https://www.teslarati.com/feed/|https://www.teslarati.com
+Automotive|en|global|The Verge — Transportation|https://www.theverge.com/rss/transportation/index.xml|https://www.theverge.com/transportation
+Automotive|fr|FR|Automobile Propre|https://www.automobile-propre.com/feed/|https://www.automobile-propre.com
+Automotive|fr|FR|L'Argus|https://www.largus.fr/rss.xml|https://www.largus.fr
+Automotive|de|DE|auto motor und sport|https://www.auto-motor-und-sport.de/feed/|https://www.auto-motor-und-sport.de
+Automotive|ja|JP|Car Watch|https://car.watch.impress.co.jp/data/rss/1.0/cw/feed.rdf|https://car.watch.impress.co.jp
+Aviation|en|global|Simple Flying|https://simpleflying.com/feed/|https://simpleflying.com
+Aviation|en|global|Aviation Week|https://aviationweek.com/rss.xml|https://aviationweek.com
+Aviation|en|global|FlightGlobal|https://www.flightglobal.com/rss|https://www.flightglobal.com
+Aviation|en|global|The Points Guy — Aviation|https://thepointsguy.com/news/feed/|https://thepointsguy.com
+Aviation|en|global|AeroTime|https://www.aerotime.aero/feed|https://www.aerotime.aero
+Aviation|en|global|AVweb|https://avweb.com/feed/|https://avweb.com
+Aviation|en|global|The Aviationist|https://theaviationist.com/feed/|https://theaviationist.com
+Aviation|en|global|Airways Magazine|https://airwaysmag.com/feed|https://airwaysmag.com
+Aviation|en|global|One Mile at a Time|https://onemileatatime.com/feed/|https://onemileatatime.com
+Aviation|fr|FR|Air Journal|https://www.air-journal.fr/feed|https://www.air-journal.fr
+Aviation|de|DE|aero.de|https://www.aero.de/rss/news.xml|https://www.aero.de
+# Culture
+Film_TV|en|global|Variety|https://variety.com/feed/|https://variety.com
+Film_TV|en|global|The Hollywood Reporter|https://www.hollywoodreporter.com/feed/|https://www.hollywoodreporter.com
+Film_TV|en|global|Deadline|https://deadline.com/feed/|https://deadline.com
+Film_TV|en|global|IndieWire|https://www.indiewire.com/feed/|https://www.indiewire.com
+Film_TV|en|global|Screen Daily|https://www.screendaily.com/rss|https://www.screendaily.com
+Film_TV|en|global|/Film|https://www.slashfilm.com/feed/|https://www.slashfilm.com
+Film_TV|en|global|The A.V. Club|https://www.avclub.com/rss|https://www.avclub.com
+Film_TV|en|global|Collider|https://collider.com/feed/|https://collider.com
+Film_TV|en|global|The Guardian — Film|https://www.theguardian.com/film/rss|https://www.theguardian.com/film
+Film_TV|fr|FR|AlloCiné — Actualités|https://www.allocine.fr/rss/news.xml|https://www.allocine.fr
+Film_TV|fr|FR|Première|https://www.premiere.fr/rss/actu-cinema|https://www.premiere.fr
+Film_TV|de|DE|Filmstarts|https://www.filmstarts.de/rss/nachrichten.xml|https://www.filmstarts.de
+Film_TV|es|ES|Fotogramas|https://www.fotogramas.es/rss/all.xml/|https://www.fotogramas.es
+Music|en|global|Pitchfork|https://pitchfork.com/feed/feed-news/rss|https://pitchfork.com
+Music|en|global|Rolling Stone|https://www.rollingstone.com/feed/|https://www.rollingstone.com
+Music|en|global|Billboard|https://www.billboard.com/feed/|https://www.billboard.com
+Music|en|global|NME|https://www.nme.com/feed|https://www.nme.com
+Music|en|global|Stereogum|https://www.stereogum.com/feed/|https://www.stereogum.com
+Music|en|global|Consequence|https://consequence.net/feed/|https://consequence.net
+Music|en|global|Music Business Worldwide|https://www.musicbusinessworldwide.com/feed/|https://www.musicbusinessworldwide.com
+Music|en|global|The Guardian — Music|https://www.theguardian.com/music/rss|https://www.theguardian.com/music
+Music|en|global|NPR Music|https://feeds.npr.org/1039/rss.xml|https://www.npr.org/music
+Music|en|global|Gramophone|https://www.gramophone.co.uk/rss|https://www.gramophone.co.uk
+Music|fr|FR|Les Inrockuptibles|https://www.lesinrocks.com/feed/|https://www.lesinrocks.com
+Music|de|DE|laut.de|https://www.laut.de/rss/news|https://www.laut.de
+Books_Ideas|en|global|The New York Review of Books|https://www.nybooks.com/feed/|https://www.nybooks.com
+Books_Ideas|en|global|London Review of Books|https://www.lrb.co.uk/feeds/rss|https://www.lrb.co.uk
+Books_Ideas|en|global|Literary Hub|https://lithub.com/feed/|https://lithub.com
+Books_Ideas|en|global|Publishers Weekly|https://www.publishersweekly.com/pw/feeds/recent/index.xml|https://www.publishersweekly.com
+Books_Ideas|en|global|The Guardian — Books|https://www.theguardian.com/books/rss|https://www.theguardian.com/books
+Books_Ideas|en|global|Aeon|https://aeon.co/feed.rss|https://aeon.co
+Books_Ideas|en|global|The Marginalian|https://www.themarginalian.org/feed/|https://www.themarginalian.org
+Books_Ideas|en|global|The New Yorker|https://www.newyorker.com/feed/everything|https://www.newyorker.com
+Books_Ideas|en|global|The Atlantic|https://www.theatlantic.com/feed/all/|https://www.theatlantic.com
+Books_Ideas|en|global|Longreads|https://longreads.com/feed/|https://longreads.com
+Books_Ideas|fr|FR|ActuaLitté|https://actualitte.com/feed|https://actualitte.com
+Books_Ideas|fr|FR|Télérama — Livres|https://www.telerama.fr/rss/livre.xml|https://www.telerama.fr/livre
+Books_Ideas|de|DE|Perlentaucher|https://www.perlentaucher.de/rss/magazinrundschau.xml|https://www.perlentaucher.de
+Design|en|global|Dezeen|https://www.dezeen.com/feed/|https://www.dezeen.com
+Design|en|global|designboom|https://www.designboom.com/feed/|https://www.designboom.com
+Design|en|global|ArchDaily|https://www.archdaily.com/feed|https://www.archdaily.com
+Design|en|global|Core77|https://www.core77.com/rss|https://www.core77.com
+Design|en|global|Creative Bloq|https://www.creativebloq.com/feeds/all|https://www.creativebloq.com
+Design|en|global|It's Nice That|https://www.itsnicethat.com/feed|https://www.itsnicethat.com
+Design|en|global|Colossal|https://www.thisiscolossal.com/feed/|https://www.thisiscolossal.com
+Design|en|global|Smashing Magazine|https://www.smashingmagazine.com/feed/|https://www.smashingmagazine.com
+Design|en|global|A List Apart|https://alistapart.com/main/feed/|https://alistapart.com
+Design|en|global|Nielsen Norman Group|https://www.nngroup.com/feed/rss/|https://www.nngroup.com
+Design|en|global|Wallpaper*|https://www.wallpaper.com/feeds/all|https://www.wallpaper.com
+Design|en|global|The Art Newspaper|https://www.theartnewspaper.com/rss.xml|https://www.theartnewspaper.com
+Design|fr|FR|Étapes|https://etapes.com/feed/|https://etapes.com
+Gaming|en|global|IGN|https://feeds.feedburner.com/ign/all|https://www.ign.com
+Gaming|en|global|Polygon|https://www.polygon.com/rss/index.xml|https://www.polygon.com
+Gaming|en|global|Kotaku|https://kotaku.com/rss|https://kotaku.com
+Gaming|en|global|PC Gamer|https://www.pcgamer.com/rss/|https://www.pcgamer.com
+Gaming|en|global|Eurogamer|https://www.eurogamer.net/feed|https://www.eurogamer.net
+Gaming|en|global|Rock Paper Shotgun|https://www.rockpapershotgun.com/feed|https://www.rockpapershotgun.com
+Gaming|en|global|GamesIndustry.biz|https://www.gamesindustry.biz/feed|https://www.gamesindustry.biz
+Gaming|en|global|Game Developer|https://www.gamedeveloper.com/rss.xml|https://www.gamedeveloper.com
+Gaming|en|global|VGC|https://www.videogameschronicle.com/feed/|https://www.videogameschronicle.com
+Gaming|en|global|Nintendo Life|https://www.nintendolife.com/feeds/latest|https://www.nintendolife.com
+Gaming|en|global|Push Square|https://www.pushsquare.com/feeds/latest|https://www.pushsquare.com
+Gaming|en|global|Pure Xbox|https://www.purexbox.com/feeds/latest|https://www.purexbox.com
+Gaming|fr|FR|Gamekult|https://www.gamekult.com/feed.xml|https://www.gamekult.com
+Gaming|fr|FR|JV — Jeuxvideo.com|https://www.jeuxvideo.com/rss/rss.xml|https://www.jeuxvideo.com
+Gaming|de|DE|GameStar|https://www.gamestar.de/news/rss/news.rss|https://www.gamestar.de
+Gaming|ja|JP|4Gamer.net|https://www.4gamer.net/rss/index.xml|https://www.4gamer.net
+Media|en|global|Nieman Lab|https://www.niemanlab.org/feed/|https://www.niemanlab.org
+Media|en|global|Press Gazette|https://pressgazette.co.uk/feed/|https://pressgazette.co.uk
+Media|en|global|Poynter|https://www.poynter.org/feed/|https://www.poynter.org
+Media|en|global|Columbia Journalism Review|https://www.cjr.org/feed|https://www.cjr.org
+Media|en|global|Reuters Institute|https://reutersinstitute.politics.ox.ac.uk/rss.xml|https://reutersinstitute.politics.ox.ac.uk
+Media|en|global|The Verge — Entertainment|https://www.theverge.com/rss/entertainment/index.xml|https://www.theverge.com/entertainment
+Media|en|global|Digiday|https://digiday.com/feed/|https://digiday.com
+Media|fr|FR|Arrêt sur images|https://www.arretsurimages.net/rss|https://www.arretsurimages.net
+# Sports
+Sports|en|global|ESPN — Top headlines|https://www.espn.com/espn/rss/news|https://www.espn.com
+Sports|en|global|BBC Sport|https://feeds.bbci.co.uk/sport/rss.xml|https://www.bbc.com/sport
+Sports|en|global|Sky Sports|https://www.skysports.com/rss/12040|https://www.skysports.com
+Sports|en|global|The Guardian — Sport|https://www.theguardian.com/uk/sport/rss|https://www.theguardian.com/sport
+Sports|en|global|Yahoo Sports|https://sports.yahoo.com/rss/|https://sports.yahoo.com
+Sports|en|global|CBS Sports|https://www.cbssports.com/rss/headlines/|https://www.cbssports.com
+Sports|en|global|Olympics.com — News|https://www.olympics.com/en/news/rss|https://www.olympics.com
+Sports|en|global|Cyclingnews|https://www.cyclingnews.com/feeds/all/|https://www.cyclingnews.com
+Sports|en|global|ATP Tour — News|https://www.atptour.com/en/media/rss-feed/xml-feed|https://www.atptour.com
+Sports|en|global|NBA|https://www.nba.com/rss/nba_rss.xml|https://www.nba.com
+Sports|en|global|ESPN Cricinfo|https://www.espncricinfo.com/rss/content/story/feeds/0.xml|https://www.espncricinfo.com
+Sports|en|global|World Rugby|https://www.world.rugby/rss/news|https://www.world.rugby
+Sports|fr|FR|L'Équipe|https://dwh.lequipe.fr/api/edito/rss?path=/|https://www.lequipe.fr
+Sports|fr|FR|RMC Sport|https://rmcsport.bfmtv.com/rss/info/flux-rss/flux-toutes-les-actualites/|https://rmcsport.bfmtv.com
+Sports|es|ES|Marca|https://e00-marca.uecdn.es/rss/portada.xml|https://www.marca.com
+Sports|es|ES|AS|https://as.com/rss/tags/ultimas_noticias.xml|https://as.com
+Sports|it|IT|La Gazzetta dello Sport|https://www.gazzetta.it/rss/home.xml|https://www.gazzetta.it
+Sports|de|DE|kicker|https://newsfeed.kicker.de/news/aktuell|https://www.kicker.de
+Sports|pt|BR|ge — globoesporte|https://ge.globo.com/rss/ge/|https://ge.globo.com
+Football|en|global|BBC Sport — Football|https://feeds.bbci.co.uk/sport/football/rss.xml|https://www.bbc.com/sport/football
+Football|en|global|The Guardian — Football|https://www.theguardian.com/football/rss|https://www.theguardian.com/football
+Football|en|global|ESPN FC|https://www.espn.com/espn/rss/soccer/news|https://www.espn.com/soccer
+Football|en|global|FourFourTwo|https://www.fourfourtwo.com/feeds/all|https://www.fourfourtwo.com
+Football|en|global|When Saturday Comes|https://www.wsc.co.uk/feed|https://www.wsc.co.uk
+Football|en|global|UEFA — News|https://www.uefa.com/rssfeed/news/rss.xml|https://www.uefa.com
+Football|fr|FR|Foot Mercato|https://www.footmercato.net/flux-rss|https://www.footmercato.net
+Football|fr|FR|So Foot|https://www.sofoot.com/rss.xml|https://www.sofoot.com
+Football|es|ES|Mundo Deportivo|https://www.mundodeportivo.com/rss/futbol.xml|https://www.mundodeportivo.com
+Football|it|IT|Calciomercato.com|https://www.calciomercato.com/feed|https://www.calciomercato.com
+Motorsport|en|global|Motorsport.com|https://www.motorsport.com/rss/all/news/|https://www.motorsport.com
+Motorsport|en|global|Autosport|https://www.autosport.com/rss/feed/all|https://www.autosport.com
+Motorsport|en|global|The Race|https://www.the-race.com/feed/|https://www.the-race.com
+Motorsport|en|global|Formula 1 — Latest|https://www.formula1.com/content/fom-website/en/latest/all.xml|https://www.formula1.com
+Motorsport|en|global|RaceFans|https://www.racefans.net/feed/|https://www.racefans.net
+Motorsport|en|global|Crash.net|https://www.crash.net/rss/all|https://www.crash.net
+# Education, work, living
+Education|en|global|EdSurge|https://www.edsurge.com/articles_rss|https://www.edsurge.com
+Education|en|global|Inside Higher Ed|https://www.insidehighered.com/rss.xml|https://www.insidehighered.com
+Education|en|global|Times Higher Education|https://www.timeshighereducation.com/feeds/news|https://www.timeshighereducation.com
+Education|en|global|The Hechinger Report|https://hechingerreport.org/feed/|https://hechingerreport.org
+Education|en|global|Education Week|https://www.edweek.org/feed|https://www.edweek.org
+Education|en|global|University World News|https://www.universityworldnews.com/rss.php|https://www.universityworldnews.com
+Education|en|global|The Conversation — Education|https://theconversation.com/global/topics/education-31/articles.atom|https://theconversation.com
+Education|en|global|Chalkbeat|https://www.chalkbeat.org/arc/outboundfeeds/rss/?outputType=xml|https://www.chalkbeat.org
+Education|fr|FR|Le Café pédagogique|https://www.cafepedagogique.net/feed/|https://www.cafepedagogique.net
+Education|fr|FR|EducPros|https://www.letudiant.fr/educpros/rss.xml|https://www.letudiant.fr/educpros
+Work_Careers|en|global|HR Dive|https://www.hrdive.com/feeds/news/|https://www.hrdive.com
+Work_Careers|en|global|Fast Company — Work Life|https://www.fastcompany.com/work-life/rss|https://www.fastcompany.com/work-life
+Work_Careers|en|global|Harvard Business Review — Leadership|https://feeds.hbr.org/harvardbusiness|https://hbr.org
+Work_Careers|en|global|SHRM — News|https://www.shrm.org/rss/pages/rss.aspx|https://www.shrm.org
+Work_Careers|en|global|Workplace Insight|https://workplaceinsight.net/feed/|https://workplaceinsight.net
+Work_Careers|en|global|Remote — WFH news|https://www.flexjobs.com/blog/feed/|https://www.flexjobs.com/blog
+Work_Careers|fr|FR|Welcome to the Jungle — Le Lab|https://www.welcometothejungle.com/fr/articles.rss|https://www.welcometothejungle.com/fr/articles
+Food_Agriculture|en|global|AgFunderNews|https://agfundernews.com/feed|https://agfundernews.com
+Food_Agriculture|en|global|Civil Eats|https://civileats.com/feed/|https://civileats.com
+Food_Agriculture|en|global|Food Dive|https://www.fooddive.com/feeds/news/|https://www.fooddive.com
+Food_Agriculture|en|global|The Counter|https://thecounter.org/feed/|https://thecounter.org
+Food_Agriculture|en|global|Eater|https://www.eater.com/rss/index.xml|https://www.eater.com
+Food_Agriculture|en|global|Serious Eats|https://www.seriouseats.com/feeds/all|https://www.seriouseats.com
+Food_Agriculture|en|global|FAO — News|https://www.fao.org/news/rss-feed/en/|https://www.fao.org
+Food_Agriculture|en|global|Successful Farming|https://www.agriculture.com/rss/news|https://www.agriculture.com
+Food_Agriculture|en|global|Food Navigator|https://www.foodnavigator.com/Info/Latest-News|https://www.foodnavigator.com
+Food_Agriculture|en|global|Green Queen|https://www.greenqueen.com.hk/feed/|https://www.greenqueen.com.hk
+Food_Agriculture|fr|FR|Terre-net|https://www.terre-net.fr/rss/actualite.xml|https://www.terre-net.fr
+Travel|en|global|Lonely Planet — News|https://www.lonelyplanet.com/news/feed|https://www.lonelyplanet.com/news
+Travel|en|global|Condé Nast Traveler|https://www.cntraveler.com/feed/rss|https://www.cntraveler.com
+Travel|en|global|Travel + Leisure|https://www.travelandleisure.com/syndication/feed|https://www.travelandleisure.com
+Travel|en|global|Skift|https://skift.com/feed/|https://skift.com
+Travel|en|global|The Guardian — Travel|https://www.theguardian.com/uk/travel/rss|https://www.theguardian.com/travel
+Travel|en|global|Atlas Obscura|https://www.atlasobscura.com/feeds/latest|https://www.atlasobscura.com
+Travel|en|global|Nomadic Matt|https://www.nomadicmatt.com/feed/|https://www.nomadicmatt.com
+Travel|fr|FR|L'Écho touristique|https://www.lechotouristique.com/feed|https://www.lechotouristique.com
+# More technology (inactive)
+Open_Source|en|global|LWN.net|https://lwn.net/headlines/rss|https://lwn.net
+Open_Source|en|global|Phoronix|https://www.phoronix.com/rss.php|https://www.phoronix.com
+Open_Source|en|global|It's FOSS|https://itsfoss.com/rss/|https://itsfoss.com
+Open_Source|en|global|OMG! Ubuntu|https://www.omgubuntu.co.uk/feed|https://www.omgubuntu.co.uk
+Open_Source|en|global|Linux Magazine|https://www.linux-magazine.com/rss/feed/lmi_news|https://www.linux-magazine.com
+Open_Source|en|global|The Register — Software|https://www.theregister.com/software/headlines.atom|https://www.theregister.com/software
+Open_Source|en|global|GitHub Blog|https://github.blog/feed/|https://github.blog
+Open_Source|en|global|Opensource.org|https://opensource.org/feed|https://opensource.org
+Open_Source|en|global|Linux Foundation|https://www.linuxfoundation.org/blog/rss.xml|https://www.linuxfoundation.org
+Open_Source|en|global|Rust Blog|https://blog.rust-lang.org/feed.xml|https://blog.rust-lang.org
+Open_Source|en|global|Python Insider|https://blog.python.org/feeds/posts/default|https://blog.python.org
+Open_Source|en|global|Mozilla Hacks|https://hacks.mozilla.org/feed/|https://hacks.mozilla.org
+Open_Source|en|global|KDE Announcements|https://kde.org/index.xml|https://kde.org
+Open_Source|en|global|GNOME Planet|https://planet.gnome.org/atom.xml|https://planet.gnome.org
+Open_Source|en|global|Debian News|https://www.debian.org/News/news|https://www.debian.org/News
+Open_Source|de|DE|heise open source|https://www.heise.de/rss/heise-Rubrik-Open-Source.rdf|https://www.heise.de/thema/Open-Source
+Open_Source|fr|FR|LinuxFr.org|https://linuxfr.org/news.atom|https://linuxfr.org
+Data_Science|en|global|KDnuggets|https://www.kdnuggets.com/feed|https://www.kdnuggets.com
+Data_Science|en|global|Towards Data Science|https://towardsdatascience.com/feed|https://towardsdatascience.com
+Data_Science|en|global|The Gradient|https://thegradient.pub/rss/|https://thegradient.pub
+Data_Science|en|global|BAIR Blog|https://bair.berkeley.edu/blog/feed.xml|https://bair.berkeley.edu/blog
+Data_Science|en|global|Lil'Log|https://lilianweng.github.io/index.xml|https://lilianweng.github.io
+Data_Science|en|global|Simon Willison|https://simonwillison.net/atom/everything/|https://simonwillison.net
+Data_Science|en|global|Flowing Data|https://flowingdata.com/feed|https://flowingdata.com
+Data_Science|en|global|Our World in Data|https://ourworldindata.org/atom.xml|https://ourworldindata.org
+Data_Science|en|global|Databricks Blog|https://www.databricks.com/feed|https://www.databricks.com/blog
+Data_Science|en|global|Sebastian Raschka|https://magazine.sebastianraschka.com/feed|https://magazine.sebastianraschka.com
+Data_Science|en|global|Import AI|https://importai.substack.com/feed|https://importai.substack.com
+Data_Science|en|global|Interconnects|https://www.interconnects.ai/feed|https://www.interconnects.ai
+Data_Science|en|global|Eugene Yan|https://eugeneyan.com/rss/|https://eugeneyan.com
+Consumer_Tech|en|global|The Verge|https://www.theverge.com/rss/index.xml|https://www.theverge.com
+Consumer_Tech|en|global|Wired|https://www.wired.com/feed/rss|https://www.wired.com
+Consumer_Tech|en|global|CNET|https://www.cnet.com/rss/news/|https://www.cnet.com
+Consumer_Tech|en|global|9to5Mac|https://9to5mac.com/feed/|https://9to5mac.com
+Consumer_Tech|en|global|9to5Google|https://9to5google.com/feed/|https://9to5google.com
+Consumer_Tech|en|global|MacRumors|https://feeds.macrumors.com/MacRumors-All|https://www.macrumors.com
+Consumer_Tech|en|global|Android Authority|https://www.androidauthority.com/feed/|https://www.androidauthority.com
+Consumer_Tech|en|global|Android Police|https://www.androidpolice.com/feed/|https://www.androidpolice.com
+Consumer_Tech|en|global|Digital Trends|https://www.digitaltrends.com/feed/|https://www.digitaltrends.com
+Consumer_Tech|en|global|ZDNET|https://www.zdnet.com/news/rss.xml|https://www.zdnet.com
+Consumer_Tech|en|global|TechRadar|https://www.techradar.com/rss|https://www.techradar.com
+Consumer_Tech|en|global|Six Colors|https://sixcolors.com/feed/|https://sixcolors.com
+Consumer_Tech|en|global|Daring Fireball|https://daringfireball.net/feeds/main|https://daringfireball.net
+Consumer_Tech|en|global|Notebookcheck|https://www.notebookcheck.net/News.152.100.html|https://www.notebookcheck.net
+Tech_International|de|DE|heise online|https://www.heise.de/rss/heise-atom.xml|https://www.heise.de
+Tech_International|de|DE|Golem.de|https://rss.golem.de/rss.php?feed=ATOM1.0|https://www.golem.de
+Tech_International|de|DE|t3n|https://t3n.de/rss.xml|https://t3n.de
+Tech_International|de|DE|netzpolitik.org|https://netzpolitik.org/feed/|https://netzpolitik.org
+Tech_International|de|DE|ComputerBase|https://www.computerbase.de/rss/news.xml|https://www.computerbase.de
+Tech_International|fr|FR|Numerama|https://www.numerama.com/feed/|https://www.numerama.com
+Tech_International|fr|FR|01net|https://www.01net.com/actualites/feed/|https://www.01net.com
+Tech_International|fr|FR|Frandroid|https://www.frandroid.com/feed|https://www.frandroid.com
+Tech_International|fr|FR|Le Monde Informatique|https://www.lemondeinformatique.fr/flux-rss/thematique/toutes-les-actualites/rss.xml|https://www.lemondeinformatique.fr
+Tech_International|fr|FR|Next|https://next.ink/feed/|https://next.ink
+Tech_International|fr|FR|Siècle Digital|https://siecledigital.fr/feed/|https://siecledigital.fr
+Tech_International|fr|FR|Journal du Geek|https://www.journaldugeek.com/feed/|https://www.journaldugeek.com
+Tech_International|es|ES|Xataka|https://www.xataka.com/feedburner.xml|https://www.xataka.com
+Tech_International|es|ES|Genbeta|https://www.genbeta.com/feedburner.xml|https://www.genbeta.com
+Tech_International|es|ES|Hipertextual|https://hipertextual.com/feed|https://hipertextual.com
+Tech_International|es|MX|Xataka México|https://www.xataka.com.mx/feedburner.xml|https://www.xataka.com.mx
+Tech_International|it|IT|HDblog|https://www.hdblog.it/feed/|https://www.hdblog.it
+Tech_International|it|IT|Wired Italia|https://www.wired.it/feed/rss|https://www.wired.it
+Tech_International|pt|BR|Tecnoblog|https://tecnoblog.net/feed/|https://tecnoblog.net
+Tech_International|pt|BR|Olhar Digital|https://olhardigital.com.br/feed/|https://olhardigital.com.br
+Tech_International|pt|BR|Canaltech|https://canaltech.com.br/rss/|https://canaltech.com.br
+Tech_International|nl|NL|Tweakers|https://feeds.feedburner.com/tweakers/mixed|https://tweakers.net
+Tech_International|pl|PL|Spider's Web|https://spidersweb.pl/feed|https://spidersweb.pl
+Tech_International|sv|SE|Breakit|https://www.breakit.se/feed/artiklar|https://www.breakit.se
+Tech_International|ru|RU|Хабр|https://habr.com/ru/rss/all/all/|https://habr.com/ru
+Tech_International|ru|RU|3DNews|https://3dnews.ru/news/rss/|https://3dnews.ru
+Tech_International|tr|TR|Webtekno|https://www.webtekno.com/rss.xml|https://www.webtekno.com
+Tech_International|ja|JP|ITmedia NEWS|https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml|https://www.itmedia.co.jp/news
+Tech_International|ja|JP|GIGAZINE|https://gigazine.net/news/rss_2.0/|https://gigazine.net
+Tech_International|ja|JP|Impress Watch|https://www.watch.impress.co.jp/data/rss/1.0/ipw/feed.rdf|https://www.watch.impress.co.jp
+Tech_International|ja|JP|Publickey|https://www.publickey1.jp/atom.xml|https://www.publickey1.jp
+Tech_International|zh|CN|36氪|https://36kr.com/feed|https://36kr.com
+Tech_International|zh|CN|少数派|https://sspai.com/feed|https://sspai.com
+Tech_International|zh|CN|IT之家|https://www.ithome.com/rss/|https://www.ithome.com
+Tech_International|zh|TW|iThome 台灣|https://www.ithome.com.tw/rss|https://www.ithome.com.tw
+Tech_International|ko|KR|ZDNet Korea|https://feeds.feedburner.com/zdkorea|https://zdnet.co.kr
+Tech_International|ko|KR|전자신문|https://rss.etnews.com/Section901.xml|https://www.etnews.com
+Tech_International|ko|KR|블로터|https://www.bloter.net/rss/allArticle.xml|https://www.bloter.net
+Tech_International|vi|VN|VnExpress — Số hóa|https://vnexpress.net/rss/so-hoa.rss|https://vnexpress.net/so-hoa
+Tech_International|en|ID|DailySocial|https://dailysocial.id/feed|https://dailysocial.id
+Tech_International|ar|global|البوابة العربية للأخبار التقنية|https://aitnews.com/feed/|https://aitnews.com
+Tech_International|hi|IN|Gadgets 360 हिंदी|https://hindi.gadgets360.com/rss/news|https://hindi.gadgets360.com
+Tech_International|en|IN|Inc42|https://inc42.com/feed/|https://inc42.com
+Tech_International|en|IN|MediaNama|https://www.medianama.com/feed/|https://www.medianama.com
+Tech_International|en|global|KrASIA|https://kr-asia.com/feed|https://kr-asia.com
+Tech_International|en|global|Pandaily|https://pandaily.com/feed/|https://pandaily.com
+Tech_International|en|global|TechNode|https://technode.com/feed/|https://technode.com
+Tech_International|en|global|Sifted|https://sifted.eu/feed|https://sifted.eu
+Tech_International|en|global|Tech.eu|https://tech.eu/feed/|https://tech.eu
+Tech_International|en|global|LatAm List|https://latamlist.com/feed/|https://latamlist.com
+Tech_International|en|global|Disrupt Africa|https://disrupt-africa.com/feed/|https://disrupt-africa.com

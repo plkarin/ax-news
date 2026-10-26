@@ -1,0 +1,183 @@
+# Science, Climate & Environment, Business & Finance. Inactive.
+# category | lang | region | title | feed url | site url
+Science_News|en|global|Nature — News|https://www.nature.com/nature.rss|https://www.nature.com
+Science_News|en|global|Science — News|https://www.science.org/rss/news_current.xml|https://www.science.org
+Science_News|en|global|PNAS — Latest|https://www.pnas.org/action/showFeed?type=etoc&feed=rss&jc=pnas|https://www.pnas.org
+Science_News|en|global|Quanta Magazine|https://www.quantamagazine.org/feed/|https://www.quantamagazine.org
+Science_News|en|global|ScienceDaily — Top Science|https://www.sciencedaily.com/rss/top/science.xml|https://www.sciencedaily.com
+Science_News|en|global|Phys.org|https://phys.org/rss-feed/|https://phys.org
+Science_News|en|global|New Scientist|https://www.newscientist.com/feed/home/|https://www.newscientist.com
+Science_News|en|global|Scientific American|https://www.scientificamerican.com/platform/syndication/rss/|https://www.scientificamerican.com
+Science_News|en|global|Live Science|https://www.livescience.com/feeds/all|https://www.livescience.com
+Science_News|en|global|Ars Technica — Science|https://feeds.arstechnica.com/arstechnica/science|https://arstechnica.com/science
+Science_News|en|global|The Conversation — Science|https://theconversation.com/global/topics/science-1/articles.atom|https://theconversation.com
+Science_News|en|global|Science News|https://www.sciencenews.org/feed|https://www.sciencenews.org
+Science_News|en|global|Knowable Magazine|https://knowablemagazine.org/rss|https://knowablemagazine.org
+Science_News|en|global|Smithsonian — Science|https://www.smithsonianmag.com/rss/science-nature/|https://www.smithsonianmag.com
+Science_News|en|global|EurekAlert! — Science|https://www.eurekalert.org/rss/technology_engineering.xml|https://www.eurekalert.org
+Science_News|en|global|MIT News — Research|https://news.mit.edu/rss/research|https://news.mit.edu
+Science_News|en|global|Big Think|https://bigthink.com/feed/|https://bigthink.com
+Science_News|en|global|Nautilus|https://nautil.us/feed/|https://nautil.us
+Science_News|fr|FR|CNRS — Le journal|https://lejournal.cnrs.fr/rss|https://lejournal.cnrs.fr
+Science_News|fr|FR|Sciences et Avenir|https://www.sciencesetavenir.fr/rss.xml|https://www.sciencesetavenir.fr
+Science_News|fr|FR|Futura Sciences|https://www.futura-sciences.com/rss/actualites.xml|https://www.futura-sciences.com
+Science_News|fr|FR|Pour la Science|https://www.pourlascience.fr/rss.xml|https://www.pourlascience.fr
+Science_News|fr|FR|Le Monde — Sciences|https://www.lemonde.fr/sciences/rss_full.xml|https://www.lemonde.fr/sciences
+Science_News|de|DE|Spektrum der Wissenschaft|https://www.spektrum.de/alias/rss/spektrum-de-rss-feed/996406|https://www.spektrum.de
+Science_News|de|DE|Max-Planck-Gesellschaft|https://www.mpg.de/de/rss/pressemitteilungen|https://www.mpg.de
+Science_News|de|DE|scinexx|https://www.scinexx.de/feed/|https://www.scinexx.de
+Science_News|es|ES|SINC — Ciencia|https://www.agenciasinc.es/rss/Ciencias|https://www.agenciasinc.es
+Science_News|es|ES|El País — Ciencia|https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/ciencia/portada|https://elpais.com/ciencia
+Science_News|it|IT|Le Scienze|https://www.lescienze.it/rss/all/rss2.0.xml|https://www.lescienze.it
+Science_News|pt|BR|Revista Pesquisa FAPESP|https://revistapesquisa.fapesp.br/feed/|https://revistapesquisa.fapesp.br
+Science_News|ja|JP|ナショナル ジオグラフィック日本版|https://natgeo.nikkeibp.co.jp/rss/index.rdf|https://natgeo.nikkeibp.co.jp
+Science_News|zh|CN|科学网|https://news.sciencenet.cn/rss.aspx|https://news.sciencenet.cn
+Physics|en|global|Physics World|https://physicsworld.com/feed/|https://physicsworld.com
+Physics|en|global|APS Physics|https://feeds.aps.org/rss/recent/physics.xml|https://physics.aps.org
+Physics|en|global|Phys.org — Physics|https://phys.org/rss-feed/physics-news/|https://phys.org
+Physics|en|global|Nature Physics|https://www.nature.com/nphys.rss|https://www.nature.com/nphys
+Physics|en|global|CERN — News|https://home.cern/api/news/news/feed.rss|https://home.cern
+Physics|en|global|Symmetry Magazine|https://www.symmetrymagazine.org/feed|https://www.symmetrymagazine.org
+Physics|en|global|arXiv physics (new)|https://rss.arxiv.org/rss/physics|https://arxiv.org
+Physics|en|global|ScienceDaily — Physics|https://www.sciencedaily.com/rss/matter_energy/physics.xml|https://www.sciencedaily.com
+Chemistry_Materials|en|global|Chemistry World|https://www.chemistryworld.com/rss|https://www.chemistryworld.com
+Chemistry_Materials|en|global|C&EN|https://cen.acs.org/content/cen/rss.xml|https://cen.acs.org
+Chemistry_Materials|en|global|Nature Chemistry|https://www.nature.com/nchem.rss|https://www.nature.com/nchem
+Chemistry_Materials|en|global|Nature Materials|https://www.nature.com/nmat.rss|https://www.nature.com/nmat
+Chemistry_Materials|en|global|Phys.org — Chemistry|https://phys.org/rss-feed/chemistry-news/|https://phys.org
+Chemistry_Materials|en|global|Phys.org — Nanotechnology|https://phys.org/rss-feed/nanotech-news/|https://phys.org
+Chemistry_Materials|en|global|ChemistryViews|https://www.chemistryviews.org/feed/|https://www.chemistryviews.org
+Chemistry_Materials|en|global|AZoM Materials|https://www.azom.com/syndication.axd?format=rss|https://www.azom.com
+Life_Sciences|en|global|Cell|https://www.cell.com/cell/current.rss|https://www.cell.com/cell
+Life_Sciences|en|global|eLife|https://elifesciences.org/rss/recent.xml|https://elifesciences.org
+Life_Sciences|en|global|PLOS Biology|https://journals.plos.org/plosbiology/feed/atom|https://journals.plos.org/plosbiology
+Life_Sciences|en|global|bioRxiv — all new preprints|https://connect.biorxiv.org/biorxiv_xml.php?subject=all|https://www.biorxiv.org
+Life_Sciences|en|global|Phys.org — Biology|https://phys.org/rss-feed/biology-news/|https://phys.org
+Life_Sciences|en|global|ScienceDaily — Plants & Animals|https://www.sciencedaily.com/rss/plants_animals.xml|https://www.sciencedaily.com
+Life_Sciences|en|global|Nature — Biological sciences|https://www.nature.com/subjects/biological-sciences.rss|https://www.nature.com
+Life_Sciences|en|global|Nature Microbiology|https://www.nature.com/nmicrobiol.rss|https://www.nature.com/nmicrobiol
+Life_Sciences|en|global|Nature Communications|https://www.nature.com/ncomms.rss|https://www.nature.com/ncomms
+Life_Sciences|en|global|Science Advances|https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=sciadv|https://www.science.org/journal/sciadv
+Astronomy|en|global|NASA — Breaking News|https://www.nasa.gov/news-release/feed/|https://www.nasa.gov
+Astronomy|en|global|ESA — Top News|https://www.esa.int/rssfeed/TopNews|https://www.esa.int
+Astronomy|en|global|Space.com|https://www.space.com/feeds/all|https://www.space.com
+Astronomy|en|global|Universe Today|https://www.universetoday.com/feed/|https://www.universetoday.com
+Astronomy|en|global|Sky & Telescope|https://skyandtelescope.org/feed/|https://skyandtelescope.org
+Astronomy|en|global|Astronomy Magazine|https://www.astronomy.com/feed/|https://www.astronomy.com
+Astronomy|en|global|Phys.org — Space|https://phys.org/rss-feed/space-news/|https://phys.org
+Astronomy|en|global|NASA — Image of the Day|https://www.nasa.gov/feeds/iotd-feed/|https://www.nasa.gov/image-of-the-day
+Astronomy|en|global|ESO — Press releases|https://www.eso.org/public/news/feed/|https://www.eso.org
+Astronomy|en|global|The Planetary Society|https://www.planetary.org/rss/articles|https://www.planetary.org
+Astronomy|en|global|arXiv astro-ph (new)|https://rss.arxiv.org/rss/astro-ph|https://arxiv.org
+Astronomy|en|global|Centauri Dreams|https://www.centauri-dreams.org/feed/|https://www.centauri-dreams.org
+Astronomy|fr|FR|Ciel et Espace|https://www.cieletespace.fr/rss.xml|https://www.cieletespace.fr
+Mathematics|en|global|Quanta — Mathematics|https://api.quantamagazine.org/feed/?post_type=post&cat=mathematics|https://www.quantamagazine.org/mathematics
+Mathematics|en|global|AMS — Feature Column|https://mathvoices.ams.org/featurecolumn/feed/|https://mathvoices.ams.org/featurecolumn
+Mathematics|en|global|Terence Tao — What's new|https://terrytao.wordpress.com/feed/|https://terrytao.wordpress.com
+Mathematics|en|global|Gödel's Lost Letter|https://rjlipton.com/feed/|https://rjlipton.com
+Mathematics|en|global|Plus Magazine|https://plus.maths.org/content/rss.xml|https://plus.maths.org
+Mathematics|en|global|arXiv math (new)|https://rss.arxiv.org/rss/math|https://arxiv.org
+# Climate & environment
+Climate|en|global|Carbon Brief|https://www.carbonbrief.org/feed/|https://www.carbonbrief.org
+Climate|en|global|Inside Climate News|https://insideclimatenews.org/feed/|https://insideclimatenews.org
+Climate|en|global|Grist|https://grist.org/feed/|https://grist.org
+Climate|en|global|Yale Environment 360|https://e360.yale.edu/feed.xml|https://e360.yale.edu
+Climate|en|global|The Guardian — Climate crisis|https://www.theguardian.com/environment/climate-crisis/rss|https://www.theguardian.com/environment/climate-crisis
+Climate|en|global|Climate Home News|https://www.climatechangenews.com/feed/|https://www.climatechangenews.com
+Climate|en|global|NASA Earth Observatory|https://earthobservatory.nasa.gov/feeds/earth-observatory.rss|https://earthobservatory.nasa.gov
+Climate|en|global|Nature Climate Change|https://www.nature.com/nclimate.rss|https://www.nature.com/nclimate
+Climate|en|global|RealClimate|https://www.realclimate.org/index.php/feed/|https://www.realclimate.org
+Climate|en|global|Copernicus Climate Change Service|https://climate.copernicus.eu/rss.xml|https://climate.copernicus.eu
+Climate|en|global|ScienceDaily — Climate|https://www.sciencedaily.com/rss/earth_climate/climate.xml|https://www.sciencedaily.com
+Climate|en|global|Heatmap|https://heatmap.news/feeds/feed.rss|https://heatmap.news
+Climate|en|global|Climate.gov — News & Features|https://www.climate.gov/feeds/news-features/highlights.rss|https://www.climate.gov
+Climate|fr|FR|Reporterre|https://reporterre.net/spip.php?page=backend|https://reporterre.net
+Climate|fr|FR|Le Monde — Planète|https://www.lemonde.fr/planete/rss_full.xml|https://www.lemonde.fr/planete
+Climate|de|DE|klimareporter°|https://www.klimareporter.de/rss.xml|https://www.klimareporter.de
+Climate|es|ES|El País — Clima y Medio Ambiente|https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/clima-y-medio-ambiente/portada|https://elpais.com/clima-y-medio-ambiente
+Environment|en|global|Mongabay|https://news.mongabay.com/feed/|https://news.mongabay.com
+Environment|en|global|The Guardian — Environment|https://www.theguardian.com/environment/rss|https://www.theguardian.com/environment
+Environment|en|global|National Geographic — Environment|https://www.nationalgeographic.com/environment/rss|https://www.nationalgeographic.com/environment
+Environment|en|global|Phys.org — Earth|https://phys.org/rss-feed/earth-news/|https://phys.org
+Environment|en|global|ScienceDaily — Earth & Climate|https://www.sciencedaily.com/rss/earth_climate.xml|https://www.sciencedaily.com
+Environment|en|global|Environmental Health News|https://www.ehn.org/feeds/feed.rss|https://www.ehn.org
+Environment|en|global|UN Environment Programme|https://www.unep.org/rss.xml|https://www.unep.org
+Environment|en|global|Hakai Magazine|https://hakaimagazine.com/feed/|https://hakaimagazine.com
+Environment|en|global|BBC — Science & Environment|https://feeds.bbci.co.uk/news/science_and_environment/rss.xml|https://www.bbc.co.uk/news/science_and_environment
+Environment|en|global|Treehugger|https://www.treehugger.com/feeds/all|https://www.treehugger.com
+Energy_Markets|en|global|Utility Dive|https://www.utilitydive.com/feeds/news/|https://www.utilitydive.com
+Energy_Markets|en|global|IEA — News|https://www.iea.org/rss/news|https://www.iea.org
+Energy_Markets|en|global|OilPrice.com|https://oilprice.com/rss/main|https://oilprice.com
+Energy_Markets|en|global|Renewables Now|https://renewablesnow.com/news/news_feed/|https://renewablesnow.com
+Energy_Markets|en|global|Recharge|https://www.rechargenews.com/rss|https://www.rechargenews.com
+Energy_Markets|en|global|Energy Storage News|https://www.energy-storage.news/feed/|https://www.energy-storage.news
+Energy_Markets|en|global|World Nuclear News|https://www.world-nuclear-news.org/rss|https://www.world-nuclear-news.org
+Energy_Markets|en|global|Hydrogen Insight|https://www.hydrogeninsight.com/rss|https://www.hydrogeninsight.com
+Energy_Markets|en|global|Offshore Energy|https://www.offshore-energy.biz/feed/|https://www.offshore-energy.biz
+Energy_Markets|de|DE|pv magazine Deutschland|https://www.pv-magazine.de/feed/|https://www.pv-magazine.de
+Energy_Markets|fr|FR|Révolution Énergétique|https://www.revolution-energetique.com/feed/|https://www.revolution-energetique.com
+# Business & finance
+Markets|en|global|CNBC — Top News|https://www.cnbc.com/id/100003114/device/rss/rss.html|https://www.cnbc.com
+Markets|en|global|CNBC — Finance|https://www.cnbc.com/id/10000664/device/rss/rss.html|https://www.cnbc.com/finance
+Markets|en|global|MarketWatch — Top Stories|https://feeds.content.dowjones.io/public/rss/mw_topstories|https://www.marketwatch.com
+Markets|en|global|WSJ — Markets|https://feeds.content.dowjones.io/public/rss/RSSMarketsMain|https://www.wsj.com/news/markets
+Markets|en|global|Yahoo Finance|https://finance.yahoo.com/news/rssindex|https://finance.yahoo.com
+Markets|en|global|Financial Times — Markets|https://www.ft.com/markets?format=rss|https://www.ft.com/markets
+Markets|en|global|Bloomberg — Markets|https://feeds.bloomberg.com/markets/news.rss|https://www.bloomberg.com/markets
+Markets|en|global|Seeking Alpha — Market News|https://seekingalpha.com/market_currents.xml|https://seekingalpha.com
+Markets|en|global|Investing.com — News|https://www.investing.com/rss/news.rss|https://www.investing.com
+Markets|en|global|The Motley Fool|https://www.fool.com/feeds/index.aspx|https://www.fool.com
+Markets|en|global|Calculated Risk|https://www.calculatedriskblog.com/feeds/posts/default|https://www.calculatedriskblog.com
+Markets|en|global|Abnormal Returns|https://abnormalreturns.com/feed/|https://abnormalreturns.com
+Markets|en|global|The Big Picture|https://ritholtz.com/feed/|https://ritholtz.com
+Markets|fr|FR|Les Echos — Finance & Marchés|https://syndication.lesechos.fr/rss/rss_finance-marches.xml|https://www.lesechos.fr/finance-marches
+Markets|fr|FR|Boursorama — Actualités|https://www.boursorama.com/rss/actualites/|https://www.boursorama.com
+Markets|de|DE|Handelsblatt — Finanzen|https://www.handelsblatt.com/contentexport/feed/finanzen|https://www.handelsblatt.com/finanzen
+Markets|de|DE|finanzen.net|https://www.finanzen.net/rss/news|https://www.finanzen.net
+Markets|es|ES|Expansión — Mercados|https://e00-expansion.uecdn.es/rss/mercados.xml|https://www.expansion.com/mercados
+Markets|ja|JP|日本経済新聞 — マーケット|https://assets.wor.jp/rss/rdf/nikkei/markets.rdf|https://www.nikkei.com/markets
+Economy|en|global|The Economist — Finance & economics|https://www.economist.com/finance-and-economics/rss.xml|https://www.economist.com
+Economy|en|global|The Economist — Business|https://www.economist.com/business/rss.xml|https://www.economist.com
+Economy|en|global|IMF — News|https://www.imf.org/en/News/RSS?Language=ENG|https://www.imf.org
+Economy|en|global|World Bank — News|https://www.worldbank.org/en/news/all.rss|https://www.worldbank.org
+Economy|en|global|Federal Reserve — Press releases|https://www.federalreserve.gov/feeds/press_all.xml|https://www.federalreserve.gov
+Economy|en|global|ECB — Press releases|https://www.ecb.europa.eu/rss/press.html|https://www.ecb.europa.eu
+Economy|en|global|VoxEU — CEPR|https://cepr.org/rss/vox-content|https://cepr.org/voxeu
+Economy|en|global|Marginal Revolution|https://marginalrevolution.com/feed|https://marginalrevolution.com
+Economy|en|global|Brookings — Economics|https://www.brookings.edu/topic/economics/feed/|https://www.brookings.edu
+Economy|en|global|Noahpinion|https://www.noahpinion.blog/feed|https://www.noahpinion.blog
+Economy|en|global|Project Syndicate|https://www.project-syndicate.org/rss|https://www.project-syndicate.org
+Economy|en|global|OECD — Newsroom|https://www.oecd.org/newsroom/index.xml|https://www.oecd.org/newsroom
+Economy|fr|FR|Alternatives Économiques|https://www.alternatives-economiques.fr/rss.xml|https://www.alternatives-economiques.fr
+Economy|fr|FR|La Tribune|https://www.latribune.fr/feed.xml|https://www.latribune.fr
+Economy|de|DE|Wirtschaftswoche|https://www.wiwo.de/contentexport/feed/rss/schlagzeilen|https://www.wiwo.de
+Economy|it|IT|Il Sole 24 Ore — Economia|https://www.ilsole24ore.com/rss/economia.xml|https://www.ilsole24ore.com
+Economy|pt|BR|Valor Econômico|https://valor.globo.com/rss/valor/|https://valor.globo.com
+Business_News|en|global|BBC — Business|https://feeds.bbci.co.uk/news/business/rss.xml|https://www.bbc.co.uk/news/business
+Business_News|en|global|The Guardian — Business|https://www.theguardian.com/uk/business/rss|https://www.theguardian.com/business
+Business_News|en|global|NYT — Business|https://rss.nytimes.com/services/xml/rss/nyt/Business.xml|https://www.nytimes.com/section/business
+Business_News|en|global|Fortune|https://fortune.com/feed/|https://fortune.com
+Business_News|en|global|Forbes — Business|https://www.forbes.com/business/feed/|https://www.forbes.com/business
+Business_News|en|global|Business Insider|https://feeds.businessinsider.com/custom/all|https://www.businessinsider.com
+Business_News|en|global|Harvard Business Review|https://hbr.org/feed|https://hbr.org
+Business_News|en|global|Fast Company|https://www.fastcompany.com/latest/rss|https://www.fastcompany.com
+Business_News|en|global|Axios — Business|https://api.axios.com/feed/business|https://www.axios.com
+Business_News|en|global|Nikkei Asia|https://asia.nikkei.com/rss/feed/nar|https://asia.nikkei.com
+Business_News|en|global|Retail Dive|https://www.retaildive.com/feeds/news/|https://www.retaildive.com
+Business_News|en|global|Supply Chain Dive|https://www.supplychaindive.com/feeds/news/|https://www.supplychaindive.com
+Business_News|en|global|Inc.|https://www.inc.com/rss/|https://www.inc.com
+Business_News|fr|FR|Les Echos|https://syndication.lesechos.fr/rss/rss_une.xml|https://www.lesechos.fr
+Business_News|fr|FR|Challenges|https://www.challenges.fr/rss.xml|https://www.challenges.fr
+Business_News|de|DE|Handelsblatt|https://www.handelsblatt.com/contentexport/feed/schlagzeilen|https://www.handelsblatt.com
+Business_News|de|DE|manager magazin|https://www.manager-magazin.de/news/index.rss|https://www.manager-magazin.de
+Business_News|es|ES|Cinco Días|https://feeds.elpais.com/mrss-s/pages/ep/site/cincodias.elpais.com/portada|https://cincodias.elpais.com
+Business_News|ko|KR|한국경제|https://www.hankyung.com/feed/all-news|https://www.hankyung.com
+Crypto|en|global|CoinDesk|https://www.coindesk.com/arc/outboundfeeds/rss/|https://www.coindesk.com
+Crypto|en|global|Cointelegraph|https://cointelegraph.com/rss|https://cointelegraph.com
+Crypto|en|global|Decrypt|https://decrypt.co/feed|https://decrypt.co
+Crypto|en|global|Bitcoin Magazine|https://bitcoinmagazine.com/.rss/full/|https://bitcoinmagazine.com
+Crypto|en|global|The Defiant|https://thedefiant.io/api/feed|https://thedefiant.io
+Crypto|en|global|Blockworks|https://blockworks.co/feed|https://blockworks.co
+Crypto|en|global|Ethereum Foundation Blog|https://blog.ethereum.org/feed.xml|https://blog.ethereum.org
+Crypto|en|global|CryptoSlate|https://cryptoslate.com/feed/|https://cryptoslate.com
+Crypto|fr|FR|Journal du Coin|https://journalducoin.com/feed/|https://journalducoin.com

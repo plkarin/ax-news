@@ -71,6 +71,13 @@
     Quant_Finance: ['Quant Finance', '#34d399', 'quant-finance'],
     My_Sources: ['My sources', '#f472b6', 'mine'],
   };
+  // Every other topic comes from catalog/taxonomy.json, embedded in the page.
+  try {
+    const tax = JSON.parse(document.getElementById('ax-taxonomy').textContent);
+    for (const [k, v] of Object.entries(tax.categories || {})) if (!T[k]) T[k] = v.slice(0, 3);
+    AX.DOMAINS = tax.domains || [];
+    AX.DOMAIN_OF = Object.fromEntries(Object.entries(tax.categories || {}).map(([k, v]) => [k, v[3]]));
+  } catch (e) { AX.DOMAINS = []; AX.DOMAIN_OF = {}; }
   AX.topic = (key) => {
     const t = T[key];
     if (t) return { key, label: t[0], color: t[1], art: `/assets/img/topics/${t[2]}.webp`, thumb: `/assets/img/topics/${t[2]}-sm.webp` };

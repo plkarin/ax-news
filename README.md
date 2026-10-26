@@ -11,11 +11,12 @@ Live at [ax-news.com](https://ax-news.com)
 - **Your own sources**, private to your account: any site that announces a feed, RSS/Atom, YouTube channels, subreddits, Mastodon accounts, GitHub releases, Hacker News — found from a plain link, with OPML import/export
 - Saved stories, per-account display preferences (layout, theme, topics), light and dark themes
 - Topic illustrations made in Canva for every story without a picture
-- Automatic translation (Argos Translate, fully offline, no API costs)
+- Automatic translation into English, the site's language (Argos Translate, fully offline, no API costs): every source in another language — known from the catalog or detected from its stories — is translated, title and first paragraphs
 - AI-powered sentiment scoring and entity extraction (static Bayesian model, zero LLM cost)
 - Admin-approved user registration + Google OAuth SSO
 - Infinite-scroll feed with category filtering and search
-- TV dashboard mode for office displays (INFRA-TV)
+- **TV screens** for lobbies and break rooms (`/tv.html`, or `/tv/<token>` per screen): six layouts (spotlight, newsroom, wall, columns, headlines, magazine) × six themes (aurora, broadcast, paper, terminal, clinic, nebula), sized for 75–90" screens from 1080p to 4K, landscape or portrait. Each account sets up its own screens — topics, its own sources or not, an alerts band (CVE numbers or its own words), QR codes to read a story on a phone. Made to run unattended: refresh every two minutes, offline tolerant, reloads itself on a new version and nightly, keeps the screen awake, no burn-in
+- **A world feed catalog** (`catalog/`): ~850 feeds, checked and answering, in 11 fields — technology, health & medicine, science, climate, business, world news by region, politics, mobility, culture, sports, education — and 28 languages. The 208 shared tech feeds are active; any account can follow any other one, an admin can share one with everyone
 - AI chat analysis per article (admin only, via Claude Code subprocess — no API key required)
 - SEO-optimized: sitemap.xml, news-sitemap.xml, robots.txt, structured data, llms.txt
 - A+ SSL Labs rating, hardened CSP, rate limiting
@@ -68,6 +69,7 @@ cp backend/.env.example backend/.env
 # Database: an empty PostgreSQL database owned by the application user
 psql "$DATABASE_URL" -f migrations/001_schema.sql
 psql "$DATABASE_URL" -f migrations/003_personal_sources.sql
+psql "$DATABASE_URL" -f migrations/004_catalog_tv.sql
 
 # Translation models (about 2.5 GB, downloaded once)
 deploy/install-argos-models.sh
@@ -123,12 +125,25 @@ AXNEWS_SERVE_STATIC=1 venv/bin/uvicorn main:app --port 8001
 
 ```
 frontend/assets/   The interface: css/app.css (design system and pages),
-                   js/core.js (shared), feed.js, account.js, admin.js,
+                   css/tv.css + js/tv.js (the TV), js/core.js (shared),
+                   feed.js, account.js, catalog.js, screens.js, admin.js,
+                   brand/ (logo, emblem),
                    fonts (Inter, Space Grotesk — OFL), img/topics (Canva)
 frontend/          Other static files: logo, favicons, 404.html, 50x.html
                    *.html files are symlinks → ../backend/templates/*.html
 backend/templates/ Source of truth for all HTML pages (Jinja2, CSP nonce injection)
 ```
+
+### Catalog and brand files
+
+`catalog/sources/*.txt` lists the feeds (`category | lang | region | title |
+feed url | site url`; `active.txt` is the FreshRSS subscription list).
+`backend/venv/bin/python -I tools/catalog/build.py` fetches each one, drops
+those that do not answer or are a year stale, and writes
+`catalog/feeds.json`, which the backend loads at start-up.
+`catalog/taxonomy.json` names the fields and topics (label, colour,
+illustration) for every page and the TV. `python3 -I tools/brand/build.py`
+redraws the logo, the ΛX emblem and the favicons from geometry.
 
 Nginx routes every `.html` request and `/` to FastAPI (port 8000); it never serves
 HTML directly from `frontend/`. The symlinks exist purely so that path references

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
-"""Standalone translation worker — runs outside uvicorn to avoid OOM crashes."""
+"""Standalone translation worker — runs outside uvicorn to avoid OOM crashes.
+
+Run by ax-news-translate.timer every 10 minutes (a oneshot unit, so runs
+never overlap): it translates for TRANSLATE_BUDGET seconds (default 480,
+under the unit's 540-second limit), newest stories first."""
 import asyncio, asyncpg, os, logging, sys
-os.environ['HOME'] = '/opt/ax-news/.argos-home'
+from pathlib import Path
+
+APP = Path(__file__).resolve().parent
+os.environ.setdefault('HOME', str(APP / '.argos-home'))
+sys.path.insert(0, str(APP / 'backend'))
 
 # To standard output only: ax-news-translate.service appends it to
 # /var/log/ax-news/translate.log (a FileHandler as well wrote every line twice).
@@ -11,14 +19,9 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger('translate-worker')
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://ax_news:@localhost/ax_news')
+BUDGET = float(os.getenv('TRANSLATE_BUDGET', '480'))
 
 async def main():
-    sys.path.insert(0, '/opt/ax-news/backend')
-    # Activate venv
-    venv_site = '/opt/ax-news/backend/venv/lib/python3.12/site-packages'
-    if venv_site not in sys.path:
-        sys.path.insert(0, venv_site)
-
     from translation import translate_batch
     # Argos logs every hypothesis at INFO: about 100 MB of log a day.
     import argostranslate.utils
@@ -30,7 +33,7 @@ async def main():
         # left at the start of one go back to the queue.
         await pool.execute(
             "UPDATE articles SET translation_status = 'pending' WHERE translation_status = 'in_progress'")
-        count = await translate_batch(pool, limit=30)
+        count = await translate_batch(pool, budget=BUDGET)
         logger.info(f'Translated: {count}')
         # Stats
         row = await pool.fetchrow(

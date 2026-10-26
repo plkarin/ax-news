@@ -1,0 +1,211 @@
+# The shared feeds: every subscription of the FreshRSS instance that feeds
+# AX-NEWS, as of 2026-10-26. Active: fetched for everyone.
+# category | lang | region | title | feed url | site url
+AI|en|global|AI Business|https://aibusiness.com/rss.xml|https://aibusiness.com/
+AI|ko|KR|AI Times (Korea)|https://www.aitimes.com/rss/allArticle.xml|https://www.aitimes.com/
+AI|en|global|Amazon Science Blog|https://www.amazon.science/index.rss|https://www.amazon.science/
+AI|en|global|Anthropic News|https://www.anthropic.com/news/rss.xml|
+AI|en|global|arXiv cs.AI|https://rss.arxiv.org/rss/cs.AI|http://rss.arxiv.org/rss/cs.AI
+AI|en|global|arXiv cs.CL|https://rss.arxiv.org/rss/cs.CL|http://rss.arxiv.org/rss/cs.CL
+AI|en|global|arXiv cs.CV|https://rss.arxiv.org/rss/cs.CV|http://rss.arxiv.org/rss/cs.CV
+AI|en|global|arXiv cs.LG|https://rss.arxiv.org/rss/cs.LG|http://rss.arxiv.org/rss/cs.LG
+AI|en|global|Asian Scientist|https://www.asianscientist.com/feed/?x=1|https://www.asianscientist.com/
+AI|en|global|AssemblyAI Research|https://www.assemblyai.com/blog/rss/|
+AI|en|global|Baidu Research (EN)|http://research.baidu.com/Blog/rss|
+AI|en|global|BAIR Blog|https://bair.berkeley.edu/blog/feed.xml|http://bair.berkeley.edu/blog/
+AI|en|global|Distill.pub|https://distill.pub/rss.xml|https://distill.pub/
+AI|en|global|Google AI Blog|https://blog.research.google/feeds/posts/default|http://blog.research.google/
+AI|en|global|Google DeepMind|https://deepmind.google/blog/rss.xml|https://deepmind.google/blog/
+AI|en|global|Hugging Face Blog|https://huggingface.co/blog/feed.xml|https://huggingface.co/blog
+AI|en|global|Import AI Newsletter|https://importai.substack.com/feed|https://importai.substack.com/
+AI|en|global|INRIA (EN)|https://www.inria.fr/en/rss.xml|https://www.inria.fr/en
+AI|en|global|Meta AI Blog|https://ai.meta.com/blog/rss/|
+AI|en|global|Microsoft AI Blog|https://blogs.microsoft.com/ai/feed/|
+AI|en|global|MIT Technology Review Biotech|https://www.technologyreview.com/feed/|https://www.technologyreview.com/
+AI|en|global|NVIDIA AI Blog|https://blogs.nvidia.com/blog/category/deep-learning/feed/|https://blogs.nvidia.com/blog/category/enterprise/deep-learning/
+AI|en|global|OpenAI Blog|https://openai.com/blog/rss.xml|https://openai.com/news
+AI|en|global|The AI Beat (VentureBeat)|https://venturebeat.com/category/ai/feed|https://venturebeat.com/category/ai/feed/
+AI|en|global|The Alan Turing Institute|https://www.turing.ac.uk/news/rss.xml|
+AI|en|global|The Gradient|https://thegradient.pub/rss/|https://thegradient.pub/
+AI|en|global|Towards Data Science|https://towardsdatascience.com/feed/|https://towardsdatascience.com/
+AI|en|global|Weights ＆ Biases Blog|https://wandb.ai/fully-connected/rss.xml|https://wandb.ai/fully-connected
+AI_YouTube|en|global|3Blue1Brown|https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAg|
+AI_YouTube|en|global|AI Explained|https://www.youtube.com/feeds/videos.xml?channel_id=UCtAipjABiQD3qjlEl1T5VpA|
+AI_YouTube|en|global|Andrej Karpathy|https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ|https://www.youtube.com/channel/UCXUPKJO5MZQN11PqgIvyuvQ
+AI_YouTube|en|global|Lex Fridman|https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA|https://www.youtube.com/channel/UCSHZKyawb77ixDdsGog4iWA
+AI_YouTube|en|global|Two Minute Papers|https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg|https://www.youtube.com/channel/UCbfYPyITQ-7l4upoX8nvctg
+AI_YouTube|en|global|Yannic Kilcher|https://www.youtube.com/feeds/videos.xml?channel_id=UCZHmQk67mSJgfCCTn7xBfew|https://www.youtube.com/channel/UCZHmQk67mSJgfCCTn7xBfew
+Biotech_Medtech|en|global|arXiv cs.NE (Neural／Bio)|https://rss.arxiv.org/rss/cs.NE|http://rss.arxiv.org/rss/cs.NE
+Biotech_Medtech|en|global|BioPharma Dive|https://www.biopharmadive.com/feeds/news/|https://www.biopharmadive.com/news/
+Biotech_Medtech|en|global|Fierce Biotech|https://www.fiercebiotech.com/rss/news|
+Biotech_Medtech|en|global|MedCity News|https://medcitynews.com/feed/|https://medcitynews.com/
+Biotech_Medtech|en|global|Nature Biotechnology|https://www.nature.com/nbt.rss|http://feeds.nature.com/nbt/rss/current
+Biotech_Medtech|en|global|STAT News|https://www.statnews.com/feed/|https://www.statnews.com/
+Cloud_Infrastructure|en|global|Alibaba Cloud Blog|https://www.alibabacloud.com/blog/feed.xml|
+Cloud_Infrastructure|en|global|AWS News Blog|https://aws.amazon.com/blogs/aws/feed/|https://aws.amazon.com/blogs/aws/
+Cloud_Infrastructure|en|global|Azure Blog|https://azure.microsoft.com/en-us/blog/feed/|https://azure.microsoft.com/en-us/blog/
+Cloud_Infrastructure|en|global|Cloudflare Blog|https://blog.cloudflare.com/rss/|https://blog.cloudflare.com/
+Cloud_Infrastructure|en|global|Dropbox Tech Blog|https://dropbox.tech/feed|https://dropbox.tech/
+Cloud_Infrastructure|en|global|Google Cloud Blog|https://cloudblog.withgoogle.com/rss/|https://cloud.google.com/blog/
+Cloud_Infrastructure|en|global|InfoQ Cloud|https://www.infoq.com/cloud-computing/rss|
+Cloud_Infrastructure|en|global|LinkedIn Engineering|https://engineering.linkedin.com/blog.rss.html|
+Cloud_Infrastructure|en|global|Netflix Tech Blog|https://netflixtechblog.com/feed|https://medium.com/@netflixtechblog?source=rss-c3aeaf49d8a4------2
+Cloud_Infrastructure|en|global|Notion Engineering|https://www.notion.so/blog/rss.xml|
+Cloud_Infrastructure|en|global|Stripe Engineering|https://stripe.com/blog/feed.rss|https://stripe.com/blog
+Cloud_Infrastructure|en|global|Tencent Cloud Blog|https://cloud.tencent.com/developer/column/feed/rss|
+Cloud_Infrastructure|en|global|The New Stack|https://thenewstack.io/feed/|https://thenewstack.io/
+Cloud_Infrastructure|en|global|Uber Engineering|https://eng.uber.com/feed/|
+Cyber_YouTube|en|global|Hak5|https://www.youtube.com/feeds/videos.xml?channel_id=UC3s0BtrBJpwNDaflRSoiieQ|https://www.youtube.com/channel/UC3s0BtrBJpwNDaflRSoiieQ
+Cyber_YouTube|en|global|John Hammond|https://www.youtube.com/feeds/videos.xml?channel_id=UCVeW9qkBjo3zosnqUbG7CFw|https://www.youtube.com/channel/UCVeW9qkBjo3zosnqUbG7CFw
+Cyber_YouTube|en|global|LiveOverflow|https://www.youtube.com/feeds/videos.xml?channel_id=UClcE-kVhqyiHCcjYwcpfj9w|https://www.youtube.com/channel/UClcE-kVhqyiHCcjYwcpfj9w
+Cyber_YouTube|en|global|NetworkChuck|https://www.youtube.com/feeds/videos.xml?channel_id=UC9x0AN7BWHpCDHSm9NiJFJQ|https://www.youtube.com/channel/UC9x0AN7BWHpCDHSm9NiJFJQ
+Cybersecurity|en|global|arXiv cs.CR (Security)|https://rss.arxiv.org/rss/cs.CR|http://rss.arxiv.org/rss/cs.CR
+Cybersecurity|en|global|BleepingComputer|https://www.bleepingcomputer.com/feed/|https://www.bleepingcomputer.com/
+Cybersecurity|en|global|CISA Alerts|https://www.cisa.gov/cybersecurity-advisories/all.xml|
+Cybersecurity|en|global|Crowdstrike Blog|https://www.crowdstrike.com/en-us/blog/feed|https://www.crowdstrike.com/en-us/blog/
+Cybersecurity|en|global|CyberScoop Asia|https://cyberscoop.com/feed/|https://cyberscoop.com/
+Cybersecurity|en|global|Dark Reading|https://www.darkreading.com/rss/all.xml|
+Cybersecurity|en|global|ENISA (EU)|https://www.enisa.europa.eu/media/news-items/RSS|
+Cybersecurity|en|global|Google Project Zero|https://googleprojectzero.blogspot.com/feeds/posts/default|
+Cybersecurity|en|global|Krebs on Security|https://krebsonsecurity.com/feed/|https://krebsonsecurity.com/
+Cybersecurity|en|global|Malwarebytes Labs|https://www.malwarebytes.com/blog/feed/index.xml|https://www.malwarebytes.com/
+Cybersecurity|en|global|Mandiant Blog|https://www.mandiant.com/resources/blog/rss.xml|
+Cybersecurity|en|global|Naked Security (Sophos)|https://nakedsecurity.sophos.com/feed/|
+Cybersecurity|en|global|NCSC UK|https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml|https://www.ncsc.gov.uk/
+Cybersecurity|en|global|NIST NVD CVE|https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml|
+Cybersecurity|en|global|Recorded Future|https://www.recordedfuture.com/feed|https://www.recordedfuture.com/
+Cybersecurity|en|global|SANS ISC|https://isc.sans.edu/rssfeed.xml|https://isc.sans.edu/
+Cybersecurity|en|global|Schneier on Security|https://www.schneier.com/feed/atom/|https://www.schneier.com/
+Cybersecurity|en|global|SecurityWeek|https://feeds.feedburner.com/securityweek|https://www.securityweek.com/
+Cybersecurity|en|global|Sophos News|https://news.sophos.com/en-us/feed/|
+Cybersecurity|en|global|Talos Intelligence|https://blog.talosintelligence.com/feeds/posts/default|
+Cybersecurity|en|global|The Hacker News|https://feeds.feedburner.com/TheHackersNews|https://thehackernews.com/
+Cybersecurity|en|global|Threatpost|https://threatpost.com/feed/|https://threatpost.com/
+Cybersecurity|en|global|ZDNet Security|https://www.zdnet.com/rss/news/|https://www.zdnet.com/
+DevOps_SRE|en|global|Atlassian Blog|https://www.atlassian.com/blog/feed|
+DevOps_SRE|en|global|Docker Blog|https://www.docker.com/feed/|https://www.docker.com/
+DevOps_SRE|en|global|GitHub Blog|https://github.blog/feed/|https://github.blog/
+DevOps_SRE|en|global|GitLab Blog|https://about.gitlab.com/atom.xml|https://about.gitlab.com/blog
+DevOps_SRE|en|global|Grafana Blog|https://grafana.com/blog/news.xml|https://grafana.com/blog/
+DevOps_SRE|en|global|HashiCorp Blog|https://www.hashicorp.com/blog/feed.xml|https://hashicorp.com/blog
+DevOps_SRE|en|global|High Scalability|http://highscalability.com/blog/rss.xml|
+DevOps_SRE|en|global|InfoQ DevOps|https://www.infoq.com/devops/rss|
+DevOps_SRE|en|global|Kubernetes Blog|https://kubernetes.io/feed.xml|https://kubernetes.io/
+DevOps_SRE|en|global|Martin Fowler|https://martinfowler.com/feed.atom|https://martinfowler.com/
+DevOps_SRE|en|global|Red Hat Blog|https://www.redhat.com/en/rss/blog|https://www.redhat.com/en/rss/blog
+DevOps_SRE|en|global|SRE Weekly|https://sreweekly.com/feed/|https://sreweekly.com/
+Energy_GreenTech|en|global|Canary Media|https://www.canarymedia.com/rss.rss|https://www.canarymedia.com/
+Energy_GreenTech|en|global|CleanTechnica|https://cleantechnica.com/feed/|https://cleantechnica.com/
+Energy_GreenTech|en|global|Electrek|https://electrek.co/feed/|https://electrek.co/
+Energy_GreenTech|en|global|Energy Monitor|https://www.energymonitor.ai/feed/|https://www.energymonitor.ai/
+Energy_GreenTech|en|global|Heatmap News|https://heatmap.news/rss|
+Energy_GreenTech|en|global|PV Magazine|https://www.pv-magazine.com/feed/|https://www.pv-magazine.com/
+Geopolitics_TechPolicy|en|global|ChinaTalk|https://www.chinatalk.media/feed|https://www.chinatalk.media/
+Geopolitics_TechPolicy|en|global|Council on Foreign Relations|https://www.cfr.org/rss/rss_cfr_content.xml|
+Geopolitics_TechPolicy|en|global|CSET Georgetown|https://cset.georgetown.edu/feed/|https://cset.georgetown.edu/
+Geopolitics_TechPolicy|en|global|CSIS Technology|https://www.csis.org/rss.xml|https://www.csis.org/
+Geopolitics_TechPolicy|en|global|Lawfare|https://www.lawfareblog.com/rss.xml|
+Geopolitics_TechPolicy|en|global|Rest of World|https://restofworld.org/feed/latest/|https://restofworld.org/
+Geopolitics_TechPolicy|en|global|South China Morning Post Tech|https://www.scmp.com/rss/5/feed/|https://www.scmp.com/rss/5/feed
+Geopolitics_TechPolicy|en|global|Techonomy|https://techonomy.com/feed/|
+Geopolitics_TechPolicy|en|global|The Diplomat Tech|https://thediplomat.com/feed/|https://thediplomat.com/
+Geopolitics_TechPolicy|en|global|The Wire China|https://www.thewirechina.com/feed/|https://www.thewirechina.com/
+Geopolitics_TechPolicy|en|global|War on the Rocks|https://warontherocks.com/feed/|https://warontherocks.com/
+Hardware|en|global|Ars Technica Hardware|https://arstechnica.com/gadgets/feed/|https://arstechnica.com/
+Hardware|en|global|Engadget|https://www.engadget.com/rss.xml|https://www.engadget.com/
+Hardware|en|global|Gizmodo|https://gizmodo.com/feed|https://gizmodo.com/
+Hardware|en|global|GSMArena|https://www.gsmarena.com/rss-news-reviews.php3|https://www.gsmarena.com/
+Hardware|zh|CN|IT Home (EN Mirror)|https://www.ithome.com/rss/|https://www.ithome.com/
+Hardware|en|global|MyDrivers (via RSS)|https://www.mydrivers.com/rss/rss.aspx|
+Hardware|en|global|NotebookCheck|https://www.notebookcheck.net/News.37.0.html?no_cache=1&type=rss|
+Hardware|en|global|The Verge Hardware|https://www.theverge.com/rss/index.xml|https://www.theverge.com/
+Hardware|en|global|Wired Gear|https://www.wired.com/feed/category/gear/latest/rss|https://www.wired.com/
+Quant_Finance|en|global|Alpha Architect|https://alphaarchitect.com/feed/|https://alphaarchitect.com/
+Quant_Finance|en|global|Finextra|https://www.finextra.com/rss/headlines.aspx|https://www.finextra.com/
+Quant_Finance|en|global|FintechFutures|https://www.fintechfutures.com/feed/|
+Quant_Finance|en|global|Quantocracy|https://quantocracy.com/feed/|https://quantocracy.com/author/quantadmin/
+Quant_Finance|en|global|QuantStart|https://www.quantstart.com/articles/rss/|
+Quant_Finance|en|global|The Block (Crypto／Fintech)|https://www.theblock.co/rss.xml|https://www.theblock.co/
+Quantum_Computing|en|global|arXiv quant-ph|https://rss.arxiv.org/rss/quant-ph|http://rss.arxiv.org/rss/quant-ph
+Quantum_Computing|en|global|Google Quantum AI|https://quantumai.google/blog/rss|
+Quantum_Computing|en|global|IBM Quantum Blog|https://research.ibm.com/blog/rss|
+Quantum_Computing|en|global|Quantum Computing Report|https://quantumcomputingreport.com/feed/|https://quantumcomputingreport.com/
+Quantum_Computing|en|global|The Quantum Insider|https://thequantuminsider.com/feed/|https://thequantuminsider.com/
+Research_Papers|en|global|ACM Tech News|https://technews.acm.org/rss.xml|
+Research_Papers|en|global|arXiv cs.DC (Distributed)|https://rss.arxiv.org/rss/cs.DC|http://rss.arxiv.org/rss/cs.DC
+Research_Papers|en|global|Nature Technology|https://www.nature.com/subjects/technology.rss|https://www.nature.com/subjects/technology
+Research_Papers|en|global|Science Magazine Tech|https://www.science.org/action/showFeed?type=axatoc&feed=rss&jc=science|https://www.science.org/?af=R
+Robotics_Automation|en|global|arXiv cs.RO (Robotics)|https://rss.arxiv.org/rss/cs.RO|http://rss.arxiv.org/rss/cs.RO
+Robotics_Automation|en|global|Automation World|https://www.automationworld.com/rss.xml|
+Robotics_Automation|en|global|Boston Dynamics Blog|https://bostondynamics.com/blog/feed/|
+Robotics_Automation|en|global|IEEE Spectrum Robotics|https://spectrum.ieee.org/feeds/topic/robotics.rss|https://spectrum.ieee.org/
+Robotics_Automation|en|global|MIT News Robotics|https://news.mit.edu/topic/robotics/rss|
+Robotics_Automation|en|global|Robotics Business Review|http://www.therobotreport.com/feed/|https://www.therobotreport.com/
+Robotics_Automation|en|global|The Robot Report|https://www.therobotreport.com/feed/|https://www.therobotreport.com/
+Semiconductors|en|global|AnandTech|https://www.anandtech.com/rss/|
+Semiconductors|en|global|arXiv cs.AR (Architecture)|https://rss.arxiv.org/rss/cs.AR|http://rss.arxiv.org/rss/cs.AR
+Semiconductors|en|global|DIGITIMES Asia|https://www.digitimes.com/rss/news.xml|
+Semiconductors|en|global|DigiTimes Daily|https://www.digitimes.com/rss/daily.xml|https://www.digitimes.com/
+Semiconductors|en|global|EE Times|https://www.eetimes.com/feed/|https://www.eetimes.com/
+Semiconductors|en|global|EE Times Asia|https://www.eetimes.com/category/asia/feed/|
+Semiconductors|en|global|EE Times Europe|https://www.eenewseurope.com/en/news/feed|https://www.eenewseurope.com/en/news/feed/
+Semiconductors|en|global|IC Insights|https://www.icinsights.com/news/news/feed/rss/|https://www.icinsights.com/news/news/
+Semiconductors|en|global|IEEE Spectrum|https://feeds.feedburner.com/IeeeSpectrum|https://spectrum.ieee.org/
+Semiconductors|en|global|iTnews Asia|https://www.itnews.asia/rss/rss.ashx|https://www.itnews.asia/
+Semiconductors|en|global|Korea JoongAng Daily Tech|https://koreajoongangdaily.joins.com/rss/600100.xml|
+Semiconductors|en|global|Nikkei Asia|https://asia.nikkei.com/rss/feed/nar|https://asia.nikkei.com/
+Semiconductors|en|global|SemiAnalysis|https://semianalysis.com/feed/|https://semianalysis.com/
+Semiconductors|en|global|Semiconductor Engineering|https://semiengineering.com/feed/|https://semiengineering.com/
+Semiconductors|en|global|SemiWiki|https://semiwiki.com/feed/|https://semiwiki.com/
+Semiconductors|en|global|ServeTheHome|https://www.servethehome.com/feed/|https://www.servethehome.com/
+Semiconductors|en|global|TechXplore Semiconductors|https://techxplore.com/rss-feed/semiconductors-news/|https://techxplore.com/rss-feed/semiconductors-news/
+Semiconductors|en|global|The Information|https://www.theinformation.com/feed|https://www.theinformation.com/
+Semiconductors|en|global|Tom's Hardware|https://www.tomshardware.com/feeds.xml|https://www.tomshardware.com/
+Semiconductors|en|global|TrendForce|https://www.trendforce.com/rss|
+Software_Engineering|en|global|arXiv cs.PL (Programming)|https://rss.arxiv.org/rss/cs.PL|http://rss.arxiv.org/rss/cs.PL
+Software_Engineering|en|global|arXiv cs.SE (Software)|https://rss.arxiv.org/rss/cs.SE|http://rss.arxiv.org/rss/cs.SE
+Software_Engineering|en|global|CSS-Tricks|https://css-tricks.com/feed/|https://css-tricks.com/
+Software_Engineering|en|global|Hacker News Front Page|https://hnrss.org/frontpage?points=100|https://news.ycombinator.com/
+Software_Engineering|en|global|Joel on Software|https://www.joelonsoftware.com/feed/|https://www.joelonsoftware.com/
+Software_Engineering|en|global|lobste.rs|https://lobste.rs/rss|https://lobste.rs/
+Software_Engineering|en|global|Mozilla Hacks|https://hacks.mozilla.org/feed/|https://hacks.mozilla.org/
+Software_Engineering|en|global|O'Reilly Radar|https://www.oreilly.com/radar/feed.xml|
+Software_Engineering|en|global|Paul Graham Essays|http://www.paulgraham.com/rss.html|
+Software_Engineering|en|global|Smashing Magazine|https://www.smashingmagazine.com/feed/|https://www.smashingmagazine.com/
+Software_Engineering|en|global|Stack Overflow Blog|https://stackoverflow.blog/feed/|https://stackoverflow.blog/
+Software_Engineering|en|global|The Morning Paper|https://blog.acolyer.org/feed/|https://blog.acolyer.org/
+Space_Aerospace|en|global|Ars Technica Space|https://arstechnica.com/science/feed/|https://arstechnica.com/
+Space_Aerospace|en|global|IEEE Aerospace|https://spectrum.ieee.org/feeds/topic/aerospace.rss|https://spectrum.ieee.org/
+Space_Aerospace|en|global|NASA News|https://www.nasa.gov/news-release/feed/|https://www.nasa.gov/
+Space_Aerospace|en|global|NASASpaceFlight|https://www.nasaspaceflight.com/feed/|https://www.nasaspaceflight.com/
+Space_Aerospace|en|global|SpaceNews|https://spacenews.com/feed/|https://spacenews.com/
+Space_Aerospace|en|global|SpaceX|https://www.spacex.com/rss/updates|
+Tech_Market|en|global|CB Insights|https://www.cbinsights.com/research/feed/|https://www.cbinsights.com/research
+Tech_Market|en|global|Contxto (LatAm)|https://contxto.com/feed/|
+Tech_Market|en|global|Crunchbase News|https://news.crunchbase.com/feed/|https://news.crunchbase.com/
+Tech_Market|en|global|Disrupt Africa|https://old.disruptafrica.com/feed/|https://old.disruptafrica.com/
+Tech_Market|en|global|e27 Asia|https://e27.co/index_wp.php/feed|
+Tech_Market|en|global|Entrackr (India)|https://entrackr.com/feed/|
+Tech_Market|en|global|EU-Startups|https://www.eu-startups.com/feed/|https://www.eu-startups.com/
+Tech_Market|en|global|Fast Company Tech|https://www.fastcompany.com/technology/rss|https://www.fastcompany.com/
+Tech_Market|en|global|Fortune Tech|https://fortune.com/section/technology/feed/|
+Tech_Market|en|global|KrASIA (Asia tech)|https://kr.asia/feed|
+Tech_Market|en|global|Protocol|https://www.protocol.com/feeds/feed.rss|
+Tech_Market|en|global|Sifted (EU startups)|https://sifted.eu/rss|
+Tech_Market|en|global|StartupBlink|https://www.startupblink.com/blog/feed|
+Tech_Market|en|global|StartupDaily (AU)|https://www.startupdaily.net/feed/|https://www.startupdaily.net/
+Tech_Market|en|global|Stratechery|https://stratechery.com/feed/|https://stratechery.com/
+Tech_Market|en|global|Tech in Asia|https://www.techinasia.com/feed|
+Tech_Market|en|global|TechCabal (Africa)|https://techcabal.com/feed/|https://techcabal.com/
+Tech_Market|en|global|TechCrunch|https://techcrunch.com/feed/|https://techcrunch.com/
+Tech_Market|en|global|TechCrunch LatAm|https://techcrunch.com/tag/latin-america/feed/|https://techcrunch.com/tag/latin-america/
+Tech_Market|en|global|Techpoint Africa|https://techpoint.africa/feed/|https://techpoint.africa/
+Tech_Market|en|global|Wamda (MENA)|https://www.wamda.com/rss|
+Tech_Market|en|global|Wired Business|https://www.wired.com/feed/category/business/latest/rss|https://www.wired.com/
+Tech_Market|en|global|YourStory (India)|https://yourstory.com/feed|https://yourstory.com/
+Telecom_5G|en|global|5G Americas|https://www.5gamericas.org/feed/|https://www.5gamericas.org/
+Telecom_5G|en|global|CommsUpdate (Asia)|https://www.commsupdate.com/feed/|
+Telecom_5G|en|global|Light Reading|https://www.lightreading.com/rss_simple.asp|
+Telecom_5G|en|global|RCR Wireless News|https://rcrwireless.com/feed|https://www.rcrwireless.com/
+Telecom_5G|en|global|Telecoms.com|https://telecoms.com/feed/|
+Telecom_5G|en|global|TelecomTV|https://www.telecomtv.com/rss/|

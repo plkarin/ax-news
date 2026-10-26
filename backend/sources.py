@@ -336,18 +336,22 @@ async def store_entries(pool, feed: dict, entries) -> tuple[int, int]:
             image = None
         guid = e.get("id") or link or title
         key = "src:%d:%s" % (feed["id"], hashlib.sha1(guid.encode("utf-8", "replace")).hexdigest()[:20])
-        status = "pending" if needs_translation(title) else "done"
+        # The source's language (user_feeds.lang) decides: a French feed's
+        # stories are translated even when a title reads like English.
+        lang = (feed.get("lang") or "").lower() or None
+        status = "pending" if needs_translation(title, lang) else "done"
         inserted = await pool.fetchval("""
             INSERT INTO articles
               (freshrss_id, feed_source, category, title, url, published_at,
-               content_raw, image_url, translation_status, owner_user_id, user_feed_id)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+               content_raw, image_url, translation_status, owner_user_id, user_feed_id,
+               original_lang)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
             ON CONFLICT (freshrss_id) DO UPDATE
               SET image_url = COALESCE(articles.image_url, EXCLUDED.image_url)
             RETURNING (xmax = 0) AS inserted
         """, key, feed["name"], feed.get("category") or "My_Sources", title, link,
             _entry_time(e), _entry_html(e)[:20000], image, status,
-            feed["user_id"], feed["id"])
+            feed.get("user_id"), feed["id"], lang if status == "pending" else None)
         new += 1 if inserted else 0
     total = await pool.fetchval(
         "SELECT count(*) FROM articles WHERE user_feed_id = $1", feed["id"])

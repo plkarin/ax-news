@@ -12,6 +12,8 @@
   function show(tab) {
     $$('[role="tab"]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
     $$('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== tab));
+    if (tab === 'catalog' && AX.catalogTab) AX.catalogTab();
+    if (tab === 'tv' && AX.screensTab) AX.screensTab();
     history.replaceState(null, '', '/account' + (tab === 'sources' ? '' : '#' + tab));
   }
   $('.tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) show(b.dataset.tab); });
@@ -89,7 +91,7 @@
         ${kindIcon(f.kind)}
         <div style="min-width:0">
           <div class="t"><span>${esc(f.name)}</span></div>
-          <div class="s">${status}<span>${AX.num(f.week_count || 0)} this week</span>${f.latest_at ? `<span>latest ${ago(f.latest_at)}</span>` : ''}</div>
+          <div class="s">${status}<span>${AX.num(f.week_count || 0)} this week</span>${f.latest_at ? `<span>latest ${ago(f.latest_at)}</span>` : ''}${f.lang && f.lang !== 'en' ? (f.translatable ? `<span class="tag translated">${esc(f.lang_name)} → English${f.translating ? ` · ${AX.num(f.translating)} in translation` : ''}</span>` : `<span class="bad">${esc(f.lang_name)}: no translation into English yet</span>`) : ''}</div>
           <div class="s"><a href="/mine?feed=${f.id}" style="color:var(--accent)">Read</a><span>${esc(AX.topic(f.category || 'My_Sources').label)}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px">${esc(f.site_url || f.url)}</span></div>
         </div>
         <div class="ops">
@@ -197,6 +199,6 @@
     try { topics = (await api('/categories')).filter(Boolean); } catch (e) { topics = Object.keys(AX.TOPICS); }
     renderDisplay(); loadSources(); loadProfile(); loadNotes();
     const h = location.hash.slice(1);
-    if (['display', 'profile', 'notes'].includes(h)) show(h);
+    if (['catalog', 'tv', 'display', 'profile', 'notes'].includes(h)) show(h);
   })();
 })();
