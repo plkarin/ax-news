@@ -139,6 +139,7 @@ body.idle { cursor: none; }
 .spot { position: relative; border-radius: 1.6rem; overflow: hidden; min-height: 0; box-shadow: 0 2rem 5rem rgba(0, 0, 0, .35); }
 .spot .pic { position: absolute; inset: 0; }
 .spot .shade { position: absolute; inset: 0; background: var(--veil); }
+.spot .body { text-shadow: 0 .1rem 1.2rem color-mix(in srgb, var(--bg) 55%, transparent); }
 .spot .body { position: absolute; left: 3.4rem; bottom: 3rem; right: 38%; display: grid; gap: 1.4rem; }
 .spot .headline { font-size: 4.1rem; }
 .spot .headline.long { font-size: 3.3rem; }
@@ -176,7 +177,8 @@ body.idle { cursor: none; }
 .tile { position: relative; border-radius: 1.2rem; overflow: hidden; min-height: 0; background: var(--panel-solid); }
 .tile.big { grid-column: span 2; grid-row: span 2; }
 .tile .pic { position: absolute; inset: 0; }
-.tile .shade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, .82)); }
+.tile .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .05) 0%, rgba(0, 0, 0, .35) 35%, rgba(0, 0, 0, .9) 72%, rgba(0, 0, 0, .95)); }
+.tile .body { text-shadow: 0 .1rem 1rem rgba(0, 0, 0, .6); }
 .tile .body { position: absolute; left: 1.5rem; right: 1.5rem; bottom: 1.4rem; display: grid; gap: .7rem; color: #fff; }
 .tile .kicker { font-size: .78rem; }
 .tile .headline { font-size: 1.55rem; line-height: 1.14; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
