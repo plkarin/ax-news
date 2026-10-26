@@ -1,0 +1,50 @@
+# Changelog
+
+Every release of AX-NEWS, newest first. Versions follow
+[semantic versioning](https://semver.org); each is a git tag and a
+[GitHub release](https://github.com/plkarin/ax-news/releases).
+
+## v1.0.0 — 2026-10-26
+
+The first numbered release: everything since the repository's first
+version, in one tested line of history.
+
+### TV screens
+- `/tv.html` and per-account screens at `/tv/<token>`, set up in the
+  account's "TV screens" tab: topics, shared feeds and/or own sources, pace,
+  alerts. Six layouts × six themes, 1080p to 4K, landscape or portrait.
+- A QR code at the top left of each story (beside its text, never over its
+  title) and the flag of the outlet's country at its top right.
+- CVE watch: the 20 most important vulnerabilities of the last 60 days
+  (CISA KEV, ransomware, NVD CVSS, coverage, recency), one at a time, each
+  with a QR code to its record on cve.org.
+- Unattended operation: refresh every two minutes, offline tolerance, reload
+  on a new version and nightly, wake lock, hidden cursor, anti burn-in drift,
+  night dimming, hourly layout rotation.
+
+### Sources and translation
+- A world feed catalog: 844 checked feeds in 11 fields and 28 languages; the
+  208 shared tech feeds active, any other followed in one click, shared with
+  everyone by an administrator.
+- Personal sources: sites, RSS/Atom, YouTube, Reddit, Mastodon, GitHub,
+  Hacker News, OPML import/export — private to their account.
+- Translation into English of every source in another language (title and
+  first paragraphs), not only Chinese, Japanese and Korean titles; looping
+  translations rejected.
+
+### Reading
+- A new interface: six layouts, a reader panel, saved stories, light and
+  dark themes, topic illustrations made with Canva, self-hosted fonts.
+- A new brand: a thin AXIOM logo, the ΛX emblem, favicons, link preview.
+
+### Security and operations
+- A Content Security Policy with a per-response nonce on every page, an
+  SSRF guard on every outside fetch, routes that start work restricted to
+  administrators and the timers.
+- The deployed systemd units, nginx configuration, schema and installers in
+  the repository; a fresh deployment from GitHub works as documented.
+- Audio summaries removed.
+
+Upgrading from the repository's first version: apply
+`migrations/003_personal_sources.sql` and `migrations/004_catalog_tv.sql`,
+`pip install -r backend/requirements.txt`, restart `ax-news-backend`.
