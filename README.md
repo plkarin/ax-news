@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.1.0](https://github.com/plkarin/ax-news/releases/tag/v1.1.0)** ([changes](CHANGELOG.md))
+Latest release: **[v1.2.0](https://github.com/plkarin/ax-news/releases/tag/v1.2.0)** ([changes](CHANGELOG.md))
 
 ---
 
@@ -96,7 +96,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.1.0
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.2.0
 ```
 
 ## Architecture

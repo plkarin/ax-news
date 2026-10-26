@@ -4,7 +4,7 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
-## Unreleased
+## v1.2.0 — 2026-10-26
 
 ### TV
 - **Breaking CVEs**: a CVE the shared stories quote for the first time,
