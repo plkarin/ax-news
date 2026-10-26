@@ -135,10 +135,14 @@ CVE = re.compile(r"CVE-\d{4}-\d{4,}", re.I)
 
 
 async def alerts(pool, config: dict, owner_id: int = 0) -> list[dict]:
-    """The band across the screen: security advisories (a CVE number in the
-    story), or stories with one of the screen's words."""
+    """The band across the screen: the vulnerabilities that mattered most in
+    the last two months (backend/cve.py), or stories with one of the
+    screen's words."""
     if config["alerts"] == "none" or (config["alerts"] == "keywords" and not config["alert_words"]):
         return []
+    if config["alerts"] == "cve":
+        import cve
+        return await cve.top(pool, owner_id, config["scope"])
     params: list = []
     where = _where({**config, "hours": min(int(config["hours"]), 72)}, owner_id, params)
     if config["alerts"] == "cve":

@@ -144,7 +144,7 @@
   function qr(s) {
     if (!state.config.show_qr) return '';
     const q = boot.token && s.personal ? `?s=${encodeURIComponent(boot.token)}` : '';
-    return `<div class="qr"><img alt="" src="/api/tv/qr/${s.id}${q}" width="120" height="120"><span>Scan to read on your phone</span></div>`;
+    return `<div class="qr corner"><img alt="" src="/api/tv/qr/${s.id}${q}" width="120" height="120"><span>Scan to read</span></div>`;
   }
   const long = (s) => (s.title || '').length > 95 ? ' long' : '';
   const at = (i) => state.stories[((i % state.stories.length) + state.stories.length) % state.stories.length];
@@ -156,10 +156,10 @@
       const next = [1, 2, 3, 4].map((k) => at(i + k));
       stage.innerHTML = `
         <article class="spot fade-in">
-          ${pic(s, 'kb')}<div class="shade"></div>
+          ${pic(s, 'kb')}<div class="shade"></div>${qr(s)}
           <div class="body">${kicker(s)}<h1 class="headline${long(s)}">${esc(s.title)}</h1>
             ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}${meta(s)}</div>
-          ${qr(s)}<div class="progress"><i></i></div>
+          <div class="progress"><i></i></div>
         </article>
         <aside class="queue"><h3>Up next</h3>${next.map((n) => `
           <div class="q fade-in">${pic(n)}<div><div class="t">${esc(n.title)}</div><div class="m">${esc(n.source)} · ${esc(ago(n.published_at))}</div></div></div>`).join('')}
@@ -172,9 +172,9 @@
       const start = Math.floor((i % state.stories.length) / n) * n;
       const list = Array.from({ length: n }, (_, k) => [start + k, at(start + k)]);
       stage.innerHTML = `
-        <article class="nr-main fade-in">${pic(s, 'kb')}
+        <article class="nr-main fade-in">${pic(s, 'kb')}${qr(s)}
           <div class="lower"><div class="progress"><i></i></div>${kicker(s)}<h1 class="headline">${esc(s.title)}</h1>
-            ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}${meta(s)}${qr(s)}</div>
+            ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}${meta(s)}</div>
         </article>
         <aside class="nr-list"><h3><span>Latest</span><span>${esc(state.counts.day || '')} today</span></h3>
           ${list.map(([k, x]) => `<div class="nr-item${k % state.stories.length === i % state.stories.length ? ' now' : ''}"><div class="time">${esc(hhmm(x.published_at))}</div>
@@ -186,9 +186,9 @@
       // Five tiles: one big, four small. The first call fills them; then one
       // tile turns at each step.
       const tiles = stage.querySelectorAll('.tile');
-      const tile = (s, big) => `${pic(s, big ? 'kb' : '')}<div class="shade"></div><div class="body">${kicker(s)}
+      const tile = (s, big) => `${pic(s, big ? 'kb' : '')}<div class="shade"></div>${big ? qr(s) : ''}<div class="body">${kicker(s)}
         <h2 class="headline">${esc(s.title)}</h2>${big && s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}
-        <div class="meta"><span class="src">${esc(s.source)}</span><span class="dot"></span><span>${esc(ago(s.published_at))}</span></div></div>${big ? qr(s) : ''}`;
+        <div class="meta"><span class="src">${esc(s.source)}</span><span class="dot"></span><span>${esc(ago(s.published_at))}</span></div></div>`;
       if (!step || tiles.length !== 5) {
         stage.innerHTML = [0, 1, 2, 3, 4].map((k) => `<article class="tile${k === 0 ? ' big' : ''} flip" data-k="${k}">${tile(at(i + k), k === 0)}</article>`).join('');
         state.wallNext = i + 5;
@@ -233,23 +233,23 @@
       const s = at(i);
       stage.innerHTML = `
         <div class="hl-list">${Array.from({ length: Math.min(n, len) }, (_, k) => at(start + k)).map((x) => `
-          <div class="hl${x === s ? ' now' : ''}"><div class="time">${esc(hhmm(x.published_at))}</div>
+          <div class="hl${x === s ? ' now' : ''}"><div class="time">${x === s && state.config.show_qr ? qr(x) : ''}${esc(hhmm(x.published_at))}</div>
             <div><div class="t">${esc(x.title)}</div>${x.excerpt ? `<p class="excerpt">${esc(x.excerpt)}</p>` : ''}
             <div class="m">${esc(x.source)} · ${esc(topic(x.category).label)}</div></div></div>`).join('')}
         </div>
-        <aside class="hl-side">${pic(s, 'kb')}${qr(s)}<div class="progress"><i></i></div></aside>`;
+        <aside class="hl-side">${pic(s, 'kb')}<div class="progress"><i></i></div></aside>`;
       return s;
     },
     magazine(i) {
       const s = at(i);
       const d = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       stage.innerHTML = `
-        ${pic(s, 'mag-pic kb')}
+        <div class="mag-left">${pic(s, 'kb')}${qr(s)}</div>
         <article class="mag-body fade-in">
           <div class="mag-mast"><span>AX·NEWS — ${esc(state.config.title || '')}</span><span>${esc(d)}</span></div>
           ${kicker(s)}<h1 class="headline${long(s)}">${esc(s.title)}</h1>
           ${s.excerpt ? `<p class="excerpt">${esc(s.excerpt)}</p>` : ''}
-          <div class="mag-foot">${meta(s)}${qr(s)}</div><div class="progress"><i></i></div>
+          <div class="mag-foot">${meta(s)}</div><div class="progress"><i></i></div>
         </article>`;
       return s;
     },
@@ -345,14 +345,38 @@
       inner.style.setProperty('--ticker', Math.max(30, Math.round(px / speed)) + 's');
     });
   }
+  // The alerts band: one at a time (a QR code must hold still to be read).
+  // CVE mode: the most important vulnerabilities of the last 60 days, each
+  // with a QR code to its official record on cve.org.
+  const SEV = { CRITICAL: 'critical', HIGH: 'high', MEDIUM: 'medium', LOW: 'low' };
   function renderAlert() {
     const band = $('[data-alert]');
     if (!state.alerts.length) { band.classList.add('hidden'); return; }
     band.classList.remove('hidden');
-    const a = state.alerts[state.alertIdx++ % state.alerts.length];
-    const cve = state.config.alerts === 'cve' || (!boot.token && !params.get('alerts'));
-    $('[data-alert-label]').textContent = cve ? 'SECURITY' : 'ALERT';
-    $('[data-alert-text]').innerHTML = `${a.label ? `<b>${esc(a.label)}</b>` : ''}${esc(a.title)}`;
+    const n = state.alerts.length, k = state.alertIdx++ % n, a = state.alerts[k];
+    const isCve = !!(a.cves && a.cves.length);
+    $('[data-alert-label]').textContent = isCve ? 'CVE WATCH' : 'ALERT';
+    $('[data-alert-count]').textContent = isCve ? `${k + 1} / ${n} · 60 days` : `${k + 1} / ${n}`;
+    const badges = isCve ? [
+      a.kev ? '<span class="badge exploited">Exploited</span>' : '',
+      a.ransomware ? '<span class="badge ransom">Ransomware</span>' : '',
+      a.cvss != null ? `<span class="badge sev ${SEV[a.severity] || ''}">${esc((a.severity || 'CVSS').toLowerCase())} ${esc(Number(a.cvss).toFixed(1))}</span>` : '',
+    ].join('') : '';
+    const facts = isCve ? [
+      a.sources ? `${a.sources} source${a.sources > 1 ? 's' : ''} · ${a.stories} stor${a.stories > 1 ? 'ies' : 'y'}` : '',
+      a.kev_added ? `in CISA KEV since ${new Date(a.kev_added).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : '',
+      a.published_at ? `latest ${ago(a.published_at)}` : '',
+    ].filter(Boolean).join(' · ') : [a.source, ago(a.published_at)].filter(Boolean).join(' · ');
+    const body = $('[data-alert-body]');
+    body.innerHTML = `<div class="tv-alert-line">${a.label ? `<b class="cve">${esc(a.label)}</b>` : ''}${badges}</div>
+      <div class="tv-alert-title">${esc(a.title)}</div><div class="tv-alert-meta">${esc(facts)}</div>`;
+    const qrBox = $('[data-alert-qr]');
+    if (state.config.show_qr && (isCve || a.id)) {
+      const src = isCve ? `/api/tv/qr/cve/${encodeURIComponent(a.cves[0])}` : `/api/tv/qr/${a.id}`;
+      qrBox.innerHTML = `<img alt="" src="${src}" width="96" height="96"><span>${isCve ? `<b>${esc(a.cves[0])}</b>Official record<br>cve.org` : 'Read the story'}</span>`;
+      qrBox.classList.remove('hidden');
+    } else { qrBox.innerHTML = ''; qrBox.classList.add('hidden'); }
+    [body, qrBox].forEach((el) => { el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in'); });
   }
   let justInTimer;
   function justIn(s) {
@@ -396,7 +420,7 @@
     document.documentElement.style.setProperty('--dy', r());
   }
   setInterval(drift, 4 * 60000);
-  setInterval(() => { if (state.alerts.length > 1) renderAlert(); }, 10000);
+  setInterval(() => { if (state.alerts.length > 1) renderAlert(); }, 12000);
   // A fresh page once a night, between 4 and 5 o'clock, if the site answers.
   (function nightly() {
     const now = new Date(), at = new Date(now);

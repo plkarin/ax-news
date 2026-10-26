@@ -1748,13 +1748,29 @@ async def tv_screen_feed(token: str, request: Request):
     return await _tv_feed_cached(f"screen:{s['id']}:{s['updated_at']}", s["config"], s["user_id"])
 
 
+def _qr_svg(target: str) -> Response:
+    import io
+    import segno
+    buf = io.BytesIO()
+    segno.make(target, error="m").save(buf, kind="svg", scale=8, border=2, dark="#0b1220", light="#ffffff", xmldecl=False, svgns=True)
+    return Response(buf.getvalue(), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/tv/qr/cve/{cve_id}")
+async def tv_qr_cve(cve_id: str):
+    """A QR code to a vulnerability's official record (cve.org)."""
+    import cve
+    cid = cve_id.upper()
+    if not cve.CVE_ID.match(cid):
+        raise HTTPException(404, "Not a CVE number")
+    return _qr_svg(cve.RECORD_URL + cid)
+
+
 # No ".svg" in the address: nginx serves every *.svg from frontend/.
 @app.get("/api/tv/qr/{article_id}")
 async def tv_qr(article_id: int, s: Optional[str] = None):
     """A QR code to read a story on a phone: /go/<id> for a shared story,
     the story's own address for one of the screen owner's sources."""
-    import io
-    import segno
     row = await pool.fetchrow("SELECT url, owner_user_id FROM articles WHERE id = $1", article_id)
     if not row or not re.match(r"^https?://", row["url"] or "", re.I):
         raise HTTPException(404, "No such story")
@@ -1765,9 +1781,7 @@ async def tv_qr(article_id: int, s: Optional[str] = None):
         if screen["user_id"] != row["owner_user_id"]:
             raise HTTPException(404, "No such story")
         target = row["url"]
-    buf = io.BytesIO()
-    segno.make(target, error="m").save(buf, kind="svg", scale=8, border=2, dark="#0b1220", light="#ffffff", xmldecl=False, svgns=True)
-    return Response(buf.getvalue(), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+    return _qr_svg(target)
 
 
 @app.get("/go/{article_id}")
