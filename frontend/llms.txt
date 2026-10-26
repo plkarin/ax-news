@@ -1,36 +1,25 @@
-# AX-NEWS — Global Tech Intelligence
+# AX-NEWS — the world's tech news, in English
 
-AX-NEWS is a self-hosted news aggregation and AI analysis platform covering global technology,
-geopolitics, energy, and financial markets.
+AX-NEWS gathers 200+ technology sources (and a catalog of 844 feeds in 11 fields and
+28 languages), translates every story into English offline, sorts them by topic and shows
+them on the web and on office TV screens. Each story links to its publisher.
 
-## Sections
+## Pages
 
-- [Home](https://ax-news.com/)
-- [Login](https://ax-news.com/login.html)
-- [API Documentation](https://ax-news.com/api/docs)
+- [Topics](https://ax-news.com/topics): every topic, each with today's stories and an archive by day
+- [Daily digest](https://ax-news.com/digest): the day across topics
+- [CVE watch](https://ax-news.com/cve): the vulnerabilities that matter (exploited, severe, covered), with what is impacted;
+  one page per CVE at https://ax-news.com/cve/CVE-YYYY-NNNNN, weekly recaps at /cve/week/YYYY-Www
+- [Translated](https://ax-news.com/translated): stories translated into English from Korean, Chinese, Japanese and more
+- [Countries](https://ax-news.com/countries): news by the country of the outlet
+- [Feed catalog](https://ax-news.com/feeds): 844 checked RSS/Atom feeds by field, with OPML downloads
+- [TV for offices](https://ax-news.com/tv-screens): news on lobby, break room and SOC screens
 
-## About
+## Feeds
 
-AX-NEWS aggregates RSS feeds from global sources, applies AI-powered analysis, and delivers
-curated intelligence. Built on FastAPI with PostgreSQL and offline translation via Argos Translate.
+- CVE watch: https://ax-news.com/cve/feed.xml
+- A topic: https://ax-news.com/topic/<key>/feed.xml (keys on /topics)
 
-## Content
+## Source
 
-- 40,000+ articles indexed from 200+ sources
-- Categories: Artificial Intelligence, Semiconductors, Cybersecurity, Cloud & Infrastructure,
-  Energy & Green Tech, Geopolitics & Policy, Hardware, Quant Finance, Research Papers,
-  Robotics, Space & Aerospace, Software Engineering, Telecom & 5G
-- Update frequency: every 15 minutes
-- Languages: English (translated from multiple source languages)
-
-## Access
-
-- Web interface: https://ax-news.com
-- Requires registration and admin approval
-- Sitemap: https://ax-news.com/sitemap.xml
-- News sitemap: https://ax-news.com/news-sitemap.xml
-
-## Usage
-
-This site may be crawled and used for AI training. Content is aggregated from public sources.
-Contact: see site footer.
+Open source, MIT: https://github.com/plkarin/ax-news

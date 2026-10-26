@@ -4,6 +4,51 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.0 — 2026-10-26
+
+### Found by search engines
+- **Pages a search engine can read**, rendered on the server, each with its
+  canonical address, title, description and structured data (JSON-LD):
+  - every topic, `/topics` and `/topic/<topic>`, and every day of a topic,
+    `/topic/<topic>/<date>`, for the last 31 days;
+  - a **daily digest**, `/digest` and `/digest/<date>`: the day's top topics
+    with their main stories;
+  - a page per **CVE**, `/cve/<id>`: its Impacted if, the kind of flaw, its
+    severity, CISA KEV, and every story that quotes it; the **CVE watch**,
+    `/cve`, and one page per week, `/cve/week/<year>-W<nn>`;
+  - news **by country**, `/countries` and `/country/<cc>`, and the stories
+    **translated into English**, `/translated`;
+  - the **feed catalog** by field, `/feeds` and `/feeds/<field>`, each with its
+    OPML;
+  - **AX-NEWS for office TVs**, `/tv-screens`, with screenshots of the six
+    layouts.
+- The home page renders its first 30 stories on the server: a search engine
+  reads them without running JavaScript.
+- **RSS** for every topic, `/topic/<topic>/feed.xml`, and for the CVE watch,
+  `/cve/feed.xml`.
+- The sitemap is now an index (`/sitemap.xml`) of real pages: pages, days
+  and CVEs. The 5,000 `/?article=` addresses it used to list all pointed to
+  the home page, so they are gone. `/news-sitemap.xml` answers 410 Gone.
+- `robots.txt` keeps private and redirect pages out (`/account`, `/tv/`,
+  `/go/`…), and `/tv/<token>` screens send `X-Robots-Tag: noindex`.
+  `llms.txt` is rewritten.
+- The footer links the new pages.
+
+### Workers (off by default)
+- `seo-worker.py` and the `ax-news-seo` timer, hourly: sends the sitemaps'
+  new or changed pages to **IndexNow**, which feeds Bing, Yandex, Seznam and
+  Naver. The key comes from `INTERNAL_SYNC_TOKEN` and is served at
+  `/<key>.txt`.
+- `social-worker.py` and the `ax-news-social` timer, every 5 minutes: posts
+  each **breaking CVE** once to Mastodon and/or Bluesky, with its score,
+  Impacted if and a link to its page. It needs `MASTODON_BASE_URL` and
+  `MASTODON_TOKEN`, or `BLUESKY_HANDLE` and `BLUESKY_APP_PASSWORD`;
+  without them it does nothing.
+
+### Docs
+- Screenshots in the README and every screen in
+  [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
+
 ## v1.2.0 — 2026-10-26
 
 ### TV

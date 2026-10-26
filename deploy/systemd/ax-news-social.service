@@ -1,0 +1,12 @@
+[Unit]
+Description=AX-NEWS breaking CVEs to Mastodon and Bluesky (off without accounts in .env)
+After=network.target ax-news-backend.service
+
+[Service]
+Type=oneshot
+User=cbrain
+EnvironmentFile=/opt/ax-news/backend/.env
+ExecStart=/opt/ax-news/backend/venv/bin/python3 /opt/ax-news/social-worker.py
+StandardOutput=append:/var/log/ax-news/social.log
+StandardError=append:/var/log/ax-news/social.log
+TimeoutStartSec=120

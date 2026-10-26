@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo %}
+{% set t = data.topic %}
+{% block title %}{{ heading }} — {{ data["items"]|length }} stories | AX-NEWS{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block head %}
+  <link rel="canonical" href="https://ax-news.com{{ path }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ t.label }} — AX-NEWS" href="/topic/{{ t.key }}/feed.xml">
+  <meta property="og:title" content="{{ heading }} — AX-NEWS">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="https://ax-news.com{{ path }}">
+  <meta property="og:image" content="https://ax-news.com/assets/img/topics/{{ t.art }}.webp">
+  {{ seo.jsonld(ld, csp_nonce) }}
+{% endblock %}
+{% block content %}
+<main class="page seo" id="main">
+  {{ seo.crumbs(trail) }}
+  <header class="seo-hero" style="--topic:{{ t.color }};background-image:url(/assets/img/topics/{{ t.art }}.webp)">
+    <div>
+      <p class="seo-kicker">{{ t.label }}</p>
+      <h1>{{ heading }}</h1>
+      <p>{{ data["items"]|length }} stories from {{ nsources }} sources{% if not data.day %} in the last 48 hours{% endif %}, every one in English. Each links to its publisher.</p>
+      <p class="seo-actions"><a class="btn sm primary" href="/?topic={{ t.key }}">Open in the live feed</a><a class="btn sm" href="/topic/{{ t.key }}/feed.xml">RSS feed</a><a class="btn sm" href="/tv.html?topics={{ t.key }}" rel="nofollow">On a TV</a></p>
+    </div>
+  </header>
+  <div class="seo-grid">
+    <section>{% if data["items"] %}{{ seo.story_list(data["items"], with_date=data.day is none, with_topic=false) }}{% else %}<p class="muted">No story on this day.</p>{% endif %}</section>
+    <aside class="seo-side">
+      <div class="panel">
+        <h3>Day by day</h3>
+        <ul class="seo-days">{% for d in data.days[:31] %}<li><a href="/topic/{{ t.key }}/{{ d.date.isoformat() }}"{% if data.day == d.date %} aria-current="page"{% endif %}>{{ d.date.strftime('%a %d %b') }}</a><span>{{ d.count }}</span></li>{% endfor %}</ul>
+      </div>
+      {% include "_seo_more.html" %}
+    </aside>
+  </div>
+</main>
+{% endblock %}

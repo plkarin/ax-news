@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo %}
+{% block title %}News on your office TV — free, around the clock | AX-NEWS{% endblock %}
+{% block description %}Put live news on the screens of your lobby, break room or SOC: your topics, in English, six layouts and six themes, QR codes to read on a phone, a CVE watch with what is impacted. Free, no sign-in on the TV.{% endblock %}
+{% block head %}
+  <link rel="canonical" href="https://ax-news.com/tv-screens">
+  <meta property="og:title" content="News on your office TV — AX-NEWS">
+  <meta property="og:description" content="Live news for lobbies, break rooms and SOC screens: your topics, in English, around the clock.">
+  <meta property="og:url" content="https://ax-news.com/tv-screens">
+  <meta property="og:image" content="https://ax-news.com/assets/img/screens/tv-spotlight.webp">
+  {{ seo.jsonld(ld, csp_nonce) }}
+{% endblock %}
+{% block content %}
+<main class="page seo" id="main">
+  {{ seo.crumbs(trail) }}
+  <header class="seo-hero tv-hero" style="--topic:#5aa8ff;background-image:url(/assets/img/tv/aurora.webp)">
+    <div>
+      <p class="seo-kicker">AX-NEWS TV</p>
+      <h1>News on your office TV, around the clock</h1>
+      <p>Open one address on the screen in your lobby, break room or security operations centre, press F, and leave it. It turns the stories of your topics by itself, in English, refreshes every two minutes and keeps going through network cuts. Free; nobody signs in on the TV.</p>
+      <p class="seo-actions"><a class="btn sm primary" href="/tv.html">See it live</a><a class="btn sm" href="/account#tv">Make your own screen</a></p>
+    </div>
+  </header>
+  <figure class="tv-shot"><img src="/assets/img/screens/tv-spotlight.webp" alt="AX-NEWS TV, Spotlight layout: a story full screen with its QR code, the next stories and the CVE watch band" width="1920" height="1080" loading="lazy"></figure>
+  <section class="tv-uses">
+    <div class="panel"><h3>Lobby</h3><p>Your industry's news in big type, readable from five metres, with the flag of each outlet's country and a QR code to read the story on a phone.</p></div>
+    <div class="panel"><h3>Security operations</h3><p>The CVE watch turns through the 20 most important vulnerabilities of the last 60 days — exploited, severity, <b>what is impacted</b> — and a new CVE scored 8+ breaks in for its first hour.</p></div>
+    <div class="panel"><h3>Hospitals and labs</h3><p>Follow oncology, cardiology, genomics or drug development journals from the catalog: breakthroughs in English, whatever their language.</p></div>
+    <div class="panel"><h3>Break room</h3><p>A gentler theme, a different layout every hour, dimmed at night. Nothing to install: any TV with a browser.</p></div>
+  </section>
+  <section>
+    <h2 class="seo-h2">Six layouts, six themes</h2>
+    <div class="tv-gallery">
+      {% for f, alt in [('tv-newsroom', 'Newsroom layout, Broadcast theme'), ('tv-wall', 'Wall layout, Nebula theme'), ('tv-magazine', 'Magazine layout, Paper theme'), ('tv-headlines', 'Headlines layout, Terminal theme'), ('tv-columns', 'Columns layout, Aurora theme'), ('tv-clinic', 'Biotech screen, Clinic theme')] %}
+      <figure><img src="/assets/img/screens/{{ f }}.webp" alt="{{ alt }}" width="1920" height="1080" loading="lazy"><figcaption>{{ alt }}</figcaption></figure>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="panel">
+    <h2 class="seo-h2">Built to run for months</h2>
+    <ul class="seo-ticks">
+      <li>Refreshes every two minutes; the last news stays on screen and in the browser through network cuts.</li>
+      <li>Reloads itself when the site is updated, and once a night.</li>
+      <li>Keeps the screen awake, hides the cursor, moves its fixed parts a few pixels against burn-in.</li>
+      <li>1080p to 4K, landscape or portrait (lobby totems). Keys: F full screen, L layout, T theme.</li>
+      <li>Each screen has its own address; renew it and the old one stops at once.</li>
+    </ul>
+  </section>
+</main>
+{% endblock %}

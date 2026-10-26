@@ -1,0 +1,12 @@
+[Unit]
+Description=AX-NEWS IndexNow: new and changed pages to search engines
+After=network.target ax-news-backend.service
+
+[Service]
+Type=oneshot
+User=cbrain
+EnvironmentFile=/opt/ax-news/backend/.env
+ExecStart=/opt/ax-news/backend/venv/bin/python3 /opt/ax-news/seo-worker.py
+StandardOutput=append:/var/log/ax-news/seo.log
+StandardError=append:/var/log/ax-news/seo.log
+TimeoutStartSec=300

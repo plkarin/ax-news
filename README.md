@@ -15,12 +15,17 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.2.0](https://github.com/plkarin/ax-news/releases/tag/v1.2.0)** ([changes](CHANGELOG.md))
+Latest release: **[v1.3.0](https://github.com/plkarin/ax-news/releases/tag/v1.3.0)** ([changes](CHANGELOG.md))
+
+<p align="center">
+  <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
+</p>
 
 ---
 
 ## Contents
 
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [Releases](#releases)
 - [Architecture](#architecture)
@@ -29,6 +34,38 @@ Latest release: **[v1.2.0](https://github.com/plkarin/ax-news/releases/tag/v1.2.
 - [Operations](#operations)
 - [Development](#development)
 - [Licence](#licence)
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/home-cards.jpg" alt="The feed, cards layout" width="100%"><br><sub>The feed, cards layout</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/home-magazine-light.jpg" alt="Magazine layout, light theme" width="100%"><br><sub>Magazine layout, light theme</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/home-reader.jpg" alt="The reader panel" width="100%"><br><sub>The reader panel</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/topic-page.jpg" alt="A topic page, open to search engines" width="100%"><br><sub>A topic page, open to search engines</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/cve-page.jpg" alt="A CVE page: Impacted if, severity, coverage" width="100%"><br><sub>A CVE page: Impacted if, severity, coverage</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/cve-watch.jpg" alt="The CVE watch" width="100%"><br><sub>The CVE watch</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/tv-newsroom.jpg" alt="TV — Newsroom layout, Broadcast theme" width="100%"><br><sub>TV — Newsroom layout, Broadcast theme</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/tv-wall.jpg" alt="TV — Wall layout, Nebula theme" width="100%"><br><sub>TV — Wall layout, Nebula theme</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/tv-magazine.jpg" alt="TV — Magazine layout, Paper theme" width="100%"><br><sub>TV — Magazine layout, Paper theme</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/tv-clinic.jpg" alt="TV — Wall layout, Clinic theme" width="100%"><br><sub>TV — Wall layout, Clinic theme</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/tv-editor.jpg" alt="Setting up a TV screen" width="100%"><br><sub>Setting up a TV screen</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/catalog.jpg" alt="The world feed catalog" width="100%"><br><sub>The world feed catalog</sub></td>
+  </tr>
+</table>
+
+Every screen — the six TV layouts, the sign-in page, the phone — is in
+**[docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**.
 
 ## Features
 
@@ -82,12 +119,31 @@ Latest release: **[v1.2.0](https://github.com/plkarin/ax-news/releases/tag/v1.2.
   screen kept awake, cursor hidden, no burn-in, optional night dimming.
   Keys: `F` full screen, `L` layout, `T` theme, `Space` pause, `←`/`→`.
 
+### Open to search engines and readers
+- **Pages a search engine can read**, rendered on the server: every topic
+  (`/topics`, `/topic/<topic>`) and every topic day
+  (`/topic/<topic>/<date>`), a **daily digest** (`/digest/<date>`), a page
+  per **CVE** (`/cve/<id>`: Impacted if, severity, CISA KEV, the stories
+  that quote it) and per week (`/cve/week/<year>-W<nn>`), news **by country**
+  (`/countries`, `/country/<cc>`), stories **translated into English**
+  (`/translated`), the **feed catalog** by field with its OPML (`/feeds`,
+  `/feeds/<field>`, `/feeds/<field>.opml`) and a page for **office TVs**
+  (`/tv-screens`). The home page renders its first 30 stories too.
+- **RSS** for every topic (`/topic/<topic>/feed.xml`) and for the CVE watch
+  (`/cve/feed.xml`).
+- Canonical addresses, titles and descriptions per page, structured data
+  (JSON-LD: CollectionPage, ItemList, BreadcrumbList), a sitemap index
+  (`/sitemap.xml` → pages, days, CVEs), `robots.txt`, `llms.txt`. Private
+  pages (`/account`, `/tv/<token>`, `/go/…`) stay out of the index.
+- `seo-worker.py` tells Bing, Yandex, Seznam and Naver which pages are new
+  through **IndexNow**; `social-worker.py` posts each **breaking CVE** to
+  Mastodon and/or Bluesky once their accounts are set.
+
 ### Accounts and security
 - Administrator-approved accounts, Google sign-in, an admin console.
 - Content Security Policy with a nonce per response on every page, an SSRF
   guard on every fetch of an outside address, rate limits, HttpOnly
   sessions; A+ on SSL Labs.
-- SEO: sitemaps, news sitemap, structured data, `llms.txt`.
 
 ## Releases
 
@@ -96,7 +152,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.2.0
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.0
 ```
 
 ## Architecture
@@ -108,6 +164,7 @@ Internet → Cloudflare → HAProxy (TLS) → nginx ─┬─ frontend/ (CSS, JS
  FreshRSS (127.0.0.1:8082) ── sync every 10 min ─────┤
  sources-worker.py (own and shared sources) ─────────┤
  translate-standalone.py (Argos, MemoryMax=1G) ──────┘
+ seo-worker.py → IndexNow · social-worker.py → Mastodon, Bluesky
 ```
 
 | Piece | What it does |
@@ -117,7 +174,8 @@ Internet → Cloudflare → HAProxy (TLS) → nginx ─┬─ frontend/ (CSS, JS
 | `backend/catalog.py` | Loads `catalog/feeds.json` at start-up; the topic taxonomy |
 | `backend/translation.py` | Language of each story, translation into English |
 | `backend/tv.py`, `backend/cve.py` | TV screens' stories; the CVE watch (CISA KEV + NVD) |
-| `backend/countries.py` | Country of each outlet, for the TV's flags |
+| `backend/countries.py` | Country of each outlet, for the TV's flags and the country pages |
+| `backend/seo.py` | The pages for search engines: topics, digests, countries, CVEs, catalog; RSS, OPML, sitemaps, JSON-LD |
 | `frontend/assets/` | The interface: `css/app.css`, `css/tv.css`, `js/*.js`, fonts, images |
 
 nginx serves `frontend/` by file extension and sends every page (`/`,
@@ -133,7 +191,7 @@ user `cbrain`.
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.0.0
+git checkout v1.3.0
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 
@@ -180,6 +238,9 @@ before v1.0.0: a new database does not need it.)
 | `INTERNAL_SYNC_TOKEN` | Sent by the timers from localhost to start work (sync, images, purge); `openssl rand -hex 32` |
 | `TV_TOKEN` | Read-only token of the legacy `/api/tv/articles` feed; empty refuses it |
 | `MAX_SOURCES_PER_USER` | Own sources per account (default 150) |
+| `MASTODON_BASE_URL`, `MASTODON_TOKEN` | Account `social-worker.py` posts breaking CVEs to (token scope `write:statuses`); empty: no post |
+| `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | Same on Bluesky, with an app password; empty: no post |
+| `AXNEWS_LOCAL_URL` | Where the workers reach the backend (default `http://127.0.0.1:8000`) |
 
 ## Operations
 
@@ -190,6 +251,8 @@ before v1.0.0: a new database does not need it.)
 | `ax-news-sources` | Accounts' and shared catalog sources, every 5 min | yes |
 | `ax-news-images` | Pictures for stories without one, hourly | yes |
 | `freshrss-refresh` | FreshRSS fetches its feeds, every 15 min | yes |
+| `ax-news-seo` | IndexNow: the sitemaps' new pages to Bing and others, hourly | no — enable once the site is verified |
+| `ax-news-social` | Breaking CVEs to Mastodon/Bluesky, every 5 min | no — enable once an account is set |
 | `ax-news-dedup` | Removes duplicate stories, hourly | no — enable once reviewed |
 | `ax-news-purge` | Deletes stories older than 30 days, Mondays 03:00 | no — enable to keep a month |
 
@@ -200,6 +263,10 @@ then `backend/venv/bin/pip install -r backend/requirements.txt`, the new
 `pg_dump -Fc "$DATABASE_URL" -f ax-news-$(date +%F).dump`.
 **Roll back**: check out the previous tag and restart; migrations never
 remove what an older release reads.
+
+**Search engines**: declare `https://ax-news.com/sitemap.xml` in Google
+Search Console and Bing Webmaster Tools. IndexNow needs no account: its key
+is derived from `INTERNAL_SYNC_TOKEN` and served at `/<key>.txt`.
 
 **More languages**: `deploy/install-argos-models.sh pl sv da nb fi cs el ro hu uk he fa hi id th`
 installs the models the catalog's other languages need; their feeds then
@@ -236,6 +303,7 @@ Not covered by the MIT licence:
 | Inter and Space Grotesk fonts | `frontend/assets/fonts/` | SIL Open Font License 1.1 — `frontend/assets/fonts/LICENSE.txt` |
 | Country flags ([flag-icons](https://github.com/lipis/flag-icons) 7.5.0) | `frontend/assets/img/flags/` | MIT — `frontend/assets/img/flags/LICENSE.txt` |
 | Topic illustrations, TV backgrounds and sign-in picture, made with Canva | `frontend/assets/img/topics/`, `frontend/assets/img/tv/`, `login-hero.webp` | [Canva's Content License](https://www.canva.com/policies/content-license-agreement/) |
+| Screenshots | `docs/screenshots/`, `frontend/assets/img/screens/` | The interface is under the MIT licence like the code; the stories, titles and pictures they show belong to their publishers. |
 | News: titles, excerpts, pictures | shown from the feeds | Their publishers'. AX-NEWS shows a story's title, a short excerpt and a link to the original. |
 
 Data sources: vulnerability severities come from the National Vulnerability

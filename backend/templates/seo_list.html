@@ -1,0 +1,56 @@
+{# A generic listing page: topics index, digest, countries, translated, country. #}
+{% extends "base.html" %}
+{% import "_seo.html" as seo %}
+{% block title %}{{ title or heading }} | AX-NEWS{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block head %}
+  <link rel="canonical" href="https://ax-news.com{{ path }}">
+  {% if rss %}<link rel="alternate" type="application/rss+xml" title="{{ heading }}" href="{{ rss }}">{% endif %}
+  <meta property="og:title" content="{{ heading }} — AX-NEWS">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="https://ax-news.com{{ path }}">
+  <meta property="og:image" content="https://ax-news.com/assets/img/topics/{{ art or 'world' }}.webp">
+  {{ seo.jsonld(ld, csp_nonce) }}
+{% endblock %}
+{% block content %}
+<main class="page seo" id="main">
+  {{ seo.crumbs(trail) }}
+  <header class="seo-hero" style="--topic:{{ color or '#5aa8ff' }};background-image:url(/assets/img/topics/{{ art or 'world' }}.webp)">
+    <div>
+      {% if kicker %}<p class="seo-kicker">{% if flag %}{{ seo.flag(flag) }} {% endif %}{{ kicker }}</p>{% endif %}
+      <h1>{{ heading }}</h1>
+      <p>{{ lead }}</p>
+      {% if actions %}<p class="seo-actions">{% for label, href in actions %}<a class="btn sm{% if loop.first %} primary{% endif %}" href="{{ href }}">{{ label }}</a>{% endfor %}</p>{% endif %}
+    </div>
+  </header>
+  <div class="seo-grid">
+    <section>
+      {% if kind == 'topics' %}
+        {% for d in domains %}{% if d.topics %}
+        <h2 class="seo-h2">{{ d.label }}</h2>
+        <div class="seo-cards">{% for t in d.topics %}
+          <a class="seo-card" href="/topic/{{ t.key }}" style="--topic:{{ t.color }}"><span class="thumb" style="background-image:url(/assets/img/topics/{{ t.art }}-sm.webp)"></span><span><b>{{ t.label }}</b><small>{{ t.recent }} in 48 h · {{ t.month }} this month</small></span></a>
+        {% endfor %}</div>
+        {% endif %}{% endfor %}
+      {% elif kind == 'digest' %}
+        {% for g in data.topics %}
+        <h2 class="seo-h2" style="--topic:{{ g.topic.color }}"><a href="/topic/{{ g.topic.key }}/{{ data.day.isoformat() }}">{{ g.topic.label }}</a> <small>{{ g.count }} stories</small></h2>
+        {{ seo.story_list(g["items"], with_topic=false) }}
+        {% endfor %}
+      {% elif kind == 'countries' %}
+        <div class="seo-cards">{% for c in data %}
+          <a class="seo-card" href="/country/{{ c.code|lower }}"><span class="thumb flagthumb">{{ seo.flag(c.code) }}</span><span><b>{{ names[c.code] }}</b><small>{{ c.stories }} stories this week · {{ c.sources }} outlets</small></span></a>
+        {% endfor %}</div>
+      {% else %}
+        {% if languages %}<p class="seo-chips">{% for name, n in languages %}<span class="chip">{{ name }} <b>{{ n }}</b></span>{% endfor %}</p>{% endif %}
+        {{ seo.story_list(items, with_date=true) }}
+      {% endif %}
+    </section>
+    <aside class="seo-side">
+      {% if days %}<div class="panel"><h3>Other days</h3><ul class="seo-days">{% for d in days[:31] %}<li><a href="/digest/{{ d.isoformat() }}"{% if data.day == d %} aria-current="page"{% endif %}>{{ d.strftime('%a %d %b %Y') }}</a></li>{% endfor %}</ul></div>{% endif %}
+      {% if sources %}<div class="panel"><h3>Outlets</h3><p class="seo-small">{{ sources|join(' · ') }}</p></div>{% endif %}
+      {% include "_seo_more.html" %}
+    </aside>
+  </div>
+</main>
+{% endblock %}

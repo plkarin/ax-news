@@ -37,6 +37,7 @@ BREAKING_SECS = 3600     # how long it stays on screen after we first got it
 _kev: dict = {"at": 0.0, "tried": 0.0, "data": {}}
 _breaking: dict = {"at": 0.0, "items": []}
 _prio: list = []         # CVEs whose scores are wanted first (breaking candidates)
+_index: dict = {"at": 0.0, "data": {}}   # CVE → the shared stories quoting it (60 days)
 _top: dict = {}          # scope key → (at, list)
 _busy: set = set()
 _nvd_running = False
@@ -358,9 +359,16 @@ async def _compute(pool, owner_id: int, scope: str) -> list[dict]:
                (array_agg(m.id ORDER BY per.roundup, m.published_at DESC))[1] AS article_id,
                (array_agg(m.title ORDER BY per.roundup, m.published_at DESC))[1] AS title,
                (array_agg(m.feed_source ORDER BY per.roundup, m.published_at DESC))[1] AS source,
-               bool_and(per.roundup) AS only_roundups
+               bool_and(per.roundup) AS only_roundups,
+               (array_agg(m.id ORDER BY m.published_at DESC))[1:60] AS ids,
+               min(m.published_at) AS first
           FROM m JOIN per USING (id)
          GROUP BY m.cve""", owner_id or 0)
+    if scope == "public":
+        # Every CVE the shared stories quote: the pages /cve/<id> and the sitemap.
+        _index.update(at=time.time(), data={r["cve"]: {
+            "ids": list(r["ids"] or []), "stories": r["stories"], "sources": r["sources"],
+            "first": r["first"], "latest": r["latest"], "title": r["title"]} for r in rows})
     kev = await _kev_catalog()
     nvd = await _nvd_cache(pool)
     now = datetime.now(timezone.utc)
@@ -490,6 +498,24 @@ async def breaking(pool) -> list[dict]:
     except Exception:
         logger.exception("cve: breaking failed")
     return [x for x in _breaking["items"] if datetime.fromisoformat(x["until"]) > now]
+
+
+async def mention_index(pool) -> dict:
+    """CVE → {ids, stories, sources, first, latest} over the last 60 days."""
+    if not _index["data"] or time.time() - _index["at"] > TTL:
+        await top(pool)
+        if not _index["data"]:
+            # top() served a stale list while it recomputes: wait for it once.
+            await _compute(pool, 0, "public")
+    return _index["data"]
+
+
+def want(pool, cid: str):
+    """Fetch this CVE's severity and products soon (a page asked for it)."""
+    if cid not in _prio and len(_prio) < 300:
+        _prio.append(cid)
+    if not _nvd_running:
+        asyncio.create_task(_fetch_nvd(pool, []))
 
 
 async def top(pool, owner_id: int = 0, scope: str = "public") -> list[dict]:

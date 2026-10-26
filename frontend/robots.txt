@@ -3,8 +3,12 @@ Allow: /
 Disallow: /admin
 Disallow: /admin.html
 Disallow: /api/
-Disallow: /profile.html
+Disallow: /account
+Disallow: /mine
+Disallow: /saved
+Disallow: /go/
+Disallow: /tv/
 Disallow: /tv.html
+Disallow: /login.html
 
 Sitemap: https://ax-news.com/sitemap.xml
-Sitemap: https://ax-news.com/news-sitemap.xml

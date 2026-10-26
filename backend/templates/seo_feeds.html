@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo %}
+{% block title %}{{ heading }} | AX-NEWS{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block head %}
+  <link rel="canonical" href="https://ax-news.com{{ path }}">
+  <meta property="og:title" content="{{ heading }} — AX-NEWS">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="https://ax-news.com{{ path }}">
+  <meta property="og:image" content="https://ax-news.com/assets/img/topics/{{ art or 'research' }}.webp">
+  {{ seo.jsonld(ld, csp_nonce) }}
+{% endblock %}
+{% block content %}
+<main class="page seo" id="main">
+  {{ seo.crumbs(trail) }}
+  <header class="seo-hero" style="--topic:#5aa8ff;background-image:url(/assets/img/topics/{{ art or 'research' }}.webp)">
+    <div>
+      <p class="seo-kicker">Feed catalog</p>
+      <h1>{{ heading }}</h1>
+      <p>{{ lead }}</p>
+      <p class="seo-actions">{% if opml %}<a class="btn sm primary" href="{{ opml }}">Download OPML</a>{% endif %}<a class="btn sm" href="/account#catalog">Follow them on AX-NEWS</a></p>
+    </div>
+  </header>
+  <div class="seo-grid">
+    <section>
+      {% if domains %}
+        <div class="seo-cards">{% for d in domains %}
+          <a class="seo-card" href="/feeds/{{ d.key }}"><span class="thumb" style="background-image:url(/assets/img/topics/{{ d.art }}-sm.webp)"></span><span><b>{{ d.label }}</b><small>{{ d.feeds }} feeds · {{ d.langs }} languages</small></span></a>
+        {% endfor %}</div>
+      {% else %}
+        {% for t, feeds in data.groups %}
+        <h2 class="seo-h2" style="--topic:{{ t.color }}">{{ t.label }} <small>{{ feeds|length }} feeds</small></h2>
+        <ul class="feed-list">{% for f in feeds %}
+          <li>{{ seo.flag(f.country) }}<b>{{ f.title }}</b>
+            <span class="seo-small">{{ (f.site_url or f.url)|replace('https://','')|replace('http://','')|replace('www.','') }} · {{ f.lang_name }}{% if f.lang != 'en' %} → English{% endif %} · {{ f.items }} recent{% if f.active %} · in the shared feed{% endif %}</span>
+            <a class="seo-small" href="{{ f.url }}" rel="nofollow noopener" target="_blank">feed</a></li>
+        {% endfor %}</ul>
+        {% endfor %}
+      {% endif %}
+    </section>
+    <aside class="seo-side">
+      <div class="panel"><h3>About the catalog</h3><p class="seo-small">Every feed was fetched and answered with a story from the last year when the catalog was built; publishers that refuse automated readers are left out. Stories in another language are translated into English on AX-NEWS.</p></div>
+      {% include "_seo_more.html" %}
+    </aside>
+  </div>
+</main>
+{% endblock %}

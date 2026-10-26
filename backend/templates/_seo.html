@@ -1,0 +1,36 @@
+{# Shared pieces of the server-rendered pages (backend/seo.py). #}
+
+{% macro flag(cc, small=true) -%}
+{% if cc and cc|length == 2 %}<img class="sl-flag" src="/assets/img/flags/{{ cc|lower }}.svg" alt="{{ cc }}" title="{{ cc }}" width="20" height="15" loading="lazy">{% endif %}
+{%- endmacro %}
+
+{% macro when(dt, with_date=false) -%}
+{% if dt %}<time datetime="{{ dt.isoformat() }}">{{ dt.strftime('%d %b %Y, %H:%M UTC') if with_date else dt.strftime('%H:%M UTC') }}</time>{% endif %}
+{%- endmacro %}
+
+{% macro story_list(items, with_date=false, with_topic=true) -%}
+<ol class="sl">
+{% for s in items %}
+  <li class="sl-item" style="--topic:{{ s.topic.color }}">
+    <a class="sl-title" href="/go/{{ s.id }}" rel="nofollow noopener" target="_blank">{{ s.title }}</a>
+    <div class="sl-meta">
+      {{ flag(s.country) }}<b>{{ s.source }}</b>
+      <span>{{ when(s.published_at, with_date) }}</span>
+      {% if with_topic %}<a class="sl-topic" href="/topic/{{ s.category }}">{{ s.topic.label }}</a>{% endif %}
+      {% if s.lang %}<span class="sl-tr">Translated from {{ s.lang_name }}</span>{% endif %}
+    </div>
+    {% if s.excerpt %}<p class="sl-ex">{{ s.excerpt }}</p>{% endif %}
+  </li>
+{% endfor %}
+</ol>
+{%- endmacro %}
+
+{% macro crumbs(trail) -%}
+<nav class="crumbs" aria-label="Breadcrumb">
+  {% for label, href in trail %}{% if not loop.last %}<a href="{{ href }}">{{ label }}</a><span aria-hidden="true">›</span>{% else %}<span aria-current="page">{{ label }}</span>{% endif %}{% endfor %}
+</nav>
+{%- endmacro %}
+
+{% macro jsonld(data, nonce) -%}
+<script type="application/ld+json" nonce="{{ nonce }}">{{ data|tojson }}</script>
+{%- endmacro %}

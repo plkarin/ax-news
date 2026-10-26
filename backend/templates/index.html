@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if active == 'saved' %}Saved — AX-NEWS{% elif active == 'mine' %}My sources — AX-NEWS{% else %}AX-NEWS — Global Tech Intelligence Feed{% endif %}{% endblock %}
+{% block title %}{% if active == 'saved' %}Saved — AX-NEWS{% elif active == 'mine' %}My sources — AX-NEWS{% else %}AX-NEWS — Tech news from 200+ sources worldwide, in English{% endif %}{% endblock %}
 {% block head %}
   <link rel="canonical" href="https://ax-news.com/">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -47,7 +47,7 @@
     </div>
     <button class="new-pill" data-new-pill type="button"></button>
     <section id="feed" class="view-cards" aria-live="polite" aria-busy="true">
-      <div class="items" data-items></div>
+      <div class="items" data-items>{% if ssr_items %}{% import "_seo.html" as seo %}<div class="ssr-list">{{ seo.story_list(ssr_items) }}</div>{% endif %}</div>
     </section>
     <div class="sentinel" data-sentinel></div>
   </main>

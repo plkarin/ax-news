@@ -20,6 +20,7 @@ import db as database
 import sources
 import catalog
 import countries
+import seo
 import tv
 from claude_proxy import call_claude
 from auth import hash_password, verify_password, create_session, get_session_user, delete_session
@@ -1210,98 +1211,6 @@ async def approve_user(user_id: int, user: dict = Depends(require_admin)):
     """, user["id"], user_id)
     return {"approved": True}
 
-@app.get("/sitemap.xml")
-async def sitemap():
-    """Dynamic XML sitemap for Google — enhanced with priorities."""
-    from fastapi.responses import Response as FastAPIResponse
-
-    rows = await pool.fetch("""
-        SELECT id, title, published_at, category, feed_source
-        FROM articles
-        WHERE translation_status = 'done'
-          AND owner_user_id IS NULL
-          AND published_at <= NOW()
-          AND published_at >= NOW() - INTERVAL '30 days'
-          AND title !~ '[가-힣]'
-          AND title !~ '[一-鿿]'
-        ORDER BY published_at DESC
-        LIMIT 2000
-    """)
-
-    cat_priority = {
-        'AI': '0.9', 'Cybersecurity': '0.9', 'Semiconductors': '0.85',
-        'Geopolitics_TechPolicy': '0.8', 'Hardware': '0.75',
-        'Energy_GreenTech': '0.75', 'Cloud_Infrastructure': '0.75',
-        'Tech_Market': '0.7', 'Research_Papers': '0.65',
-        'Quant_Finance': '0.65',
-    }
-
-    base = "https://ax-news.com"
-    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
-             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-
-    lines.append(f"""  <url>
-    <loc>{base}/</loc>
-    <changefreq>hourly</changefreq>
-    <priority>1.0</priority>
-  </url>""")
-
-    for r in rows:
-        lastmod = r['published_at'].strftime('%Y-%m-%dT%H:%M:%S+00:00') if r['published_at'] else ''
-        priority = cat_priority.get(r['category'], '0.6')
-        lines.append(f"""  <url>
-    <loc>{base}/?article={r['id']}</loc>
-    <lastmod>{lastmod}</lastmod>
-    <changefreq>never</changefreq>
-    <priority>{priority}</priority>
-  </url>""")
-
-    lines.append('</urlset>')
-    return FastAPIResponse(content='\n'.join(lines), media_type="application/xml")
-
-@app.get("/news-sitemap.xml")
-async def news_sitemap():
-    """Google News sitemap — last 48 hours only."""
-    from fastapi.responses import Response as FastAPIResponse
-
-    rows = await pool.fetch("""
-        SELECT id, title, published_at, feed_source, category
-        FROM articles
-        WHERE translation_status = 'done'
-          AND owner_user_id IS NULL
-          AND published_at <= NOW()
-          AND published_at >= NOW() - INTERVAL '48 hours'
-          AND title !~ '[가-힣]'
-          AND title !~ '[一-鿿]'
-        ORDER BY published_at DESC
-        LIMIT 1000
-    """)
-
-    lines = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-        '        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">',
-    ]
-
-    base = "https://ax-news.com"
-    for r in rows:
-        pub = r['published_at'].strftime('%Y-%m-%dT%H:%M:%S+00:00') if r['published_at'] else ''
-        title_safe = (r['title'] or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        lines.append(f"""  <url>
-    <loc>{base}/?article={r['id']}</loc>
-    <news:news>
-      <news:publication>
-        <news:name>AX-NEWS</news:name>
-        <news:language>en</news:language>
-      </news:publication>
-      <news:publication_date>{pub}</news:publication_date>
-      <news:title>{title_safe}</news:title>
-    </news:news>
-  </url>""")
-
-    lines.append('</urlset>')
-    return FastAPIResponse(content='\n'.join(lines), media_type="application/xml")
-
 @app.post("/api/admin/users/{user_id}/reject")
 async def reject_user(user_id: int, user: dict = Depends(require_admin)):
     await pool.execute(
@@ -1851,6 +1760,379 @@ async def delete_screen(screen_id: int, user: dict = Depends(get_current_user)):
     return {"ok": True}
 
 
+# ── Pages for search engines (backend/seo.py) ─────────────────────────────────
+# Server-rendered, one subject each: topics and their days, the daily digest,
+# countries, translations, every CVE the shared stories quote, the feed
+# catalog, the TV. The sitemaps list them and nothing else.
+
+from datetime import date as _date, timezone
+
+
+def _xml(body: str, media: str = "application/xml", cache: int = 900) -> Response:
+    return Response(body, media_type=media + "; charset=utf-8", headers={"Cache-Control": f"public, max-age={cache}"})
+
+
+def _day(text: str) -> _date:
+    try:
+        d = _date.fromisoformat(text)
+    except ValueError:
+        raise HTTPException(404, "No such day")
+    today = datetime.utcnow().date()
+    if d > today or (today - d).days > 31:
+        raise HTTPException(404, "No such day")
+    return d
+
+
+def _topic_key(key: str) -> str:
+    if key not in catalog.CATEGORIES or key == "My_Sources":
+        raise HTTPException(404, "No such topic")
+    return key
+
+
+def _seo(request: Request, template: str, heading: str, path: str, trail: list, description: str,
+         items=None, kind: str = "CollectionPage", extra_ld=None, **ctx):
+    ld = seo.ld_page(kind if kind in ("CollectionPage", "WebPage") else "CollectionPage", heading, path, trail, items, extra_ld)
+    return page(request, template, heading=heading, path=path, trail=trail, description=description, ld=ld,
+                items=items or [], kind=kind, **ctx)
+
+
+def _n_sources(items) -> int:
+    return len({s["source"] for s in items})
+
+
+@app.get("/topics", response_class=HTMLResponse)
+async def topics_page(request: Request):
+    topics = await seo.topics_overview(pool)
+    by_domain = []
+    for d in catalog.TAXONOMY["domains"]:
+        ts = [t for t in topics if t["domain"] == d["key"]]
+        by_domain.append({**d, "topics": ts})
+    return _seo(request, "seo_list.html", "Every topic, in English", "/topics",
+                [("AX-NEWS", "/"), ("Topics", "/topics")],
+                f"{len(topics)} topics from technology to health, science and world news, from 200+ sources translated into English.",
+                kind="topics", kicker="Topics", lead="Every topic AX-NEWS follows, with how many stories it had in the last 48 hours and this month.",
+                domains=by_domain, art="research")
+
+
+@app.get("/topic/{key}/feed.xml")
+async def topic_feed(key: str):
+    key = _topic_key(key)
+    data = await seo.topic_page(pool, key)
+    items = (data or {}).get("items") or []
+    label = seo.topic_label(key)
+    return _xml(seo.rss(f"{label} — AX-NEWS", f"{seo.APP_URL}/topic/{key}", f"{label} news from 200+ sources, in English.",
+                        [{"title": s["title"], "link": f"{seo.APP_URL}/go/{s['id']}", "guid": f"ax-news-{s['id']}",
+                          "date": s["published_at"], "description": f"{s['source']}: {s['excerpt']}"} for s in items[:50]]),
+                media="application/rss+xml", cache=600)
+
+
+@app.get("/topic/{key}", response_class=HTMLResponse)
+async def topic_today(request: Request, key: str):
+    key = _topic_key(key)
+    data = await seo.topic_page(pool, key)
+    if not data:
+        raise HTTPException(404, "Nothing on this topic yet")
+    label = data["topic"]["label"]
+    heading = f"{label} news today"
+    items = data["items"]
+    first = f" — {items[0]['title'][:110]}" if items else ""
+    return _seo(request, "seo_topic.html", heading, f"/topic/{key}",
+                [("AX-NEWS", "/"), ("Topics", "/topics"), (label, f"/topic/{key}")],
+                f"{label} news: {len(items)} stories from {_n_sources(items)} sources in the last 48 hours, in English{first}.",
+                items=items, data=data, nsources=_n_sources(items))
+
+
+@app.get("/topic/{key}/{day}", response_class=HTMLResponse)
+async def topic_day(request: Request, key: str, day: str):
+    key = _topic_key(key)
+    d = _day(day)
+    data = await seo.topic_page(pool, key, d)
+    if not data or not data["items"]:
+        raise HTTPException(404, "Nothing on this day")
+    label = data["topic"]["label"]
+    heading = f"{label} news — {d.strftime('%A %d %B %Y')}"
+    items = data["items"]
+    return _seo(request, "seo_topic.html", heading, f"/topic/{key}/{d.isoformat()}",
+                [("AX-NEWS", "/"), ("Topics", "/topics"), (label, f"/topic/{key}"), (d.isoformat(), f"/topic/{key}/{d.isoformat()}")],
+                f"{label} on {d.strftime('%d %B %Y')}: {len(items)} stories from {_n_sources(items)} sources, in English — {items[0]['title'][:110]}.",
+                items=items, data=data, nsources=_n_sources(items))
+
+
+@app.get("/digest", response_class=HTMLResponse)
+async def digest_today(request: Request):
+    # Today's, or the last day with news (just after midnight, today has none).
+    days = await seo.digest_days(pool)
+    today = datetime.utcnow().date()
+    return await digest_page(request, (today if not days or days[0] == today else days[0]).isoformat(), latest=True)
+
+
+@app.get("/digest/{day}", response_class=HTMLResponse)
+async def digest_page(request: Request, day: str, latest: bool = False):
+    d = _day(day)
+    data = await seo.digest(pool, d)
+    if not data["total"]:
+        raise HTTPException(404, "Nothing on this day")
+    today = latest
+    heading = "The latest in tech, science and the world" if today else f"The news of {d.strftime('%A %d %B %Y')}"
+    path = "/digest" if today else f"/digest/{d.isoformat()}"
+    flat = [s for g in data["topics"] for s in g["items"]]
+    return _seo(request, "seo_list.html", heading, path,
+                [("AX-NEWS", "/"), ("Digest", "/digest")] + ([] if today else [(d.isoformat(), path)]),
+                f"{data['total']} stories from {data['sources']} sources on {d.strftime('%d %B %Y')}, topic by topic, in English.",
+                items=flat, kind="digest", kicker=d.strftime('%A %d %B %Y'), data=data,
+                lead=f"{data['total']} stories from {data['sources']} sources, topic by topic. Every title links to its publisher.",
+                days=await seo.digest_days(pool), art="world")
+
+
+def _country_name(cc: str) -> str:
+    names = {"US": "the United States", "GB": "the United Kingdom", "KR": "South Korea", "CN": "China", "JP": "Japan",
+             "IN": "India", "DE": "Germany", "FR": "France", "TW": "Taiwan", "HK": "Hong Kong", "SG": "Singapore",
+             "CA": "Canada", "AU": "Australia", "NG": "Nigeria", "BG": "Bulgaria", "IT": "Italy", "ES": "Spain",
+             "NL": "the Netherlands", "BE": "Belgium", "CH": "Switzerland", "IL": "Israel", "AE": "the UAE",
+             "ZA": "South Africa", "MX": "Mexico", "BR": "Brazil", "QA": "Qatar", "SA": "Saudi Arabia", "HU": "Hungary"}
+    return names.get(cc, cc)
+
+
+@app.get("/countries", response_class=HTMLResponse)
+async def countries_page(request: Request):
+    data = await seo.countries_overview(pool)
+    names = {c["code"]: _country_name(c["code"]).removeprefix("the ").replace("the ", "") for c in data}
+    names = {k: v[:1].upper() + v[1:] for k, v in names.items()}
+    return _seo(request, "seo_list.html", "Tech news by country, in English", "/countries",
+                [("AX-NEWS", "/"), ("Countries", "/countries")],
+                f"News from outlets in {len(data)} countries — South Korea, China, Japan, India, Europe and more — translated into English.",
+                kicker="Countries", kind="countries", data=data, names=names, art="world",
+                lead="Where AX-NEWS's outlets are, and what they published this week. Stories in another language are translated into English.")
+
+
+@app.get("/country/{cc}", response_class=HTMLResponse)
+async def country_page(request: Request, cc: str):
+    code = cc.upper()
+    if not re.fullmatch(r"[A-Z]{2}", code):
+        raise HTTPException(404, "No such country")
+    data = await seo.country_page(pool, code)
+    if not data:
+        raise HTTPException(404, "No outlet from this country")
+    name = _country_name(code)
+    plain = name.removeprefix("the ")
+    heading = f"Tech news from {name}, in English"
+    items = data["items"]
+    lead = (f"{len(items)} stories this week from {len(data['sources'])} outlet{'s' if len(data['sources']) != 1 else ''} in {name}"
+            + (f", {data['translated']} of them translated into English." if data["translated"] else "."))
+    return _seo(request, "seo_list.html", heading, f"/country/{cc.lower()}",
+                [("AX-NEWS", "/"), ("Countries", "/countries"), (plain[:1].upper() + plain[1:], f"/country/{cc.lower()}")],
+                f"{lead} {items[0]['title'][:100]}…", items=items, kind="CollectionPage",
+                kicker=plain[:1].upper() + plain[1:], flag=code, lead=lead, sources=data["sources"], art="world")
+
+
+@app.get("/translated", response_class=HTMLResponse)
+async def translated_page(request: Request):
+    data = await seo.translated_page(pool)
+    items = data["items"]
+    langs = ", ".join(n for n, _ in data["languages"][:5])
+    return _seo(request, "seo_list.html", "Tech news translated into English", "/translated",
+                [("AX-NEWS", "/"), ("Translated", "/translated")],
+                f"{len(items)} stories from {langs or 'other languages'} outlets in the last 72 hours, translated into English offline.",
+                items=items, kicker="Translated", lead=f"Stories AX-NEWS translated into English in the last 72 hours — from {langs or 'other languages'}. Each links to its original.",
+                languages=data["languages"], art="world")
+
+
+@app.get("/cve/feed.xml")
+async def cve_feed():
+    data = await seo.cve_index(pool)
+    entries = []
+    for c in data["breaking"] + data["top"]:
+        cid = c["label"]
+        if any(e["guid"] == cid for e in entries):
+            continue
+        sev = f" — {c.get('severity') or 'CVSS'} {c['cvss']:.1f}" if c.get("cvss") is not None else ""
+        entries.append({"title": f"{cid}{sev}: {c['title']}", "link": f"{seo.APP_URL}/cve/{cid}", "guid": cid,
+                        "date": datetime.fromisoformat(c["published_at"]) if c.get("published_at") else None,
+                        "description": " · ".join((c.get("impact") or [])[:2] + ([c["theme"]] if c.get("theme") else []))})
+    return _xml(seo.rss("AX-NEWS CVE watch", f"{seo.APP_URL}/cve",
+                        "The vulnerabilities that matter: exploited, severe, covered — with what is impacted.", entries),
+                media="application/rss+xml", cache=300)
+
+
+def _recent_weeks(n: int = 9) -> list:
+    out, today = [], datetime.utcnow().date()
+    for k in range(n):
+        y, w, _ = (today - timedelta(weeks=k)).isocalendar()
+        start = _date.fromisocalendar(y, w, 1)
+        out.append((y, w, f"Week {w} · {start.strftime('%d %b')}"))
+    return out
+
+
+@app.get("/cve", response_class=HTMLResponse)
+async def cve_index_page(request: Request):
+    data = await seo.cve_index(pool)
+    return _seo(request, "seo_cve_index.html", "CVE watch: the vulnerabilities that matter now", "/cve",
+                [("AX-NEWS", "/"), ("CVE watch", "/cve")],
+                f"The 20 most important CVEs of the last 60 days — exploited, severe, covered — with what is impacted, and the {len(data['recent'])} quoted in the news this week.",
+                kind="CollectionPage", data=data, week=None, weeks=_recent_weeks(),
+                lead=f"{data['total']} vulnerabilities quoted by the shared stories in the last 60 days. The ones that matter, with what is impacted and a link to each official record.")
+
+
+@app.get("/cve/week/{yw}", response_class=HTMLResponse)
+async def cve_week_page(request: Request, yw: str):
+    m = re.fullmatch(r"(\d{4})-W(\d{2})", yw)
+    if not m:
+        raise HTTPException(404, "No such week")
+    y, w = int(m.group(1)), int(m.group(2))
+    try:
+        week = await seo.cve_week(pool, y, w)
+    except ValueError:
+        raise HTTPException(404, "No such week")
+    if not week:
+        raise HTTPException(404, "No CVE that week")
+    heading = f"CVEs of week {w}, {y} ({week['start'].strftime('%d %b')} – {week['end'].strftime('%d %b')})"
+    return _seo(request, "seo_cve_index.html", heading, f"/cve/week/{yw}",
+                [("AX-NEWS", "/"), ("CVE watch", "/cve"), (f"Week {w}", f"/cve/week/{yw}")],
+                f"{len(week['cves'])} vulnerabilities first quoted in the news in week {w} of {y}, by severity.",
+                data={}, week=week, weeks=_recent_weeks(),
+                lead=f"{len(week['cves'])} vulnerabilities first quoted by the shared stories that week, most severe first.")
+
+
+@app.get("/cve/{cid}", response_class=HTMLResponse)
+async def cve_page(request: Request, cid: str):
+    cid = cid.upper()
+    if not seo.CVE_ID.match(cid):
+        raise HTTPException(404, "Not a CVE number")
+    data = await seo.cve_page(pool, cid)
+    if not data:
+        raise HTTPException(404, "AX-NEWS has no story on this CVE")
+    n = data["nvd"]
+    kev = data["kev"]
+    name = (kev or {}).get("vulnerabilityName") or ""
+    sev = f"{(n.get('severity') or 'CVSS').title()} {n['score']:.1f}" if n.get("score") is not None else ""
+    impact = "; ".join((n.get("impact") or [])[:2])
+    bits = [b for b in (sev, "exploited in the wild" if kev else "", impact, n.get("theme")) if b]
+    description = f"{cid}{': ' + name if name else ''} — " + (" · ".join(bits) if bits else (n.get("desc") or "vulnerability")) + \
+                  (f". Covered by {data['sources']} outlets." if data["sources"] else ".")
+    if not name and n.get("impact"):
+        # "PHP < 8.2.35 · …" + "Use after free · over the network…" → "PHP use after free"
+        product = re.split(r"\s+(?:[<≤≥]|\d)", n["impact"][0], 1)[0].strip()
+        kind = (n.get("theme") or "").split(" · ")[0]
+        kind = kind if kind and kind not in ("over the network", "local access", "no login") else "vulnerability"
+        name = f"{product} {kind[:1].lower() + kind[1:]}" if product else ""
+    heading = f"{cid}{': ' + name if name else ''}{' — ' + sev if sev else ''}"
+    extra = {"about": {"@type": "Thing", "name": cid, "sameAs": [data["record"], data["nvd_url"]]},
+             "datePublished": data["first"].isoformat() if data["first"] else None,
+             "dateModified": data["latest"].isoformat() if data["latest"] else None}
+    return _seo(request, "seo_cve.html", heading, f"/cve/{cid}",
+                [("AX-NEWS", "/"), ("CVE watch", "/cve"), (cid, f"/cve/{cid}")],
+                description[:300], items=data["items"], kind="WebPage", extra_ld={k: v for k, v in extra.items() if v},
+                data=data, vuln_name=name)
+
+
+@app.get("/feeds", response_class=HTMLResponse)
+async def feeds_page(request: Request):
+    rows = await pool.fetch("SELECT domain, count(*) AS n, count(DISTINCT lang) AS langs FROM feed_catalog WHERE listed GROUP BY 1")
+    counts = {r["domain"]: r for r in rows}
+    arts = {"technology": "ai", "health": "medicine", "science": "science", "climate": "climate", "business": "finance",
+            "world": "world", "politics": "politics", "mobility": "aviation", "culture": "film", "sports": "sports", "society": "education"}
+    domains = [{**d, "feeds": counts[d["key"]]["n"], "langs": counts[d["key"]]["langs"], "art": arts.get(d["key"], "default")}
+               for d in catalog.TAXONOMY["domains"] if d["key"] in counts]
+    total = sum(d["feeds"] for d in domains)
+    return _seo(request, "seo_feeds.html", "A catalog of news feeds that work", "/feeds",
+                [("AX-NEWS", "/"), ("Feed catalog", "/feeds")],
+                f"{total} RSS and Atom feeds, checked and answering, in {len(domains)} fields and 28 languages — with OPML downloads.",
+                domains=domains, opml=None,
+                lead=f"{total} feeds in {len(domains)} fields, each fetched and answering when the catalog was built. Download a field as OPML for any reader, or follow its feeds on AX-NEWS.")
+
+
+@app.get("/feeds/{name}")
+async def feeds_domain_page(request: Request, name: str):
+    domain, opml = (name[:-5], True) if name.endswith(".opml") else (name, False)
+    data = await seo.feeds_domain(pool, domain)
+    if not data:
+        raise HTTPException(404, "No such field")
+    label = data["domain"]["label"]
+    if opml:
+        feeds = [f for _, fs in data["groups"] for f in fs]
+        return Response(seo.opml(f"{label} — AX-NEWS feed catalog", feeds), media_type="text/x-opml",
+                        headers={"Content-Disposition": f'attachment; filename="ax-news-{domain}.opml"', "Cache-Control": "public, max-age=3600"})
+    arts = {"health": "medicine", "science": "science", "climate": "climate", "business": "finance", "world": "world",
+            "politics": "politics", "mobility": "aviation", "culture": "film", "sports": "sports", "society": "education"}
+    return _seo(request, "seo_feeds.html", f"{label}: {data['total']} news feeds that work", f"/feeds/{domain}",
+                [("AX-NEWS", "/"), ("Feed catalog", "/feeds"), (label, f"/feeds/{domain}")],
+                f"{data['total']} {label.lower()} RSS feeds, checked and answering, by topic and language — download them as OPML.",
+                data=data, domains=None, opml=f"/feeds/{domain}.opml", art=arts.get(domain, "ai"),
+                lead=f"The {data['total']} {label.lower()} feeds of the catalog, by topic. Download them all as OPML, or follow any of them on AX-NEWS.")
+
+
+@app.get("/tv-screens", response_class=HTMLResponse)
+async def tv_screens_page(request: Request):
+    return _seo(request, "seo_tv.html", "News on your office TV", "/tv-screens",
+                [("AX-NEWS", "/"), ("TV screens", "/tv-screens")], "", kind="WebPage",
+                extra_ld={"description": "Live news for lobbies, break rooms and SOC screens, in English, around the clock."})
+
+
+# The sitemaps: real pages only.
+@app.get("/sitemap.xml")
+async def sitemap_index():
+    now = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    body = ['<?xml version="1.0" encoding="UTF-8"?>', '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for name in ("pages", "days", "cve"):
+        body.append(f"  <sitemap><loc>{seo.APP_URL}/sitemap-{name}.xml</loc><lastmod>{now}</lastmod></sitemap>")
+    body.append("</sitemapindex>")
+    return _xml("\n".join(body), cache=900)
+
+
+@app.get("/sitemap-pages.xml")
+async def sitemap_pages():
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    urls = [("/", now, "hourly"), ("/topics", now, "hourly"), ("/digest", now, "hourly"), ("/cve", now, "hourly"),
+            ("/translated", now, "hourly"), ("/countries", now, "daily"), ("/feeds", None, "weekly"),
+            ("/tv-screens", None, "monthly"), ("/about", None, "monthly"), ("/architecture", None, "monthly"),
+            ("/privacy", None, "yearly"), ("/contact", None, "yearly")]
+    urls += [(f"/topic/{t['key']}", now, "hourly") for t in await seo.topics_overview(pool) if t["recent"]]
+    urls += [(f"/country/{c['code'].lower()}", now, "daily") for c in await seo.countries_overview(pool)]
+    urls += [(f"/feeds/{d['key']}", None, "weekly") for d in catalog.TAXONOMY["domains"]]
+    return _xml(seo.urlset(urls))
+
+
+@app.get("/sitemap-days.xml")
+async def sitemap_days():
+    urls = []
+    for d in await seo.digest_days(pool):
+        urls.append((f"/digest/{d.isoformat()}", d, None))
+    for t in await seo.topics_overview(pool):
+        for d in await seo.topic_days(pool, t["key"]):
+            urls.append((f"/topic/{t['key']}/{d['date'].isoformat()}", d["date"], None))
+    for y, w, _ in _recent_weeks():
+        urls.append((f"/cve/week/{y}-W{w:02d}", None, "daily"))
+    return _xml(seo.urlset(urls))
+
+
+@app.get("/sitemap-cve.xml")
+async def sitemap_cve():
+    import cve as _cve
+    index = await _cve.mention_index(pool)
+    nvd = await _cve._nvd_cache(pool)
+    kev = await _cve._kev_catalog()
+    # A page worth a search: scored, exploited, or covered by two outlets.
+    urls = [(f"/cve/{k}", v["latest"], None) for k, v in index.items()
+            if (nvd.get(k) or {}).get("score") is not None or k in kev or v["sources"] >= 2]
+    urls.sort(key=lambda u: u[1] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    return _xml(seo.urlset(urls[:5000]))
+
+
+@app.get("/news-sitemap.xml")
+async def news_sitemap_gone():
+    # Gone: it listed other publishers' stories as if they were ours.
+    return Response(status_code=410)
+
+
+# IndexNow (Bing, Yandex, Seznam…): the key the submissions prove the site with.
+INDEXNOW_KEY = hashlib.sha256(("ax-news-indexnow:" + (INTERNAL_SYNC_TOKEN or "dev")).encode()).hexdigest()[:32]
+
+
+@app.get(f"/{INDEXNOW_KEY}.txt")
+async def indexnow_key():
+    return Response(INDEXNOW_KEY, media_type="text/plain")
+
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 # Jinja2 templates (backend/templates, on base.html), each response with its
 # own CSP nonce.
@@ -1866,7 +2148,11 @@ def _redirect(to: str):
 
 @app.get("/", response_class=HTMLResponse)
 async def root_page(request: Request):
-    return page(request, "index.html", active="feed")
+    # The latest stories in the HTML itself: what a search engine, a link
+    # preview or a browser without JavaScript reads. The feed redraws them.
+    items = await seo.cached("home", 120, lambda: seo.stories(
+        pool, "a.published_at > now() - interval '24 hours'", [], limit=30))
+    return page(request, "index.html", active="feed", ssr_items=items)
 
 @app.get("/saved", response_class=HTMLResponse)
 async def saved_page(request: Request):
@@ -1895,7 +2181,10 @@ async def tv_html(request: Request):
 @app.get("/tv/{token}", response_class=HTMLResponse)
 async def tv_screen_page(request: Request, token: str):
     await _screen_by_token(token)
-    return page(request, "tv.html", screen_token=token, app_version=APP_VERSION)
+    resp = page(request, "tv.html", screen_token=token, app_version=APP_VERSION)
+    # An account's screen: private, never in a search engine.
+    resp.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return resp
 
 @app.get("/tv", response_class=HTMLResponse)
 async def tv_bare():

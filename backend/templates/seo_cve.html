@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo %}
+{% set n = data.nvd %}
+{% block title %}{{ heading }} | AX-NEWS{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block head %}
+  <link rel="canonical" href="https://ax-news.com{{ path }}">
+  <meta property="og:title" content="{{ heading }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="https://ax-news.com{{ path }}">
+  <meta property="og:image" content="https://ax-news.com/assets/img/topics/cybersecurity.webp">
+  {{ seo.jsonld(ld, csp_nonce) }}
+{% endblock %}
+{% block content %}
+<main class="page seo" id="main">
+  {{ seo.crumbs(trail) }}
+  <header class="seo-hero cve-hero" style="--topic:#fb7185;background-image:url(/assets/img/topics/cybersecurity.webp)">
+    <div>
+      <p class="seo-kicker">Vulnerability</p>
+      <h1><span class="mono">{{ data.id }}</span>{% if vuln_name %} — {{ vuln_name }}{% endif %}</h1>
+      <p class="cve-badges">
+        {% if n.score is not none and n.score is defined %}<span class="badge sev {{ (n.severity or '')|lower }}">{{ (n.severity or 'CVSS')|lower }} {{ '%.1f'|format(n.score) }}</span>{% endif %}
+        {% if data.kev %}<span class="badge exploited">Exploited in the wild</span>{% endif %}
+        {% if data.kev and (data.kev.knownRansomwareCampaignUse or '')|lower == 'known' %}<span class="badge ransom">Ransomware</span>{% endif %}
+        {% if data.stories %}<span class="badge">{{ data.stories }} {{ 'story' if data.stories == 1 else 'stories' }} · {{ data.sources }} {{ 'outlet' if data.sources == 1 else 'outlets' }}</span>{% endif %}
+      </p>
+      <p class="seo-actions"><a class="btn sm primary" href="{{ data.record }}" rel="noopener" target="_blank">Official record (cve.org)</a><a class="btn sm" href="{{ data.nvd_url }}" rel="noopener" target="_blank">NVD</a><a class="btn sm" href="/cve">CVE watch</a></p>
+    </div>
+  </header>
+  <div class="seo-grid">
+    <section>
+      <div class="panel cve-facts">
+        <h2 class="seo-h2">Impacted if</h2>
+        {% if n.impact %}<ul class="mono">{% for l in n.impact %}<li>{{ l }}</li>{% endfor %}</ul>{% elif data.kev %}<p>{{ data.kev.vendorProject }} {{ data.kev.product }}</p>{% else %}<p class="muted">Not known yet — the vendor's record and the NVD are being read.</p>{% endif %}
+        {% if n.theme %}<p class="cve-theme">{{ n.theme }}</p>{% endif %}
+        {% if n.desc %}<p>{{ n.desc }}</p>{% endif %}
+        {% if data.kev %}
+        <h3>CISA Known Exploited Vulnerabilities</h3>
+        <p>Added on {{ data.kev.dateAdded }}{% if data.kev.dueDate %}, federal remediation due {{ data.kev.dueDate }}{% endif %}. {{ data.kev.shortDescription }}</p>
+        {% if data.kev.requiredAction %}<p><b>Required action:</b> {{ data.kev.requiredAction }}</p>{% endif %}
+        {% endif %}
+        <p class="seo-small">First seen by AX-NEWS {{ seo.when(data.first, true) }}{% if data.latest %} · latest story {{ seo.when(data.latest, true) }}{% endif %}. Severity: NVD, or the CVE record while the NVD has not scored it. This product uses data from the NVD API but is not endorsed or certified by the NVD.</p>
+      </div>
+      {% if data["items"] %}
+      <h2 class="seo-h2">Coverage</h2>
+      {{ seo.story_list(data["items"], with_date=true) }}
+      {% endif %}
+    </section>
+    <aside class="seo-side">
+      <div class="panel"><h3>On a TV</h3><p class="seo-small">The CVE watch turns through the most important vulnerabilities of the last 60 days, with a QR code to each record. <a href="/tv-screens">Put it on your SOC screen</a>.</p></div>
+      {% include "_seo_more.html" %}
+    </aside>
+  </div>
+</main>
+{% endblock %}

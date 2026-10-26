@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo %}
+{% macro cve_row(c) -%}
+{% set cid = c.label or c.id %}
+<li class="cve-row">
+  <a class="mono" href="/cve/{{ cid }}">{{ cid }}</a>
+  {% if c.score is not none and c.score is defined %}<span class="badge sev {{ (c.severity or '')|lower }}">{{ '%.1f'|format(c.score) }}</span>{% elif c.cvss is not none and c.cvss is defined %}<span class="badge sev {{ (c.severity or '')|lower }}">{{ '%.1f'|format(c.cvss) }}</span>{% endif %}
+  {% if c.kev %}<span class="badge exploited">Exploited</span>{% endif %}
+  <span class="cve-t">{{ c.title or '' }}</span>
+  {% if c.impact %}<span class="cve-imp mono">{{ c.impact[0] }}</span>{% endif %}
+  <small>{{ c.sources }} {{ 'outlet' if c.sources == 1 else 'outlets' }}</small>
+</li>
+{%- endmacro %}
+{% block title %}{{ heading }} | AX-NEWS{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block head %}
+  <link rel="canonical" href="https://ax-news.com{{ path }}">
+  <link rel="alternate" type="application/rss+xml" title="AX-NEWS CVE watch" href="/cve/feed.xml">
+  <meta property="og:title" content="{{ heading }} — AX-NEWS">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="https://ax-news.com{{ path }}">
+  <meta property="og:image" content="https://ax-news.com/assets/img/topics/cybersecurity.webp">
+  {{ seo.jsonld(ld, csp_nonce) }}
+{% endblock %}
+{% block content %}
+<main class="page seo" id="main">
+  {{ seo.crumbs(trail) }}
+  <header class="seo-hero" style="--topic:#fb7185;background-image:url(/assets/img/topics/cybersecurity.webp)">
+    <div>
+      <p class="seo-kicker">CVE watch</p>
+      <h1>{{ heading }}</h1>
+      <p>{{ lead }}</p>
+      <p class="seo-actions"><a class="btn sm primary" href="/cve/feed.xml">RSS feed</a><a class="btn sm" href="/tv-screens">On your SOC screen</a></p>
+    </div>
+  </header>
+  <div class="seo-grid">
+    <section>
+      {% if week %}
+        <ol class="cve-list">{% for c in week.cves %}{{ cve_row(c) }}{% endfor %}</ol>
+      {% else %}
+        {% if data.breaking %}<h2 class="seo-h2 brk-h">Breaking — first seen in the last hour, scored 8+</h2><ol class="cve-list">{% for c in data.breaking %}{{ cve_row(c) }}{% endfor %}</ol>{% endif %}
+        <h2 class="seo-h2">The 20 that mattered most — last 60 days</h2>
+        <p class="seo-small">Ranked by exploitation in the wild (CISA KEV, ransomware), severity (CVSS), coverage and recency.</p>
+        <ol class="cve-list">{% for c in data.top %}{{ cve_row(c) }}{% endfor %}</ol>
+        <h2 class="seo-h2">In the news this week</h2>
+        <ol class="cve-list">{% for c in data.recent %}{{ cve_row(c) }}{% endfor %}</ol>
+      {% endif %}
+    </section>
+    <aside class="seo-side">
+      <div class="panel"><h3>Week by week</h3><ul class="seo-days">{% for y, w, label in weeks %}<li><a href="/cve/week/{{ y }}-W{{ '%02d'|format(w) }}">{{ label }}</a></li>{% endfor %}</ul></div>
+      {% include "_seo_more.html" %}
+    </aside>
+  </div>
+</main>
+{% endblock %}
