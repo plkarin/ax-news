@@ -1945,9 +1945,10 @@ async def cve_feed():
         cid = c["label"]
         if any(e["guid"] == cid for e in entries):
             continue
-        sev = f" — {c.get('severity') or 'CVSS'} {c['cvss']:.1f}" if c.get("cvss") is not None else ""
+        sev = f" — {c.get('base_severity') or c.get('severity') or 'CVSS'} {c['cvss']:.1f}" if c.get("cvss") is not None else ""
+        when = c.get("published_at") or c.get("first_seen")
         entries.append({"title": f"{cid}{sev}: {c['title']}", "link": f"{seo.APP_URL}/cve/{cid}", "guid": cid,
-                        "date": datetime.fromisoformat(c["published_at"]) if c.get("published_at") else None,
+                        "date": datetime.fromisoformat(when) if when else None,
                         "description": " · ".join((c.get("impact") or [])[:2] + ([c["theme"]] if c.get("theme") else []))})
     return _xml(seo.rss("AX-NEWS CVE watch", f"{seo.APP_URL}/cve",
                         "The vulnerabilities that matter: exploited, severe, covered — with what is impacted.", entries),

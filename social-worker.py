@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Posts each breaking CVE (a new CVE scored 8+, backend/cve.py) to
-Mastodon and/or Bluesky, once, with a link to its page on AX-NEWS.
-Run by ax-news-social.timer every 5 minutes.
+"""Posts each breaking CVE (newly published, scored 8+, first reported in the
+last hour: backend/cve.py) to Mastodon and/or Bluesky, once, with a link to
+its page on AX-NEWS. Run by ax-news-social.timer every 5 minutes.
 
 Off until the accounts are set in backend/.env:
   MASTODON_BASE_URL=https://infosec.exchange   MASTODON_TOKEN=…   (scope write:statuses)
   BLUESKY_HANDLE=axnews.bsky.social            BLUESKY_APP_PASSWORD=…   (an app password)
 
-Mastodon: at most one public post an hour (infosec.exchange's rule for
-automated accounts, 24 a day); the others of the hour go out "unlisted",
+At most PER_HOUR posts an hour on each network, the most severe first; the
+others stay on the TV and on /cve. Mastodon: one of them public (the rule of
+infosec.exchange for automated accounts, 24 a day), the others "unlisted",
 which reaches followers without the public timelines.
 MASTODON_VISIBILITY=unlisted makes every post unlisted.
 """
@@ -33,10 +34,17 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("social-worker")
 HOST = os.getenv("APP_URL", "https://ax-news.com").rstrip("/")
 LOCAL = os.getenv("AXNEWS_LOCAL_URL", "http://127.0.0.1:8000")
+PER_HOUR = 3
+
+
+def rating(b: dict) -> str:
+    """The CVSS rating (High 7–8.9, Critical 9–10), not the TV's CRITICAL."""
+    sev = b.get("base_severity") or ("CRITICAL" if b["cvss"] >= 9 else "HIGH")
+    return f"{sev.title()} {b['cvss']:.1f}"
 
 
 def text_for(b: dict, limit: int) -> str:
-    sev = f"Critical {b['cvss']:.1f}" + (" · exploited" if b.get("kev") else "")
+    sev = rating(b) + (" · exploited" if b.get("kev") else "")
     lines = [f"🚨 Breaking: {b['label']} — {sev}"]
     if b.get("impact"):
         lines.append("Impacted if: " + b["impact"][0])
@@ -118,10 +126,19 @@ async def main():
         now = datetime.now(timezone.utc)
         async with httpx.AsyncClient(timeout=30, headers={"User-Agent": "AX-NEWS social-worker"}) as client:
             feed = (await client.get(f"{LOCAL}/api/tv/public/feed")).json()
-            for b in feed.get("breaking") or []:
+
+            def room(network: str) -> bool:
+                last_hour = sum(1 for v in posts.values() if network in v
+                                and (now - datetime.fromisoformat(v[network])).total_seconds() < 3600)
+                return last_hour < PER_HOUR
+
+            # The most severe first; exploited in the wild before the others at the same score.
+            for b in sorted(feed.get("breaking") or [],
+                            key=lambda b: (-b["cvss"], not b.get("kev"), b.get("first_seen") or "")):
                 done = posts.setdefault(b["label"], {})
-                # A network that failed is tried again on the next run, while the CVE is still breaking.
-                if mastodon_on() and "mastodon" not in done:
+                # A network that failed, or had no room left this hour, is tried
+                # again on the next run, while the CVE is still breaking.
+                if mastodon_on() and "mastodon" not in done and room("mastodon"):
                     last = state.get("mastodon_public")
                     hour_free = not last or (now - datetime.fromisoformat(last)).total_seconds() >= 3600
                     visibility = os.getenv("MASTODON_VISIBILITY") or "public"
@@ -131,7 +148,7 @@ async def main():
                         done["mastodon"] = now.isoformat()
                         if visibility == "public":
                             state["mastodon_public"] = now.isoformat()
-                if bluesky_on() and "bluesky" not in done:
+                if bluesky_on() and "bluesky" not in done and room("bluesky"):
                     if await attempt("bluesky", bluesky(client, b)):
                         done["bluesky"] = now.isoformat()
         # Remember a week of posts.

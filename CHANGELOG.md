@@ -4,6 +4,34 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.3 — 2026-10-27
+
+### Breaking CVEs: only news
+- A CVE is breaking news only when it is new in three ways. It was
+  **published in the last 30 days** (date of the CVE record, or of the NVD),
+  so an old CVE a story brings back, such as SMBGhost or ProxyLogon, is not.
+  **A story is about it**: one naming at most three CVEs, so a list of a
+  month's patches is not. And that story was **published in the last 12
+  hours**, so a feed delivering days of stories at once is not. The rest is
+  unchanged: first quoted in the last hour, scored 8 or more, on screen for
+  an hour.
+- The CVE cache keeps each CVE's publication date. Entries from before
+  this release are fetched again (NVD and cve.org, at the NVD's public pace).
+- A breaking CVE shows the title of the first story about it, not that of
+  a list that happens to quote it.
+
+### Posts
+- At most **three posts an hour on each network**, the most severe first,
+  and an exploited CVE (CISA KEV) first at the same score. The others stay
+  on the TV and on `/cve`. On Mastodon one of them is public, the next two
+  unlisted.
+- Posts give the CVSS rating, **High** (7–8.9) or **Critical** (9–10). The
+  TV still marks every breaking CVE CRITICAL. The CVE watch page and its
+  RSS feed give the CVSS rating too.
+
+Over the last 60 days, the new rule makes about 73 posts, 1.2 a day; the
+old one made 119, with 19 in one hour.
+
 ## v1.3.2 — 2026-10-27
 
 - `social-worker.py`: an error on one network no longer stops the run.

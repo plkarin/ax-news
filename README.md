@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.3.2](https://github.com/plkarin/ax-news/releases/tag/v1.3.2)** ([changes](CHANGELOG.md))
+Latest release: **[v1.3.3](https://github.com/plkarin/ax-news/releases/tag/v1.3.3)** ([changes](CHANGELOG.md))
 
 <p align="center">
   <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
@@ -111,8 +111,10 @@ Every screen — the six TV layouts, the sign-in page, the phone — is in
   ransomware), severity (NVD CVSS), coverage, recency — each with an
   **Impacted if** summary (products and versions touched, kind of flaw, what
   an attacker needs) and a QR code to its official record on cve.org. A
-  CVE seen for the first time with a score of 8 or more is **breaking news**
-  for an hour: CRITICAL, in Spotlight's side column or in the band. Or a band of the screen's own words
+  CVE published in the last 30 days, scored 8 or more, that a fresh story
+  reports for the first time is **breaking news** for an hour: CRITICAL, in
+  Spotlight's side column or in the band. Old CVEs a story brings back,
+  lists of patched CVEs and feeds catching up do not count. Or a band of the screen's own words
   ("FDA approval", "phase 3"…).
 - Made to run unattended for months: refresh every two minutes, the last
   news kept through network cuts, reload on a new version and every night,
@@ -137,7 +139,9 @@ Every screen — the six TV layouts, the sign-in page, the phone — is in
   pages (`/account`, `/tv/<token>`, `/go/…`) stay out of the index.
 - `seo-worker.py` tells Bing, Yandex, Seznam and Naver which pages are new
   through **IndexNow**; `social-worker.py` posts each **breaking CVE** to
-  Mastodon and/or Bluesky once their accounts are set.
+  Mastodon and/or Bluesky once their accounts are set: three posts an hour
+  per network at most, the most severe first, with the CVSS rating (High
+  7–8.9, Critical 9–10).
 
 ### Accounts and security
 - Administrator-approved accounts, Google sign-in, an admin console.
@@ -152,7 +156,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.2
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.3
 ```
 
 ## Architecture
@@ -191,7 +195,7 @@ user `cbrain`.
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.3.2
+git checkout v1.3.3
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 
@@ -239,7 +243,7 @@ before v1.0.0: a new database does not need it.)
 | `TV_TOKEN` | Read-only token of the legacy `/api/tv/articles` feed; empty refuses it |
 | `MAX_SOURCES_PER_USER` | Own sources per account (default 150) |
 | `MASTODON_BASE_URL`, `MASTODON_TOKEN` | Account `social-worker.py` posts breaking CVEs to (token scope `write:statuses`); empty: no post |
-| `MASTODON_VISIBILITY` | `public` (default): one public post an hour at most, the others of the hour `unlisted`; `unlisted`: all of them |
+| `MASTODON_VISIBILITY` | `public` (default): one public post an hour at most, the next two of the hour `unlisted`; `unlisted`: all of them |
 | `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | Same on Bluesky, with an app password; empty: no post |
 | `AXNEWS_LOCAL_URL` | Where the workers reach the backend (default `http://127.0.0.1:8000`) |
 

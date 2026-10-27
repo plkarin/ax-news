@@ -4,7 +4,7 @@
 {% set cid = c.label or c.id %}
 <li class="cve-row">
   <a class="mono" href="/cve/{{ cid }}">{{ cid }}</a>
-  {% if c.score is not none and c.score is defined %}<span class="badge sev {{ (c.severity or '')|lower }}">{{ '%.1f'|format(c.score) }}</span>{% elif c.cvss is not none and c.cvss is defined %}<span class="badge sev {{ (c.severity or '')|lower }}">{{ '%.1f'|format(c.cvss) }}</span>{% endif %}
+  {% if c.score is not none and c.score is defined %}<span class="badge sev {{ (c.severity or '')|lower }}">{{ '%.1f'|format(c.score) }}</span>{% elif c.cvss is not none and c.cvss is defined %}<span class="badge sev {{ (c.base_severity or c.severity or '')|lower }}">{{ '%.1f'|format(c.cvss) }}</span>{% endif %}
   {% if c.kev %}<span class="badge exploited">Exploited</span>{% endif %}
   <span class="cve-t">{{ c.title or '' }}</span>
   {% if c.impact %}<span class="cve-imp mono">{{ c.impact[0] }}</span>{% endif %}
@@ -38,7 +38,7 @@
       {% if week %}
         <ol class="cve-list">{% for c in week.cves %}{{ cve_row(c) }}{% endfor %}</ol>
       {% else %}
-        {% if data.breaking %}<h2 class="seo-h2 brk-h">Breaking — first seen in the last hour, scored 8+</h2><ol class="cve-list">{% for c in data.breaking %}{{ cve_row(c) }}{% endfor %}</ol>{% endif %}
+        {% if data.breaking %}<h2 class="seo-h2 brk-h">Breaking — published in the last 30 days, first reported in the last hour, scored 8+</h2><ol class="cve-list">{% for c in data.breaking %}{{ cve_row(c) }}{% endfor %}</ol>{% endif %}
         <h2 class="seo-h2">The 20 that mattered most — last 60 days</h2>
         <p class="seo-small">Ranked by exploitation in the wild (CISA KEV, ransomware), severity (CVSS), coverage and recency.</p>
         <ol class="cve-list">{% for c in data.top %}{{ cve_row(c) }}{% endfor %}</ol>

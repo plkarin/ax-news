@@ -33,6 +33,9 @@ TTL = 15 * 60
 
 BREAKING_SCORE = 8.0     # CVSS from which a new CVE is breaking news
 BREAKING_SECS = 3600     # how long it stays on screen after we first got it
+BREAKING_AGE = 30        # days: a CVE published before is old news, even one we never quoted
+BREAKING_FRESH = 12      # hours: the story must be this fresh (a feed catching up is not news)
+ROUNDUP = 3              # a story naming more CVEs is a list (Patch Tuesday), not about one flaw
 
 _kev: dict = {"at": 0.0, "tried": 0.0, "data": {}}
 _breaking: dict = {"at": 0.0, "items": []}
@@ -231,6 +234,18 @@ def _impact(cna: dict | None, nvd: dict | None) -> list[str]:
     return lines
 
 
+def _when(s: str | None) -> datetime | None:
+    """A date of the NVD ("2026-10-20T15:15:40.623") or of cve.org
+    ("2026-10-20T14:00:00.000Z"), in UTC."""
+    if not s:
+        return None
+    try:
+        d = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+
+
 def _severity(cve: dict) -> tuple[float | None, str | None]:
     metrics = cve.get("metrics") or {}
     for key in ("cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
@@ -279,13 +294,17 @@ async def _fetch_nvd(pool, ids: list[str]):
             cid = _prio.pop(0) if urgent else queue.pop(0)
             cache = await _nvd_cache(pool)
             hit = cache.get(cid)
-            # A breaking candidate without a score is asked again every 15
-            # minutes; the others once a day, or every three days once scored.
-            ttl = (900 if urgent else 86400) if not hit or hit.get("score") is None else 3 * 86400
-            if hit and "impact" in hit and time.time() - hit.get("at", 0) < ttl:
+            # A breaking candidate without a score or a publication date is
+            # asked again every 15 minutes; the others once a day, or every
+            # three days once known. Entries from before the date was kept
+            # ("published" missing) are asked again.
+            ttl = (900 if urgent else 86400) if not hit or hit.get("score") is None or hit.get("published") is None \
+                else 3 * 86400
+            if hit and "impact" in hit and "published" in hit and time.time() - hit.get("at", 0) < ttl:
                 continue
-            entry = {"at": time.time(), "score": None, "severity": None, "desc": None, "impact": [], "theme": None}
-            nvd_cve, cwes, vector = None, [], None
+            entry = {"at": time.time(), "score": None, "severity": None, "desc": None, "impact": [], "theme": None,
+                     "published": None}
+            nvd_cve, cwes, vector, dates = None, [], None, []
             try:
                 _, status, _, body = await sources.safe_get(NVD_URL + cid, {"Accept": "application/json"})
                 if status == 200:
@@ -293,6 +312,7 @@ async def _fetch_nvd(pool, ids: list[str]):
                     if vulns:
                         c = nvd_cve = vulns[0].get("cve") or {}
                         entry["score"], entry["severity"] = _severity(c)
+                        dates.append(_when(c.get("published")))
                         vector = _vector(c)
                         cwes = [d.get("value", "") for w in c.get("weaknesses") or [] for d in w.get("description") or []]
                         d = next((x.get("value") for x in c.get("descriptions") or [] if x.get("lang") == "en"), "") or ""
@@ -307,7 +327,9 @@ async def _fetch_nvd(pool, ids: list[str]):
             try:
                 _, status, _, body = await sources.safe_get(CNA_URL + cid, {"Accept": "application/json"})
                 if status == 200:
-                    containers = json.loads(body).get("containers") or {}
+                    record = json.loads(body)
+                    containers = record.get("containers") or {}
+                    dates.append(_when((record.get("cveMetadata") or {}).get("datePublished")))
                     cna = containers.get("cna") or {}
                     if entry["score"] is None:
                         entry["score"], entry["severity"], v = _cna_score(containers)
@@ -319,6 +341,9 @@ async def _fetch_nvd(pool, ids: list[str]):
                 logger.info("cve: cve.org %s: %s", cid, e)
             entry["impact"] = _impact(cna, nvd_cve)
             entry["theme"] = _theme(cwes, vector)
+            # The earlier of the two: when the CVE was made public.
+            dates = [d for d in dates if d]
+            entry["published"] = min(dates).isoformat() if dates else None
             cache = await _nvd_cache(pool)
             cache[cid] = entry
             if len(cache) > 400:   # the oldest go
@@ -351,7 +376,7 @@ async def _compute(pool, owner_id: int, scope: str) -> list[dict]:
                AND {who}
                AND (a.translation_status = 'done' OR a.original_lang = 'en')
                AND (a.title ~* 'CVE-[0-9]' OR a.content_raw ~* 'CVE-[0-9]')
-        ), per AS (SELECT id, count(DISTINCT cve) > 3 AS roundup FROM m GROUP BY id)
+        ), per AS (SELECT id, count(DISTINCT cve) > {ROUNDUP} AS roundup FROM m GROUP BY id)
         SELECT m.cve,
                count(DISTINCT m.id) AS stories,
                count(DISTINCT m.feed_source) AS sources,
@@ -431,25 +456,36 @@ async def _first_seen(pool) -> dict:
 async def breaking(pool) -> list[dict]:
     """New and severe: a CVE the shared stories quote for the first time in
     the last hour, scored 8 or more. Each stays an hour from when we first
-    got it ("until")."""
+    got it ("until"). And it must be news:
+    - the CVE was published in the last BREAKING_AGE days: an old one a
+      story brings back (SMBGhost, Log4Shell) is not;
+    - a story is about it: one naming at most ROUNDUP CVEs, published in the
+      last BREAKING_FRESH hours. A list of a hundred patched CVEs, or a feed
+      delivering days of stories at once, is not."""
     now = datetime.now(timezone.utc)
     if time.time() - _breaking["at"] < 90:
         return [x for x in _breaking["items"] if datetime.fromisoformat(x["until"]) > now]
     _breaking["at"] = time.time()
     try:
         rows = await pool.fetch("""
-            SELECT upper('CVE-' || x[1]) AS cve, min(a.ingested_at) AS first,
-                   (array_agg(a.id ORDER BY a.ingested_at))[1] AS article_id,
-                   (array_agg(a.title ORDER BY a.ingested_at))[1] AS title,
-                   (array_agg(a.feed_source ORDER BY a.ingested_at))[1] AS source,
-                   count(DISTINCT a.feed_source) AS sources
-              FROM articles a,
-                   LATERAL regexp_matches(a.title || ' ' || left(coalesce(a.content_raw, ''), 6000),
-                                          'CVE-([0-9]{4}-[0-9]{4,8})', 'gi') x
-             WHERE a.ingested_at > now() - make_interval(secs => $1)
-               AND a.owner_user_id IS NULL
-               AND (a.title ~* 'CVE-[0-9]' OR a.content_raw ~* 'CVE-[0-9]')
-             GROUP BY 1""", BREAKING_SECS + 900)
+            WITH m AS (
+                SELECT a.id, a.title, a.feed_source, a.ingested_at, upper('CVE-' || x[1]) AS cve,
+                       a.published_at > now() - make_interval(hours => $2) AS fresh
+                  FROM articles a,
+                       LATERAL regexp_matches(a.title || ' ' || left(coalesce(a.content_raw, ''), 6000),
+                                              'CVE-([0-9]{4}-[0-9]{4,8})', 'gi') x
+                 WHERE a.ingested_at > now() - make_interval(secs => $1)
+                   AND a.owner_user_id IS NULL
+                   AND (a.title ~* 'CVE-[0-9]' OR a.content_raw ~* 'CVE-[0-9]')
+            ), per AS (SELECT id, count(DISTINCT cve) <= $3 AS about FROM m GROUP BY id)
+            SELECT m.cve, min(m.ingested_at) AS first,
+                   -- The first story about it (null: only lists, or stale stories).
+                   (array_agg(m.id ORDER BY m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS article_id,
+                   (array_agg(m.title ORDER BY m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS title,
+                   (array_agg(m.feed_source ORDER BY m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS source,
+                   count(DISTINCT m.feed_source) AS sources
+              FROM m JOIN per USING (id)
+             GROUP BY 1""", BREAKING_SECS + 900, BREAKING_FRESH, ROUNDUP)
         seen = await _first_seen(pool)
         changed = False
         for r in rows:
@@ -476,6 +512,8 @@ async def breaking(pool) -> list[dict]:
             first = datetime.fromisoformat(seen[r["cve"]]["first"])
             if not seen[r["cve"]]["new"] or now - first > timedelta(seconds=BREAKING_SECS):
                 continue
+            if r["article_id"] is None:
+                continue
             n = nvd.get(r["cve"])
             if not n or n.get("score") is None:
                 if r["cve"] not in _prio:
@@ -483,11 +521,23 @@ async def breaking(pool) -> list[dict]:
                 continue
             if n["score"] < BREAKING_SCORE:
                 continue
+            published = _when(n.get("published"))
+            if published is None:
+                if r["cve"] not in _prio:
+                    _prio.append(r["cve"])
+                continue
+            if now - published > timedelta(days=BREAKING_AGE):
+                continue
             k = kev.get(r["cve"])
             items.append({
                 "id": r["article_id"], "label": r["cve"], "cves": [r["cve"]],
                 "title": html.unescape(r["title"] or "")[:240], "source": r["source"], "sources": r["sources"],
-                "cvss": n["score"], "severity": "CRITICAL", "impact": n.get("impact") or [], "theme": n.get("theme"),
+                # CRITICAL on the TV, as breaking news; base_severity is the
+                # CVSS rating (HIGH 7–8.9, CRITICAL 9–10) for the web and posts.
+                "cvss": n["score"], "severity": "CRITICAL",
+                "base_severity": n.get("severity") or ("CRITICAL" if n["score"] >= 9 else "HIGH"),
+                "published": published.isoformat(),
+                "impact": n.get("impact") or [], "theme": n.get("theme"),
                 "kev": bool(k), "first_seen": first.isoformat(),
                 "until": (first + timedelta(seconds=BREAKING_SECS)).isoformat(), "record": RECORD_URL + r["cve"],
             })
