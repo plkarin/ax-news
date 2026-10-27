@@ -1,6 +1,6 @@
 [Unit]
-Description=AX-NEWS purge articles older than 30 days
-# Opt-in: the timer is not enabled by a default install (README, "Purge").
+Description=AX-NEWS purge of the stories older than PURGE_DAYS (90 days)
+# Keeps PURGE_DAYS days (backend/.env, 90 by default, 70 at least) and the saved stories.
 [Service]
 Type=oneshot
 User=cbrain

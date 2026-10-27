@@ -1,0 +1,12 @@
+# Local rules for the php-fpm profile of apparmor-profiles 4.0.1, which since
+# its update of 2026-10-22 confines php-fpm but names no site (502, then 403,
+# on https://ax-news.com/news).
+
+# php-fpm runs as systemd Type=notify: it must tell systemd it is ready, or
+# systemd kills it after the start timeout.
+/run/systemd/notify w,
+
+# FreshRSS (/news): read its code; write only its data (SQLite, cache, favicons, logs).
+/var/www/freshrss/ r,
+/var/www/freshrss/** r,
+/var/www/freshrss/data/** rwk,

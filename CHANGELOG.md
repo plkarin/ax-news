@@ -4,6 +4,33 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.4 — 2026-10-27
+
+### Duplicates and purge, now on
+- `dedup-worker.sh` knows what a duplicate is. It is a later copy, for one
+  owner, of the same address: a feed followed under two names, the same
+  paper in several arXiv lists, a feed that renews its ids. Or a later copy
+  of the same title from the same source within 12 hours. The script used
+  to compare titles over all time: it deleted the new issue of a weekly
+  column, and it mixed up accounts' own sources with the shared feed. It
+  keeps saved stories, and those a note points to. A date in the future
+  now becomes the time the story arrived; the story used to be deleted
+  (30 a day from AI Times, whose time zone is wrong). Of the stories
+  arriving, about one in four was a duplicate.
+- `/api/purge` keeps `PURGE_DAYS` days (90 by default, 70 at least)
+  instead of 30, which emptied the CVE watch (60 days) and its week pages.
+  It keeps saved stories, which used to go with them (ON DELETE CASCADE).
+- Both timers are on in a new install (README, Installation).
+
+### FreshRSS at /news
+- php-fpm runs again: the AppArmor profile that Ubuntu's apparmor-profiles
+  enforces since 22 October named no site (502, then 403).
+  `deploy/apparmor/php-fpm.local` holds the rules, and
+  `deploy/install-freshrss.sh` installs them.
+- nginx serves FreshRSS's themes and scripts from FreshRSS, not from
+  `frontend/`, and FreshRSS's base address is its public one,
+  `https://<host>/news`. Its redirects no longer lose `/news`.
+
 ## v1.3.3 — 2026-10-27
 
 ### Breaking CVEs: only news

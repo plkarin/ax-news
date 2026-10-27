@@ -49,6 +49,15 @@ server {
     }
 
     # HTML pages — proxy to FastAPI for per-request CSP nonce injection
+    # FreshRSS — its themes and scripts. Before the static rules below, which
+    # would look for them in frontend/ (404: an unstyled FreshRSS).
+    location ~* ^/news/(?<freshrss_file>.+\.(?:css|js|svg|png|jpg|jpeg|gif|ico|woff|woff2|webp|json))$ {
+        alias /var/www/freshrss/p/$freshrss_file;
+        expires 7d;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
     location ~* \.html$ {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;

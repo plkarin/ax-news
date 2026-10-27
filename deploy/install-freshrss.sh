@@ -7,11 +7,25 @@ FRESHRSS_DIR=/var/www/freshrss
 FRESHRSS_USER="${FRESHRSS_USER:-Pierre}"
 FRESHRSS_PASS="${FRESHRSS_PASS:-changeme}"
 FRESHRSS_PORT="${FRESHRSS_PORT:-8082}"
+# Its address through nginx (/news): redirects and links are built on it.
+FRESHRSS_PUBLIC_URL="${FRESHRSS_PUBLIC_URL:-${APP_URL:-https://ax-news.com}/news}"
 OPML_FILE="$(dirname "$0")/../ax-news-worldwide.opml"
 
 echo "=== Installing PHP 8.3 ==="
 apt-get install -y php8.3 php8.3-fpm php8.3-curl php8.3-mbstring php8.3-xml \
   php8.3-gd php8.3-zip php8.3-sqlite3 php8.3-intl php8.3-bcmath
+
+# Ubuntu's apparmor-profiles confines php-fpm without naming any site: let it
+# tell systemd it is ready and read FreshRSS (deploy/apparmor/php-fpm.local).
+if [ -f /etc/apparmor.d/php-fpm ]; then
+  if [ -s /etc/apparmor.d/local/php-fpm ]; then
+    echo "/etc/apparmor.d/local/php-fpm already has rules: add deploy/apparmor/php-fpm.local by hand"
+  else
+    install -m 644 "$(dirname "$0")/apparmor/php-fpm.local" /etc/apparmor.d/local/php-fpm
+    apparmor_parser -r /etc/apparmor.d/php-fpm
+    systemctl restart php8.3-fpm
+  fi
+fi
 
 echo "=== Cloning FreshRSS ==="
 if [ -d "$FRESHRSS_DIR" ]; then
@@ -28,7 +42,7 @@ sudo -u www-data php8.3 "$FRESHRSS_DIR/cli/do-install.php" \
   --default-user "$FRESHRSS_USER" \
   --auth-type form \
   --environment production \
-  --base-url "http://127.0.0.1:${FRESHRSS_PORT}" \
+  --base-url "$FRESHRSS_PUBLIC_URL" \
   --language en \
   --title "AX-NEWS FreshRSS" \
   --db-type sqlite

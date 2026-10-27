@@ -1150,26 +1150,28 @@ async def save_article_image(article_id: int, data: dict):
         )
     return {"ok": True}
 
+# Stories are kept PURGE_DAYS days (90), never fewer than 70: the CVE watch
+# reads 60 days of stories, and its week pages nine weeks.
+PURGE_DAYS = max(70, int(os.getenv("PURGE_DAYS") or 90))
+
+
 @app.delete("/api/purge")
 async def purge_old_articles(admin: dict = Depends(require_admin_or_internal)):
-    """Delete articles older than 30 days. A user's knowledge note keeps its
-    text and loses its link to the article (user_knowledge.source_article has
-    no ON DELETE rule, so the DELETE used to fail on the first such note)."""
+    """Delete the stories older than PURGE_DAYS, except those someone saved
+    (user_saves would lose them, ON DELETE CASCADE). A knowledge note keeps
+    its text and loses its link to the story (user_knowledge.source_article
+    has no ON DELETE rule, so the DELETE used to fail on the first such note)."""
+    old = """coalesce(published_at, ingested_at) < NOW() - make_interval(days => $1)
+             AND NOT EXISTS (SELECT 1 FROM user_saves s WHERE s.article_id = articles.id)"""
     async with pool.acquire() as conn:
         async with conn.transaction():
-            await conn.execute("""
+            await conn.execute(f"""
                 UPDATE user_knowledge SET source_article = NULL
-                WHERE source_article IN (
-                    SELECT id FROM articles
-                    WHERE published_at < NOW() - INTERVAL '30 days')
-            """)
-            result = await conn.execute("""
-                DELETE FROM articles
-                WHERE published_at < NOW() - INTERVAL '30 days'
-            """)
+                WHERE source_article IN (SELECT id FROM articles WHERE {old})""", PURGE_DAYS)
+            result = await conn.execute(f"DELETE FROM articles WHERE {old}", PURGE_DAYS)
     deleted = int(result.split()[-1])
-    logger.info(f"Purged {deleted} articles")
-    return {"deleted": deleted}
+    logger.info(f"Purged {deleted} articles older than {PURGE_DAYS} days")
+    return {"deleted": deleted, "days": PURGE_DAYS}
 
 @app.get("/api/admin/stats")
 async def admin_stats(user: dict = Depends(require_admin)):

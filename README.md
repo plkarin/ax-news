@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.3.3](https://github.com/plkarin/ax-news/releases/tag/v1.3.3)** ([changes](CHANGELOG.md))
+Latest release: **[v1.3.4](https://github.com/plkarin/ax-news/releases/tag/v1.3.4)** ([changes](CHANGELOG.md))
 
 <p align="center">
   <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
@@ -156,7 +156,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.3
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.4
 ```
 
 ## Architecture
@@ -195,7 +195,7 @@ user `cbrain`.
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.3.3
+git checkout v1.3.4
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 
@@ -218,11 +218,16 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo systemctl daemon-reload
 sudo systemctl enable --now ax-news-backend
 sudo systemctl enable --now ax-news-sync.timer ax-news-translate.timer \
-  ax-news-images.timer ax-news-sources.timer
+  ax-news-images.timer ax-news-sources.timer ax-news-dedup.timer ax-news-purge.timer
 
-# FreshRSS and its 208 feeds
+# FreshRSS and its 208 feeds; its interface at https://<host>/news
 sudo FRESHRSS_USER=<user> FRESHRSS_PASS=<password> deploy/install-freshrss.sh
 ```
+
+Ubuntu's `apparmor-profiles` confines php-fpm without naming any site, which
+leaves `/news` in 502 or 403: `deploy/install-freshrss.sh` installs
+`deploy/apparmor/php-fpm.local` as `/etc/apparmor.d/local/php-fpm`. It lets
+php-fpm tell systemd it is ready and read FreshRSS, and write only its data.
 
 (`migrations/002_audio_columns.sql` belongs to the audio summaries, removed
 before v1.0.0: a new database does not need it.)
@@ -242,6 +247,7 @@ before v1.0.0: a new database does not need it.)
 | `INTERNAL_SYNC_TOKEN` | Sent by the timers from localhost to start work (sync, images, purge); `openssl rand -hex 32` |
 | `TV_TOKEN` | Read-only token of the legacy `/api/tv/articles` feed; empty refuses it |
 | `MAX_SOURCES_PER_USER` | Own sources per account (default 150) |
+| `PURGE_DAYS` | Days of stories kept by `ax-news-purge` (default 90, at least 70: the CVE watch reads 60 days, its week pages nine weeks); saved stories are kept |
 | `MASTODON_BASE_URL`, `MASTODON_TOKEN` | Account `social-worker.py` posts breaking CVEs to (token scope `write:statuses`); empty: no post |
 | `MASTODON_VISIBILITY` | `public` (default): one public post an hour at most, the next two of the hour `unlisted`; `unlisted`: all of them |
 | `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | Same on Bluesky, with an app password; empty: no post |
@@ -258,8 +264,8 @@ before v1.0.0: a new database does not need it.)
 | `freshrss-refresh` | FreshRSS fetches its feeds, every 15 min | yes |
 | `ax-news-seo` | IndexNow: the sitemaps' new pages to Bing and others, hourly | no — enable once the site is verified |
 | `ax-news-social` | Breaking CVEs to Mastodon/Bluesky, every 5 min | no — enable once an account is set |
-| `ax-news-dedup` | Removes duplicate stories, hourly | no — enable once reviewed |
-| `ax-news-purge` | Deletes stories older than 30 days, Mondays 03:00 | no — enable to keep a month |
+| `ax-news-dedup` | Removes duplicates, hourly: a later copy of the same address, or of the same title from the same source within 12 hours; dates in the future become the arrival time | yes |
+| `ax-news-purge` | Deletes stories older than `PURGE_DAYS` (90), except saved ones, Mondays 03:00 | yes |
 
 **Update** to a release: `git fetch --tags origin && git checkout vX.Y.Z`,
 then `backend/venv/bin/pip install -r backend/requirements.txt`, the new
