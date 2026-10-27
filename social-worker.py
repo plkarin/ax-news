@@ -94,6 +94,15 @@ async def bluesky(client, b) -> bool:
     return r.status_code < 300
 
 
+async def attempt(network, call) -> bool:
+    """One network down, or a bad credential, must not stop the other one."""
+    try:
+        return await call
+    except Exception as e:
+        log.warning("%s: %s: %s", network, type(e).__name__, str(e)[:200])
+        return False
+
+
 async def main():
     if not (mastodon_on() or bluesky_on()):
         log.info("no Mastodon or Bluesky account set: nothing posted")
@@ -118,12 +127,12 @@ async def main():
                     visibility = os.getenv("MASTODON_VISIBILITY") or "public"
                     if visibility == "public" and not hour_free:
                         visibility = "unlisted"
-                    if await mastodon(client, b, visibility):
+                    if await attempt("mastodon", mastodon(client, b, visibility)):
                         done["mastodon"] = now.isoformat()
                         if visibility == "public":
                             state["mastodon_public"] = now.isoformat()
                 if bluesky_on() and "bluesky" not in done:
-                    if await bluesky(client, b):
+                    if await attempt("bluesky", bluesky(client, b)):
                         done["bluesky"] = now.isoformat()
         # Remember a week of posts.
         cutoff = now.timestamp() - 7 * 86400

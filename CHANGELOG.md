@@ -4,6 +4,14 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.2 — 2026-10-27
+
+- `social-worker.py`: an error on one network no longer stops the run.
+  A bad credential, a network down or a refused post is logged; the other
+  network still posts, and what was posted is remembered. Before this, a
+  Mastodon token holding a non-ASCII character made every run crash before
+  Bluesky, and the breaking CVE of 27 October 05:32 UTC went out nowhere.
+
 ## v1.3.1 — 2026-10-26
 
 - `social-worker.py` keeps to the rule of infosec.exchange for automated

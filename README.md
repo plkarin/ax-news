@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.3.1](https://github.com/plkarin/ax-news/releases/tag/v1.3.1)** ([changes](CHANGELOG.md))
+Latest release: **[v1.3.2](https://github.com/plkarin/ax-news/releases/tag/v1.3.2)** ([changes](CHANGELOG.md))
 
 <p align="center">
   <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
@@ -152,7 +152,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.1
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.2
 ```
 
 ## Architecture
@@ -191,7 +191,7 @@ user `cbrain`.
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.3.1
+git checkout v1.3.2
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 
