@@ -348,50 +348,13 @@ def serialize_row(row: dict) -> dict:
 
 # Read-only token for the TV dashboards' feed (backend/.env). Empty: those
 # endpoints refuse every request.
-TV_TOKEN = os.getenv("TV_TOKEN", "")
-
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
 
-@app.get("/api/tv/articles")
-async def tv_articles(token: str = "", limit: int = 100):
-    """Public endpoint for TV dashboard — no session required."""
-    if not TV_TOKEN or token != TV_TOKEN:
-        raise HTTPException(403, "Invalid token")
-    rows = await database.get_articles(pool, limit=limit, user_id=1)
-    return [serialize_row(r) for r in rows]
-
-@app.post("/api/tv/sync")
-async def tv_sync(token: str = "", request: Request = None):
-    """Public sync trigger for TV dashboard."""
-    client_ip = request.client.host if request.client else "unknown"
-    if not _check_rate_limit(_sync_attempts, client_ip, 1, 300):
-        raise HTTPException(429, "Sync rate limited. Try again in 5 minutes.")
-    if not TV_TOKEN or token != TV_TOKEN:
-        raise HTTPException(403, "Invalid token")
-    async with httpx.AsyncClient(timeout=30) as client:
-        try:
-            token_fr = await freshrss.authenticate(client)
-            items = await freshrss.fetch_articles(client, token_fr, n=200)
-        except Exception as e:
-            return {"synced": 0, "error": str(e)}
-    count = 0
-    for item in items:
-        art = freshrss.parse_article(item)
-        if art["freshrss_id"]:
-            await database.upsert_article(pool, art)
-            count += 1
-    await pool.execute("""
-        UPDATE articles
-        SET translated_at = NULL, original_lang = NULL
-        WHERE translated_at IS NOT NULL
-          AND (title ~ '[가-힣]' OR title ~ '[一-鿿]'
-               OR title ~ '[぀-ゟ]' OR title ~ '[가-힯]')
-    """)
-    translated = 0  # Translation moved to standalone worker
-    enriched = await enrich_batch_static(pool, limit=500)
-    return {"synced": count, "translated": translated, "enriched": enriched}
+# The v0 TV feed (/api/tv/articles, /api/tv/sync) and its TV_TOKEN are gone:
+# the token was in the public history. TVs read /api/tv/public/feed and
+# /api/tv/s/<token>/feed.
 
 @app.post("/api/sync")
 async def sync_articles(admin: dict = Depends(require_admin_or_internal)):
@@ -409,13 +372,9 @@ async def sync_articles(admin: dict = Depends(require_admin_or_internal)):
             await database.upsert_article(pool, art)
             count += 1
     logger.info(f"Synced {count} articles")
-    await pool.execute("""
-        UPDATE articles
-        SET translated_at = NULL, original_lang = NULL
-        WHERE translated_at IS NOT NULL
-          AND (title ~ '[가-힣]' OR title ~ '[一-鿿]'
-               OR title ~ '[぀-ゟ]' OR title ~ '[가-힯]')
-    """)
+    # Translations are checked, and bad ones sent back, by the translation
+    # worker (translation.requeue_bad). The reset that stood here erased the
+    # language of any translated story whose title kept one CJK sign.
     translated = 0  # Translation moved to standalone worker
     # Static keyword enrichment — fast, no AI calls
     enriched = await enrich_batch_static(pool, limit=500)
@@ -1161,15 +1120,7 @@ async def purge_old_articles(admin: dict = Depends(require_admin_or_internal)):
     (user_saves would lose them, ON DELETE CASCADE). A knowledge note keeps
     its text and loses its link to the story (user_knowledge.source_article
     has no ON DELETE rule, so the DELETE used to fail on the first such note)."""
-    old = """coalesce(published_at, ingested_at) < NOW() - make_interval(days => $1)
-             AND NOT EXISTS (SELECT 1 FROM user_saves s WHERE s.article_id = articles.id)"""
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            await conn.execute(f"""
-                UPDATE user_knowledge SET source_article = NULL
-                WHERE source_article IN (SELECT id FROM articles WHERE {old})""", PURGE_DAYS)
-            result = await conn.execute(f"DELETE FROM articles WHERE {old}", PURGE_DAYS)
-    deleted = int(result.split()[-1])
+    deleted = await database.purge_old(pool, PURGE_DAYS)
     logger.info(f"Purged {deleted} articles older than {PURGE_DAYS} days")
     return {"deleted": deleted, "days": PURGE_DAYS}
 

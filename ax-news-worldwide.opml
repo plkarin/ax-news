@@ -98,7 +98,7 @@
   <outline type="rss" text="ENISA (EU)" xmlUrl="https://www.enisa.europa.eu/media/news-items/RSS"/>
   <outline type="rss" text="NCSC UK" xmlUrl="https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml"/>
   <!-- Asia Pacific -->
-  <outline type="rss" text="CyberScoop Asia" xmlUrl="https://cyberscoop.com/feed/"/>
+  <outline type="rss" text="CyberScoop" xmlUrl="https://cyberscoop.com/feed/"/>
   <outline type="rss" text="ZDNet Security" xmlUrl="https://www.zdnet.com/topic/security/rss.xml"/>
   <!-- Research -->
   <outline type="rss" text="arXiv cs.CR (Crypto/Security)" xmlUrl="https://rss.arxiv.org/rss/cs.CR"/>

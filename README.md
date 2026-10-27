@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.3.4](https://github.com/plkarin/ax-news/releases/tag/v1.3.4)** ([changes](CHANGELOG.md))
+Latest release: **[v1.3.5](https://github.com/plkarin/ax-news/releases/tag/v1.3.5)** ([changes](CHANGELOG.md))
 
 <p align="center">
   <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
@@ -156,7 +156,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.4
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.5
 ```
 
 ## Architecture
@@ -195,7 +195,7 @@ user `cbrain`.
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.3.4
+git checkout v1.3.5
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 
@@ -245,7 +245,6 @@ before v1.0.0: a new database does not need it.)
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in |
 | `SMTP_*` | Mail (address verification) |
 | `INTERNAL_SYNC_TOKEN` | Sent by the timers from localhost to start work (sync, images, purge); `openssl rand -hex 32` |
-| `TV_TOKEN` | Read-only token of the legacy `/api/tv/articles` feed; empty refuses it |
 | `MAX_SOURCES_PER_USER` | Own sources per account (default 150) |
 | `PURGE_DAYS` | Days of stories kept by `ax-news-purge` (default 90, at least 70: the CVE watch reads 60 days, its week pages nine weeks); saved stories are kept |
 | `MASTODON_BASE_URL`, `MASTODON_TOKEN` | Account `social-worker.py` posts breaking CVEs to (token scope `write:statuses`); empty: no post |
@@ -275,6 +274,11 @@ then `backend/venv/bin/pip install -r backend/requirements.txt`, the new
 **Roll back**: check out the previous tag and restart; migrations never
 remove what an older release reads.
 
+**FreshRSS** (`/news`) is behind a password of nginx, before its own login:
+user `freshrss`, password in `/etc/nginx/ax-news-freshrss.htpasswd` (hashed).
+Set one with `printf 'freshrss:%s\n' "$(openssl passwd -6)" | sudo tee
+/etc/nginx/ax-news-freshrss.htpasswd`, then `sudo systemctl reload nginx`.
+
 **Search engines**: declare `https://ax-news.com/sitemap.xml` in Google
 Search Console and Bing Webmaster Tools. IndexNow needs no account: its key
 is derived from `INTERNAL_SYNC_TOKEN` and served at `/<key>.txt`.
@@ -289,6 +293,18 @@ become available.
 cd backend && set -a && . ./.env && set +a
 AXNEWS_SERVE_STATIC=1 venv/bin/uvicorn main:app --port 8001   # serves frontend/ too
 ```
+
+- **Tests** (`tests/`): the translation
+  checks, breaking CVEs, the social worker with fake networks, the
+  duplicates and the purge, the sitemaps, RSS, OPML and JSON-LD. Most need a
+  PostgreSQL database of their own, migrated like a new install; its name
+  must contain `test`, as the tests empty it:
+  ```bash
+  createdb ax_news_test
+  for m in 001_schema 003_personal_sources 004_catalog_tv; do psql ax_news_test -f migrations/$m.sql; done
+  pip install -r requirements-test.txt
+  AXNEWS_TEST_DATABASE_URL=postgresql:///ax_news_test python -m pytest tests
+  ```
 
 - **Catalog**: `catalog/sources/*.txt` lists the feeds, one per line
   (`category | lang | region | title | feed url | site url`; `active.txt` is

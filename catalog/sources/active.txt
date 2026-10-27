@@ -63,7 +63,7 @@ Cybersecurity|en|global|arXiv cs.CR (Security)|https://rss.arxiv.org/rss/cs.CR|h
 Cybersecurity|en|global|BleepingComputer|https://www.bleepingcomputer.com/feed/|https://www.bleepingcomputer.com/
 Cybersecurity|en|global|CISA Alerts|https://www.cisa.gov/cybersecurity-advisories/all.xml|
 Cybersecurity|en|global|Crowdstrike Blog|https://www.crowdstrike.com/en-us/blog/feed|https://www.crowdstrike.com/en-us/blog/
-Cybersecurity|en|global|CyberScoop Asia|https://cyberscoop.com/feed/|https://cyberscoop.com/
+Cybersecurity|en|global|CyberScoop|https://cyberscoop.com/feed/|https://cyberscoop.com/
 Cybersecurity|en|global|Dark Reading|https://www.darkreading.com/rss/all.xml|
 Cybersecurity|en|global|ENISA (EU)|https://www.enisa.europa.eu/media/news-items/RSS|
 Cybersecurity|en|global|Google Project Zero|https://googleprojectzero.blogspot.com/feeds/posts/default|

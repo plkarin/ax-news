@@ -34,6 +34,11 @@ server {
         add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" always;
     }
 
+    # The legacy TV feed and sync (v0), whose token is in the public history:
+    # closed. TVs use /api/tv/public/feed and /api/tv/s/<token>/feed.
+    location = /api/tv/articles { return 410; }
+    location = /api/tv/sync { return 410; }
+
     location /api/ {
         limit_req zone=ax_api burst=60 nodelay;
         proxy_pass http://127.0.0.1:8000;
@@ -52,6 +57,10 @@ server {
     # FreshRSS — its themes and scripts. Before the static rules below, which
     # would look for them in frontend/ (404: an unstyled FreshRSS).
     location ~* ^/news/(?<freshrss_file>.+\.(?:css|js|svg|png|jpg|jpeg|gif|ico|woff|woff2|webp|json))$ {
+        # FreshRSS is an administration tool: a password before its own login
+        # (/etc/nginx/ax-news-freshrss.htpasswd; README, Operations).
+        auth_basic "FreshRSS";
+        auth_basic_user_file /etc/nginx/ax-news-freshrss.htpasswd;
         alias /var/www/freshrss/p/$freshrss_file;
         expires 7d;
         add_header X-Frame-Options "SAMEORIGIN" always;
@@ -119,6 +128,10 @@ server {
 
     # FreshRSS — PHP scripts (regex wins over plain /news prefix below)
     location ~ ^/news(?<freshrss_script>/[^?]*\.php)(?<freshrss_pathinfo>/[^?]*)?$ {
+        # FreshRSS is an administration tool: a password before its own login
+        # (/etc/nginx/ax-news-freshrss.htpasswd; README, Operations).
+        auth_basic "FreshRSS";
+        auth_basic_user_file /etc/nginx/ax-news-freshrss.htpasswd;
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
         fastcgi_index index.php;
         include fastcgi_params;
@@ -129,6 +142,10 @@ server {
     }
     # FreshRSS — static assets (no ^~ so regex above can match PHP files)
     location /news {
+        # FreshRSS is an administration tool: a password before its own login
+        # (/etc/nginx/ax-news-freshrss.htpasswd; README, Operations).
+        auth_basic "FreshRSS";
+        auth_basic_user_file /etc/nginx/ax-news-freshrss.htpasswd;
         alias /var/www/freshrss/p;
         index index.php;
         try_files $uri $uri/ =404;

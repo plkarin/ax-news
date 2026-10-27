@@ -265,3 +265,19 @@ async def save_knowledge_update(pool, user_id: int, article_id: int,
           (user_id, domain, gap_identified, gap_resolved, source_article)
         VALUES ($1,$2,$3,$4,$5)
     """, user_id, domain, gap_id, gap_res, article_id)
+
+
+async def purge_old(pool, days: int) -> int:
+    """Delete the stories older than `days`, except those someone saved
+    (user_saves would lose them, ON DELETE CASCADE). A knowledge note keeps
+    its text and loses its link to the story (user_knowledge.source_article
+    has no ON DELETE rule)."""
+    old = """coalesce(published_at, ingested_at) < NOW() - make_interval(days => $1)
+             AND NOT EXISTS (SELECT 1 FROM user_saves s WHERE s.article_id = articles.id)"""
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(f"""
+                UPDATE user_knowledge SET source_article = NULL
+                WHERE source_article IN (SELECT id FROM articles WHERE {old})""", days)
+            result = await conn.execute(f"DELETE FROM articles WHERE {old}", days)
+    return int(result.split()[-1])

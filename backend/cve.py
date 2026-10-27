@@ -36,6 +36,14 @@ BREAKING_SECS = 3600     # how long it stays on screen after we first got it
 BREAKING_AGE = 30        # days: a CVE published before is old news, even one we never quoted
 BREAKING_FRESH = 12      # hours: the story must be this fresh (a feed catching up is not news)
 ROUNDUP = 3              # a story naming more CVEs is a list (Patch Tuesday), not about one flaw
+# The story whose title stands for a CVE: one naming it in its title, then
+# not a list ("AWS Weekly Roundup" quotes the PHP flaws in passing), then
+# one written in English rather than translated, then the first.
+TITLE_COLUMNS = """position(upper('CVE-' || x[1]) in upper(a.title)) > 0 AS named,
+                   a.title ~* '\\m(weekly|week in|this week|roundup|round-up|digest|recap|newsletter|bulletin|patch tuesday|monthly)\\M' AS listy,
+                   a.title ~ '[\\u3040-\\u30ff\\u4e00-\\u9fff\\uac00-\\ud7af]' AS foreign_script,
+                   a.original_title IS NOT NULL AS translated"""
+TITLE_ORDER = "NOT m.named, m.listy, m.foreign_script, m.translated"
 
 _kev: dict = {"at": 0.0, "tried": 0.0, "data": {}}
 _breaking: dict = {"at": 0.0, "items": []}
@@ -367,7 +375,8 @@ async def _compute(pool, owner_id: int, scope: str) -> list[dict]:
     # CVE landscape"): it counts, but its title does not name the flaw.
     rows = await pool.fetch(f"""
         WITH m AS (
-            SELECT a.id, a.title, a.feed_source, a.published_at, upper('CVE-' || x[1]) AS cve
+            SELECT a.id, a.title, a.feed_source, a.published_at, upper('CVE-' || x[1]) AS cve,
+                   {TITLE_COLUMNS}
               FROM articles a,
                    LATERAL regexp_matches(a.title || ' ' || left(coalesce(a.content_raw, ''), 6000),
                                           'CVE-([0-9]{{4}}-[0-9]{{4,8}})', 'gi') x
@@ -381,9 +390,9 @@ async def _compute(pool, owner_id: int, scope: str) -> list[dict]:
                count(DISTINCT m.id) AS stories,
                count(DISTINCT m.feed_source) AS sources,
                max(m.published_at) AS latest,
-               (array_agg(m.id ORDER BY per.roundup, m.published_at DESC))[1] AS article_id,
-               (array_agg(m.title ORDER BY per.roundup, m.published_at DESC))[1] AS title,
-               (array_agg(m.feed_source ORDER BY per.roundup, m.published_at DESC))[1] AS source,
+               (array_agg(m.id ORDER BY {TITLE_ORDER}, per.roundup, m.published_at))[1] AS article_id,
+               (array_agg(m.title ORDER BY {TITLE_ORDER}, per.roundup, m.published_at))[1] AS title,
+               (array_agg(m.feed_source ORDER BY {TITLE_ORDER}, per.roundup, m.published_at))[1] AS source,
                bool_and(per.roundup) AS only_roundups,
                (array_agg(m.id ORDER BY m.published_at DESC))[1:60] AS ids,
                min(m.published_at) AS first
@@ -467,22 +476,23 @@ async def breaking(pool) -> list[dict]:
         return [x for x in _breaking["items"] if datetime.fromisoformat(x["until"]) > now]
     _breaking["at"] = time.time()
     try:
-        rows = await pool.fetch("""
+        rows = await pool.fetch(f"""
             WITH m AS (
                 SELECT a.id, a.title, a.feed_source, a.ingested_at, upper('CVE-' || x[1]) AS cve,
-                       a.published_at > now() - make_interval(hours => $2) AS fresh
+                       a.published_at > now() - make_interval(hours => $2) AS fresh,
+                       {TITLE_COLUMNS}
                   FROM articles a,
                        LATERAL regexp_matches(a.title || ' ' || left(coalesce(a.content_raw, ''), 6000),
-                                              'CVE-([0-9]{4}-[0-9]{4,8})', 'gi') x
+                                              'CVE-([0-9]{{4}}-[0-9]{{4,8}})', 'gi') x
                  WHERE a.ingested_at > now() - make_interval(secs => $1)
                    AND a.owner_user_id IS NULL
                    AND (a.title ~* 'CVE-[0-9]' OR a.content_raw ~* 'CVE-[0-9]')
             ), per AS (SELECT id, count(DISTINCT cve) <= $3 AS about FROM m GROUP BY id)
             SELECT m.cve, min(m.ingested_at) AS first,
                    -- The first story about it (null: only lists, or stale stories).
-                   (array_agg(m.id ORDER BY m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS article_id,
-                   (array_agg(m.title ORDER BY m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS title,
-                   (array_agg(m.feed_source ORDER BY m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS source,
+                   (array_agg(m.id ORDER BY {TITLE_ORDER}, m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS article_id,
+                   (array_agg(m.title ORDER BY {TITLE_ORDER}, m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS title,
+                   (array_agg(m.feed_source ORDER BY {TITLE_ORDER}, m.ingested_at) FILTER (WHERE m.fresh AND per.about))[1] AS source,
                    count(DISTINCT m.feed_source) AS sources
               FROM m JOIN per USING (id)
              GROUP BY 1""", BREAKING_SECS + 900, BREAKING_FRESH, ROUNDUP)

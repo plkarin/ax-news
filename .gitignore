@@ -35,3 +35,4 @@ audio/
 # Migrations are part of the code
 !migrations/*.sql
 catalog/build-report.txt
+.pytest_cache/

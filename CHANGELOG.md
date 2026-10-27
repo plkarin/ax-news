@@ -4,6 +4,46 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.5 — 2026-10-27
+
+### Translation
+- Argos's hallucinations are refused. For a short headline it sometimes
+  writes a page footer instead ("Copyright (c) 2015 SHINSEGAE. All Rights
+  Reserved." for a Korean story on solar power), an apology ("I'm sorry."),
+  a fragment ("2800mm" for a Chinese title of 22 signs) or the original
+  script ("继 展 展"). The translator tries such a title once more as a
+  sentence, which mostly works. If it still fails, the story is marked
+  failed and stays out of sight, instead of showing a false title.
+- The stories translated before these checks go back to translation with
+  their original title and text, newest first. That covers 269 footers and
+  apologies, and about 4,650 stories of Chinese, Japanese or Korean feeds
+  (mostly IT Home) that were read as another language before the script
+  check, so that the Vietnamese, Korean or German model wrote nonsense, or
+  none did and the title stayed in Chinese.
+- The sync no longer erases the language of a translated story whose title
+  keeps one CJK sign: that reset predates the translator, and it would have
+  sent such stories round in a loop.
+
+### CVE watch
+- The title shown for a CVE is the story that stands for it. First, one
+  naming it in its title. Then one that is not a list or a column
+  ("weekly", "roundup", "digest"…). Then one written in English rather
+  than translated, and the first of those. It used to be the latest story
+  quoting it, such as "AWS Weekly Roundup" for the PHP flaws.
+
+### Security
+- FreshRSS (`/news`) asks for a password of nginx before its own login.
+- The v0 TV feed and its sync trigger (`/api/tv/articles`, `/api/tv/sync`)
+  are gone, with `TV_TOKEN`: the token was in the public history, so anyone
+  could start a sync. nginx answers 410 for both.
+
+### Catalog
+- CyberScoop is no longer named "CyberScoop Asia".
+
+### Tests
+- A test suite (`tests/`, README, Development), run on a PostgreSQL
+  database migrated like a new install.
+
 ## v1.3.4 — 2026-10-27
 
 ### Duplicates and purge, now on

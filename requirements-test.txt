@@ -1,0 +1,9 @@
+# What the tests import, at the versions of backend/requirements.txt: the
+# full list also pulls torch and CUDA for the translation models.
+asyncpg==0.31.0
+beautifulsoup4==4.14.3
+defusedxml==0.7.1
+feedparser==6.0.11
+httpx==0.28.1
+python-dotenv==1.2.2
+pytest==8.4.2
