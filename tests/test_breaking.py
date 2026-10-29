@@ -83,3 +83,83 @@ def test_fetch_keeps_the_publication_date(monkeypatch):
         assert e["published"].startswith("2026-10-20T23:55:26")            # cve.org's, the earlier
         assert e["impact"] and "PHP" in e["impact"][0]
     with_db(t)
+
+
+def test_kev_added(monkeypatch):
+    """CISA's additions of the last two days, with what the cache knows."""
+    asked = []
+    monkeypatch.setattr(cve, "want", lambda pool, cid: asked.append(cid))
+    today = NOW.date().isoformat()
+    old = (NOW - timedelta(days=5)).date().isoformat()
+    monkeypatch.setitem(cve._kev, "at", time.time())
+    monkeypatch.setitem(cve._kev, "data", {
+        "CVE-2026-0001": {"cveID": "CVE-2026-0001", "vendorProject": "Citrix", "product": "NetScaler",
+                          "vulnerabilityName": "Citrix NetScaler Improper Input Validation Vulnerability",
+                          "dateAdded": today, "knownRansomwareCampaignUse": "Known"},
+        "CVE-2019-0002": {"cveID": "CVE-2019-0002", "vendorProject": "Microsoft", "product": "Windows",
+                          "vulnerabilityName": "Microsoft Windows Use-After-Free Vulnerability", "dateAdded": today},
+        "CVE-2025-0003": {"cveID": "CVE-2025-0003", "vendorProject": "Apple", "product": "iOS", "dateAdded": old},
+    })
+
+    async def t(pool):
+        await pool.execute("INSERT INTO app_meta (key, value) VALUES ('nvd_cache', $1)",
+                           json.dumps({"CVE-2026-0001": entry(9.3, "CRITICAL", 2)}))
+        got = {k["label"]: k for k in await cve.kev_added(pool)}
+        assert set(got) == {"CVE-2026-0001", "CVE-2019-0002"}          # an old CVE newly exploited counts
+        assert got["CVE-2026-0001"]["product"] == "Citrix NetScaler" and got["CVE-2026-0001"]["ransomware"]
+        assert got["CVE-2026-0001"]["cvss"] == 9.3 and got["CVE-2019-0002"]["cvss"] is None
+        assert got["CVE-2026-0001"]["ready"] and not got["CVE-2019-0002"]["ready"]
+        assert asked == ["CVE-2019-0002"]                               # its score is asked for
+    with_db(t)
+
+
+def test_short_names():
+    assert cve.short_name({"vendorProject": "Citrix", "product": "NetScaler"}, None) == "Citrix NetScaler"
+    assert cve.short_name({"vendorProject": "Cisco", "product": "Cisco IOS XE"}, None) == "Cisco IOS XE"
+    assert cve.short_name({"vendorProject": "PHP Group", "product": "PHP"}, None) == "PHP"
+    assert cve.short_name(None, {"impact": ["PHP < 8.2.35 · < 8.3.36 · < 8.4.27 +1"]}) == "PHP"
+    assert cve.short_name(None, {"impact": ["Windows 10 1607 < 10.0.14393.9512 and 7 other products"]}) == "Windows 10 1607"
+    assert cve.short_name(None, None, "A story about a flaw") == "A story about a flaw"
+
+
+def test_day_top(monkeypatch):
+    """A day's CVEs, ranked by exploitation, severity and coverage."""
+    monkeypatch.setitem(cve._kev, "at", time.time())
+    monkeypatch.setitem(cve._kev, "data", {"CVE-2026-1002": {"cveID": "CVE-2026-1002", "vendorProject": "Citrix",
+                                                             "product": "NetScaler", "dateAdded": "2026-10-01"}})
+    cve._days.clear()
+
+    async def t(pool):
+        await pool.execute("INSERT INTO app_meta (key, value) VALUES ('nvd_cache', $1)", json.dumps({
+            "CVE-2026-1001": entry(7.5, "HIGH", 3), "CVE-2026-1002": entry(9.8, "CRITICAL", 3),
+            "CVE-2026-1003": entry(9.9, "CRITICAL", 3), "CVE-2026-1004": entry(10.0, "CRITICAL", 3)}))
+        for i, source in enumerate(("Outlet A", "Outlet B", "Outlet C")):
+            await add_story(pool, f"Widget flaw CVE-2026-1001 ({i})", source=source, hours_ago=5)
+        await add_story(pool, "NetScaler flaw CVE-2026-1002 exploited", source="Outlet A", hours_ago=6)
+        await add_story(pool, "This month's patches", source="Outlet B", hours_ago=4,
+                        content="CVE-2026-1003 CVE-2026-1005 CVE-2026-1006 CVE-2026-1007")
+        await add_story(pool, "CVE-2026-1004, a day earlier", source="Outlet C", hours_ago=40)
+        start, end = NOW - timedelta(hours=24), NOW
+        top = await cve.day_top(pool, start, end)
+        assert [c["label"] for c in top] == ["CVE-2026-1002", "CVE-2026-1001"]   # 1003: a list only; 1004: the day before
+        assert top[0]["kev"] and top[0]["product"] == "Citrix NetScaler" and top[1]["sources"] == 3
+    with_db(t)
+
+
+def test_impact_of_a_kernel_record():
+    """kernel.org's records: affected from a version, fixed per branch."""
+    versions = [{"version": "cef401de7be8", "lessThan": "3599e6b3cc1a", "status": "affected", "versionType": "git"},
+                {"version": "3.9", "status": "affected"},
+                {"version": "0", "lessThan": "3.9", "status": "unaffected", "versionType": "semver"},
+                {"version": "5.10.257", "lessThanOrEqual": "5.10.*", "status": "unaffected", "versionType": "semver"},
+                {"version": "6.12.91", "lessThanOrEqual": "6.12.*", "status": "unaffected", "versionType": "semver"},
+                {"version": "6.18.33", "lessThanOrEqual": "6.18.*", "status": "unaffected", "versionType": "semver"},
+                {"version": "7.0.10", "lessThanOrEqual": "7.0.*", "status": "unaffected", "versionType": "semver"},
+                {"version": "7.1", "lessThanOrEqual": "*", "status": "unaffected", "versionType": "original_commit_for_fix"}]
+    cna = {"affected": [{"vendor": "Linux", "product": "Linux", "defaultStatus": "affected", "versions": versions}]}
+    assert cve._impact(cna, None) == ["Linux ≥ 3.9, fixed in 7.1 · 7.0.10 · 6.18.33 +2"]
+    assert cve._kernel_stale({"impact": ["Linux 3.9"]}) and not cve._kernel_stale({"impact": cve._impact(cna, None)})
+    php = {"affected": [{"vendor": "PHP Group", "product": "PHP", "versions": [
+        {"version": "8.2.0", "lessThan": "8.2.35", "status": "affected"},
+        {"version": "8.3.0", "lessThan": "8.3.36", "status": "affected"}]}]}
+    assert cve._impact(php, None) == ["PHP < 8.2.35 · < 8.3.36"]

@@ -4,6 +4,35 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.6 — 2026-10-29
+
+### Posts
+- `social-worker.py` posts two more kinds of news, so that the accounts do
+  not stay silent for days between breaking CVEs:
+  - each CVE CISA adds to its **Known Exploited Vulnerabilities** catalog
+    (73 in the last 60 days, on 28 of them): "⚠️ Exploited in the wild",
+    with CISA's name for the flaw, its rating, whether ransomware uses it,
+    and its Impacted if. Not when it was posted as breaking in the last
+    24 hours, and not before its score and products are known;
+  - every morning at 08:30 (Paris), **the three CVEs that mattered** the
+    day before, ranked like the CVE watch: exploitation, severity,
+    coverage. On Mastodon it waits for the hour's public slot, until
+    12:00.
+- Breaking CVEs go first, then the daily post, then CISA's additions, which
+  can wait an hour: still three posts an hour per network at most.
+- `SOCIAL_DIGEST_AT`, `SOCIAL_TZ` and `SOCIAL_KEV` set them (README,
+  Configuration).
+
+### CVE watch
+- `/api/cve/watch`: the breaking CVEs, the KEV additions of the last two
+  days and a day's top CVEs, as JSON. The worker reads it, and anyone may.
+- The KEV catalog is read every three hours instead of twelve.
+- Impacted if reads the Linux kernel's records. They give the version a
+  flaw came in and, per branch, the version that fixed it. The result is
+  "Linux ≥ 3.9, fixed in 7.1 · 7.0.10 · 6.18.33 +5", no longer "Linux 3.9",
+  which read as if only 3.9 were affected. The kernel CVEs already in the
+  cache are read again.
+
 ## v1.3.5 — 2026-10-27
 
 ### Translation

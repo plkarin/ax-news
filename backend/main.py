@@ -1890,6 +1890,32 @@ async def translated_page(request: Request):
                 languages=data["languages"], art="world")
 
 
+@app.get("/api/cve/watch")
+async def cve_watch(day: str = "", tz: str = "UTC"):
+    """The CVE watch as data, read by social-worker.py: the breaking CVEs,
+    CISA's additions to its KEV catalog in the last two days, and the CVEs
+    that mattered on `day` (YYYY-MM-DD in the time zone `tz`; yesterday by
+    default). Everything here is on the /cve pages too."""
+    import cve
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    try:
+        zone = ZoneInfo(tz)
+    except (ZoneInfoNotFoundError, ValueError):
+        raise HTTPException(400, "tz: an IANA time zone, such as Europe/Paris")
+    today = datetime.now(zone).date()
+    try:
+        d = _date.fromisoformat(day) if day else today - timedelta(days=1)
+    except ValueError:
+        raise HTTPException(400, "day: YYYY-MM-DD")
+    if not today - timedelta(days=31) <= d <= today:
+        raise HTTPException(400, "day: one of the last 31 days")
+    start = datetime.combine(d, datetime.min.time(), tzinfo=zone)
+    end = datetime.combine(d + timedelta(days=1), datetime.min.time(), tzinfo=zone)
+    return {"breaking": await cve.breaking(pool), "kev_added": await cve.kev_added(pool),
+            "day": {"date": d.isoformat(), "tz": tz,
+                    "top": await cve.day_top(pool, start.astimezone(timezone.utc), end.astimezone(timezone.utc))}}
+
+
 @app.get("/cve/feed.xml")
 async def cve_feed():
     data = await seo.cve_index(pool)

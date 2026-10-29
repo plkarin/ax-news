@@ -55,9 +55,10 @@ _nvd_running = False
 
 
 async def _kev_catalog() -> dict:
-    """CISA KEV by CVE number, refreshed twice a day (kept if CISA does not answer)."""
+    """CISA KEV by CVE number, refreshed every three hours: its additions are
+    posted (social-worker.py). Kept if CISA does not answer."""
     now = time.time()
-    if now - _kev["at"] < 12 * 3600 or now - _kev["tried"] < 3600:
+    if now - _kev["at"] < 3 * 3600 or now - _kev["tried"] < 3600:
         return _kev["data"]
     _kev["tried"] = now
     try:
@@ -171,6 +172,32 @@ def _ranges_cna(versions: list[dict]) -> list[str]:
     return out
 
 
+def _vkey(v: str) -> tuple:
+    return tuple(int(x) if x.isdigit() else 0 for x in re.split(r"[.-]", v))
+
+
+def _fixed_branches(versions: list[dict]) -> str | None:
+    """The Linux kernel's way (kernel.org's records): affected from a
+    version on, and per branch the version that fixed it, as "unaffected"
+    ("5.10.257" ≤ "5.10.*"): "≥ 3.9, fixed in 7.1 · 7.0.10 · 6.18.33 +5"."""
+    intro = [_ver(v.get("version")) for v in versions or []
+             if (v.get("status") or "") == "affected" and not v.get("lessThan") and not v.get("lessThanOrEqual")
+             and (v.get("versionType") or "").lower() != "git"]
+    fixes = [_ver(v.get("version")) for v in versions or []
+             if (v.get("status") or "") == "unaffected" and (v.get("lessThanOrEqual") or "").endswith("*")
+             and re.fullmatch(r"\d+(\.\d+)*", _ver(v.get("version")))]
+    if not intro or not fixes:
+        return None
+    fixes.sort(key=_vkey, reverse=True)
+    more = f" +{len(fixes) - 3}" if len(fixes) > 3 else ""
+    return f"≥ {intro[0]}, fixed in {' · '.join(fixes[:3])}{more}"
+
+
+def _kernel_stale(entry: dict) -> bool:
+    """ "Linux 3.9": a kernel record summed up before _fixed_branches."""
+    return bool(entry.get("impact") and re.fullmatch(r"Linux [0-9][\w.]*", entry["impact"][0]))
+
+
 def _ranges_cpe(matches: list[dict]) -> dict[str, list[str]]:
     by: dict[str, list[str]] = {}
     for m in matches:
@@ -215,6 +242,9 @@ def _impact(cna: dict | None, nvd: dict | None) -> list[str]:
         # Only ranges that read as versions ("< 14.1-73.37", not
         # "< 14.1-73.37 FIPS and NDcPP" or "< log4j-core*").
         r = [x for x in _ranges_cna(a.get("versions")) if _CLEAN.match(x) and re.search(r"\d|all", x)]
+        branches = _fixed_branches(a.get("versions"))
+        if branches:
+            r = [branches]
         if name and r:
             products.append((_short(name), r))
     named = [w for a in (cna or {}).get("affected") or [] for w in re.findall(r"[a-z0-9]{4,}", f"{a.get('vendor', '')} {a.get('product', '')}".lower())]
@@ -308,7 +338,8 @@ async def _fetch_nvd(pool, ids: list[str]):
             # ("published" missing) are asked again.
             ttl = (900 if urgent else 86400) if not hit or hit.get("score") is None or hit.get("published") is None \
                 else 3 * 86400
-            if hit and "impact" in hit and "published" in hit and time.time() - hit.get("at", 0) < ttl:
+            if hit and "impact" in hit and "published" in hit and not _kernel_stale(hit) \
+                    and time.time() - hit.get("at", 0) < ttl:
                 continue
             entry = {"at": time.time(), "score": None, "severity": None, "desc": None, "impact": [], "theme": None,
                      "published": None}
@@ -568,6 +599,97 @@ async def mention_index(pool) -> dict:
             # top() served a stale list while it recomputes: wait for it once.
             await _compute(pool, 0, "public")
     return _index["data"]
+
+
+def short_name(k: dict | None, n: dict | None, title: str | None = None) -> str:
+    """What a CVE touches, in a few words: "Citrix NetScaler" (KEV), "PHP"
+    (its Impacted if), else the start of a story's title."""
+    if k and (k.get("vendorProject") or k.get("product")):
+        vendor, product = (k.get("vendorProject") or "").strip(), (k.get("product") or "").strip()
+        # "Cisco" + "Cisco IOS XE", "PHP Group" + "PHP": the product says it.
+        if not vendor or vendor.lower() in product.lower() or product.split()[:1] == vendor.split()[:1]:
+            return product or vendor
+        return f"{vendor} {product}".strip()
+    if n and n.get("impact"):
+        m = re.match(r"(.+?)(?:\s+(?:<|≤|>=|=|→|\d+(?:\.\d+)+\b)|\s*$)", n["impact"][0])
+        if m and m.group(1).strip():
+            return m.group(1).strip()
+    return (title or "")[:40]
+
+
+async def kev_added(pool, days: int = 2) -> list[dict]:
+    """The CVEs CISA added to its catalog of Known Exploited Vulnerabilities
+    in the last `days` days: exploited in the wild. Newest first."""
+    kev = await _kev_catalog()
+    nvd = await _nvd_cache(pool)
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+    out = []
+    for cid, k in kev.items():
+        if (k.get("dateAdded") or "") < since:
+            continue
+        n = nvd.get(cid) or {}
+        # Not ready while its score and products are being read: posted then.
+        ready = n.get("score") is not None and "published" in n and not _kernel_stale(n)
+        if not ready:
+            want(pool, cid)
+        out.append({"label": cid, "kev": True, "ready": ready, "kev_added": k.get("dateAdded"), "name": k.get("vulnerabilityName"),
+                    "product": short_name(k, n), "ransomware": (k.get("knownRansomwareCampaignUse") or "").lower() == "known",
+                    "due": k.get("dueDate"), "cvss": n.get("score"), "base_severity": n.get("severity"),
+                    "impact": n.get("impact") or [], "theme": n.get("theme"), "record": RECORD_URL + cid})
+    out.sort(key=lambda x: (x["kev_added"] or "", x["cvss"] or 0), reverse=True)
+    return out
+
+
+_days: dict = {}   # (start, end) → (at, list)
+
+
+async def day_top(pool, start: datetime, end: datetime, n: int = 3) -> list[dict]:
+    """The CVEs that mattered in the stories received between start and end
+    (the daily post): ranked like the CVE watch, by exploitation, severity
+    and coverage. A CVE only listed in round-ups counts only if exploited."""
+    key = (start.isoformat(), end.isoformat())
+    if key in _days and time.time() - _days[key][0] < 600:
+        return _days[key][1]
+    rows = await pool.fetch(f"""
+        WITH m AS (
+            SELECT a.id, a.title, a.feed_source, upper('CVE-' || x[1]) AS cve,
+                   {TITLE_COLUMNS}
+              FROM articles a,
+                   LATERAL regexp_matches(a.title || ' ' || left(coalesce(a.content_raw, ''), 6000),
+                                          'CVE-([0-9]{{4}}-[0-9]{{4,8}})', 'gi') x
+             WHERE a.ingested_at >= $1 AND a.ingested_at < $2 AND a.owner_user_id IS NULL
+               AND (a.translation_status = 'done' OR a.original_lang = 'en')
+               AND (a.title ~* 'CVE-[0-9]' OR a.content_raw ~* 'CVE-[0-9]')
+        ), per AS (SELECT id, count(DISTINCT cve) > {ROUNDUP} AS roundup FROM m GROUP BY id)
+        SELECT m.cve, count(DISTINCT m.feed_source) AS sources, count(DISTINCT m.id) AS stories,
+               bool_and(per.roundup) AS only_roundups,
+               (array_agg(m.title ORDER BY {TITLE_ORDER}, per.roundup, m.id))[1] AS title
+          FROM m JOIN per USING (id)
+         GROUP BY m.cve""", start, end)
+    kev = await _kev_catalog()
+    nvd = await _nvd_cache(pool)
+    out = []
+    for r in rows:
+        k, nv = kev.get(r["cve"]), nvd.get(r["cve"]) or {}
+        if r["only_roundups"] and not k:
+            continue
+        score = nv.get("score")
+        ransom = bool(k and (k.get("knownRansomwareCampaignUse") or "").lower() == "known")
+        rank = (50 if k else 0) + (10 if ransom else 0) \
+            + (35 if score and score >= 9 else 20 if score and score >= 7 else 5 if score and score >= 4 else 0) \
+            + 6 * min(r["sources"], 15) + min(r["stories"], 30)
+        out.append({"label": r["cve"], "kev": bool(k), "ransomware": ransom, "cvss": score,
+                    "base_severity": nv.get("severity"), "sources": r["sources"], "stories": r["stories"],
+                    "product": short_name(k, nv, html.unescape(r["title"] or "")),
+                    "title": html.unescape(r["title"] or "")[:240], "impact": nv.get("impact") or [],
+                    "theme": nv.get("theme"), "_rank": rank})
+    out.sort(key=lambda x: -x["_rank"])
+    for x in out:
+        x.pop("_rank")
+    _days[key] = (time.time(), out[:n])
+    if len(_days) > 20:
+        _days.pop(next(iter(_days)))
+    return out[:n]
 
 
 def want(pool, cid: str):

@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.3.5](https://github.com/plkarin/ax-news/releases/tag/v1.3.5)** ([changes](CHANGELOG.md))
+Latest release: **[v1.3.6](https://github.com/plkarin/ax-news/releases/tag/v1.3.6)** ([changes](CHANGELOG.md))
 
 <p align="center">
   <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
@@ -138,10 +138,12 @@ Every screen — the six TV layouts, the sign-in page, the phone — is in
   (`/sitemap.xml` → pages, days, CVEs), `robots.txt`, `llms.txt`. Private
   pages (`/account`, `/tv/<token>`, `/go/…`) stay out of the index.
 - `seo-worker.py` tells Bing, Yandex, Seznam and Naver which pages are new
-  through **IndexNow**; `social-worker.py` posts each **breaking CVE** to
-  Mastodon and/or Bluesky once their accounts are set: three posts an hour
-  per network at most, the most severe first, with the CVSS rating (High
-  7–8.9, Critical 9–10).
+  through **IndexNow**; `social-worker.py` posts the CVE watch to Mastodon
+  and/or Bluesky once their accounts are set: each **breaking CVE**, each
+  CVE CISA adds to its **KEV catalog** (exploited in the wild), and every
+  morning the **three CVEs that mattered** the day before. At most three
+  posts an hour per network, with the CVSS rating (High 7–8.9, Critical
+  9–10). Its data, `/api/cve/watch`, is public too.
 
 ### Accounts and security
 - Administrator-approved accounts, Google sign-in, an admin console.
@@ -156,7 +158,7 @@ Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
 lists what each one changes. Production runs a tagged release:
 
 ```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.5
+cd /opt/ax-news && git fetch --tags origin && git checkout v1.3.6
 ```
 
 ## Architecture
@@ -195,7 +197,7 @@ user `cbrain`.
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.3.5
+git checkout v1.3.6
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 
@@ -249,6 +251,8 @@ before v1.0.0: a new database does not need it.)
 | `PURGE_DAYS` | Days of stories kept by `ax-news-purge` (default 90, at least 70: the CVE watch reads 60 days, its week pages nine weeks); saved stories are kept |
 | `MASTODON_BASE_URL`, `MASTODON_TOKEN` | Account `social-worker.py` posts breaking CVEs to (token scope `write:statuses`); empty: no post |
 | `MASTODON_VISIBILITY` | `public` (default): one public post an hour at most, the next two of the hour `unlisted`; `unlisted`: all of them |
+| `SOCIAL_DIGEST_AT`, `SOCIAL_TZ` | When the daily post goes out (default `08:30`, `Europe/Paris`; window until 12:00); `SOCIAL_DIGEST_AT=off`: no daily post |
+| `SOCIAL_KEV` | `0`: no post for CISA's KEV additions (default `1`) |
 | `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | Same on Bluesky, with an app password; empty: no post |
 | `AXNEWS_LOCAL_URL` | Where the workers reach the backend (default `http://127.0.0.1:8000`) |
 
@@ -262,7 +266,7 @@ before v1.0.0: a new database does not need it.)
 | `ax-news-images` | Pictures for stories without one, hourly | yes |
 | `freshrss-refresh` | FreshRSS fetches its feeds, every 15 min | yes |
 | `ax-news-seo` | IndexNow: the sitemaps' new pages to Bing and others, hourly | no — enable once the site is verified |
-| `ax-news-social` | Breaking CVEs to Mastodon/Bluesky, every 5 min | no — enable once an account is set |
+| `ax-news-social` | The CVE watch to Mastodon/Bluesky (breaking CVEs, KEV additions, a daily post), every 5 min | no — enable once an account is set |
 | `ax-news-dedup` | Removes duplicates, hourly: a later copy of the same address, or of the same title from the same source within 12 hours; dates in the future become the arrival time | yes |
 | `ax-news-purge` | Deletes stories older than `PURGE_DAYS` (90), except saved ones, Mondays 03:00 | yes |
 
