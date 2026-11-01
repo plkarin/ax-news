@@ -541,8 +541,11 @@ async def breaking(pool) -> list[dict]:
             seen[r["cve"]] = {"first": r["first"].isoformat(), "new": not older}
             changed = True
         if changed:
+            # Three days are kept, and the CVEs quoted right now: dropping one
+            # of those made the loop below fail (KeyError) for that round.
             limit = (now - timedelta(days=3)).isoformat()
-            seen = {k: v for k, v in seen.items() if v["first"] > limit}
+            quoted = {r["cve"] for r in rows}
+            seen = {k: v for k, v in seen.items() if v["first"] > limit or k in quoted}
             await pool.execute("""INSERT INTO app_meta (key, value) VALUES ('cve_first_seen', $1)
                                   ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()""",
                                json.dumps(seen))

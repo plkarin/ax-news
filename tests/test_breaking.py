@@ -163,3 +163,22 @@ def test_impact_of_a_kernel_record():
         {"version": "8.2.0", "lessThan": "8.2.35", "status": "affected"},
         {"version": "8.3.0", "lessThan": "8.3.36", "status": "affected"}]}]}
     assert cve._impact(php, None) == ["PHP < 8.2.35 · < 8.3.36"]
+
+
+def test_an_old_cve_quoted_again_does_not_stop_the_round():
+    """A CVE first seen four days ago and quoted again, while a new one
+    breaks: the new one is found (the pruning of the first-seen dates used
+    to drop the old one in the middle of the round: KeyError)."""
+    async def t(pool):
+        cache = {"CVE-2026-9900021": entry(9.1, "CRITICAL", 2), "CVE-2026-9900022": entry(8.8, "HIGH", 10)}
+        four_days = (NOW - timedelta(days=4)).isoformat()
+        await pool.execute("INSERT INTO app_meta (key, value) VALUES ('cve_first_seen', $1)",
+                           json.dumps({"CVE-2026-9900022": {"first": four_days, "new": True}}))
+        await add_story(pool, "Earlier: CVE-2026-9900022", hours_ago=24 * 4, ingested_hours_ago=24 * 4)
+        await add_story(pool, "CVE-2026-9900022, four days on", hours_ago=0.5, ingested_hours_ago=0.2)
+        await add_story(pool, "New flaw CVE-2026-9900021", hours_ago=0.5, ingested_hours_ago=0.1)
+        got = await breaking(pool, cache)
+        assert set(got) == {"CVE-2026-9900021"}
+        seen = json.loads(await pool.fetchval("SELECT value FROM app_meta WHERE key = 'cve_first_seen'"))
+        assert "CVE-2026-9900022" in seen                      # kept while it is quoted
+    with_db(t)

@@ -4,6 +4,15 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.8 — 2026-11-01
+
+- Breaking CVEs: a round of detection no longer fails when a CVE first seen
+  more than three days ago is quoted again while a new one comes in. The
+  pruning of the first-seen dates dropped the old one in the middle of the
+  round (KeyError, "cve: breaking failed"), and that round served the
+  previous result, which could delay a new breaking CVE by 90 seconds. It
+  happened once, on 1 November at 05:07.
+
 ## v1.3.7 — 2026-11-01
 
 ### Storing stories
