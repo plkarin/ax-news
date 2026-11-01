@@ -10,65 +10,99 @@ def needs_translation(title: str) -> bool:
             return True
     return False
 
-async def upsert_article(pool, art: dict) -> int:
-    # A shared feed known to be in another language (catalog.FEED_LANGS)
-    # goes to translation whatever its title's script.
+async def drop_duplicates(pool, new: list[dict], owner: int | None) -> tuple[list[dict], int]:
+    """The new items that duplicate nothing of their owner's (None: the
+    shared feeds), stored or earlier in the batch, by dedup-worker.sh's rule:
+    the same address, or the same title from the same source within 12
+    hours. Returns (the others, oldest first; how many were left out)."""
+    new = sorted(new, key=lambda a: (a.get("published_at") or datetime.max.replace(tzinfo=timezone.utc),
+                                     a.get("freshrss_id") or ""))
+    urls = {r["url"] for r in await pool.fetch(
+        "SELECT url FROM articles WHERE url = ANY($1::text[]) AND owner_user_id IS NOT DISTINCT FROM $2",
+        [a["url"] for a in new if a.get("url")], owner)}
+    titles: dict = {}
+    for r in await pool.fetch("""
+            SELECT feed_source, lower(trim(title)) AS t, published_at FROM articles
+             WHERE lower(trim(title)) = ANY($1::text[]) AND owner_user_id IS NOT DISTINCT FROM $2""",
+            list({(a.get("title") or "").strip().lower() for a in new}), owner):
+        titles.setdefault((r["feed_source"], r["t"]), []).append(r["published_at"])
+    keep, duplicates = [], 0
+    for a in new:
+        t = (a.get("feed_source"), (a.get("title") or "").strip().lower())
+        when = a.get("published_at")
+        same_title = any(when and p and abs((when - p).total_seconds()) <= 12 * 3600 for p in titles.get(t, []))
+        if (a.get("url") and a["url"] in urls) or same_title:
+            duplicates += 1
+            continue
+        keep.append(a)
+        if a.get("url"):
+            urls.add(a["url"])                 # the same story twice in this batch
+        titles.setdefault(t, []).append(when)
+    return keep, duplicates
+
+
+async def store_shared(pool, arts: list[dict]) -> dict:
+    """The items of the FreshRSS sync (the shared feeds), in one pass. It reads
+    FreshRSS's last 15,000 items every ten minutes, so:
+    - an item already stored (its freshrss_id) is updated only when its feed
+      changed it, and keeps a translation already made;
+    - a new item whose address is already stored, or whose title is, from
+      the same source, within 12 hours, is a duplicate and is left out
+      (dedup-worker.sh used to delete it every hour, and the next sync
+      brought it back: some 1,450 at all times);
+    - the others are inserted.
+    Only those inserts take a number from articles_id_seq: an INSERT … ON
+    CONFLICT took one per item, 2 million a day, toward the int4 ceiling.
+    Returns {"inserted", "updated", "duplicates"}."""
     from catalog import FEED_LANGS
-    lang = FEED_LANGS.get(art.get('feed_source') or '')
-    translation_status = 'pending' if (lang or needs_translation(art.get('title', ''))) else 'done'
+    arts = [a for a in arts if a.get("freshrss_id")]
+    if not arts:
+        return {"inserted": 0, "updated": 0, "duplicates": 0}
+    known = {r["freshrss_id"] for r in await pool.fetch(
+        "SELECT freshrss_id FROM articles WHERE freshrss_id = ANY($1::text[])", [a["freshrss_id"] for a in arts])}
+    old = [a for a in arts if a["freshrss_id"] in known]
+    updated = 0
+    if old:
+        # Only rows whose feed changed something; a translated story keeps
+        # its English title and text (the original is in original_*).
+        updated = int((await pool.execute("""
+            UPDATE articles a SET
+                title = CASE WHEN a.translation_status = 'done' THEN a.title ELSE u.title END,
+                feed_source = u.feed_source,
+                category = u.category,
+                content_raw = CASE WHEN a.translation_status = 'done' AND a.original_lang IS DISTINCT FROM 'en'
+                                        AND a.original_content IS NOT NULL THEN a.content_raw
+                                   ELSE u.content_raw END,
+                image_url = COALESCE(a.image_url, u.image_url)
+              FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[])
+                   AS u(fid, feed_source, category, title, content_raw, image_url)
+             WHERE a.freshrss_id = u.fid
+               AND (a.feed_source IS DISTINCT FROM u.feed_source
+                    OR a.category IS DISTINCT FROM u.category
+                    OR (a.translation_status IS DISTINCT FROM 'done' AND a.title IS DISTINCT FROM u.title)
+                    OR (NOT (a.translation_status = 'done' AND a.original_lang IS DISTINCT FROM 'en'
+                             AND a.original_content IS NOT NULL)
+                        AND a.content_raw IS DISTINCT FROM u.content_raw)
+                    OR (a.image_url IS NULL AND u.image_url IS NOT NULL))""",
+            [a["freshrss_id"] for a in old], [a["feed_source"] for a in old], [a["category"] for a in old],
+            [a["title"] for a in old], [a["content_raw"] for a in old], [a["image_url"] for a in old])).split()[-1])
 
-    # Skip if identical title already exists from same source in last 48h (no freshrss_id)
-    if not art.get('freshrss_id'):
-        existing = await pool.fetchrow("""
-            SELECT id FROM articles
-            WHERE lower(trim(title)) = lower(trim($1))
-              AND feed_source = $2
-              AND published_at > NOW() - INTERVAL '48 hours'
-            LIMIT 1
-        """, art.get('title', ''), art.get('feed_source', ''))
-        if existing:
-            return existing['id']
-
-    row = await pool.fetchrow("""
-        INSERT INTO articles
-          (freshrss_id, feed_source, category, title, url,
-           published_at, content_raw, image_url, translation_status, original_lang)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-        ON CONFLICT (freshrss_id) DO UPDATE SET
-            title = CASE
-                WHEN articles.translation_status = 'done' THEN articles.title
-                ELSE EXCLUDED.title
-            END,
-            feed_source = EXCLUDED.feed_source,
-            category = EXCLUDED.category,
-            -- A translated article keeps its English text; the original is in
-            -- original_content.
-            content_raw = CASE
-                WHEN articles.translation_status = 'done'
-                     AND articles.original_lang IS DISTINCT FROM 'en'
-                     AND articles.original_content IS NOT NULL THEN articles.content_raw
-                ELSE EXCLUDED.content_raw
-            END,
-            image_url = COALESCE(articles.image_url, EXCLUDED.image_url),
-            translation_status = CASE
-                WHEN articles.translation_status = 'done' THEN 'done'
-                WHEN articles.translation_status IN ('pending', 'failed') THEN articles.translation_status
-                ELSE EXCLUDED.translation_status
-            END,
-            translated_at = articles.translated_at,
-            original_lang = COALESCE(articles.original_lang, EXCLUDED.original_lang),
-            original_title = articles.original_title,
-            original_content = articles.original_content,
-            enriched_at = articles.enriched_at,
-            sentiment = articles.sentiment,
-            sentiment_score = articles.sentiment_score,
-            entities = articles.entities,
-            country_code = articles.country_code
-        RETURNING id
-    """, art["freshrss_id"], art["feed_source"], art["category"],
-         art["title"], art["url"], art["published_at"],
-         art["content_raw"], art["image_url"], translation_status, lang)
-    return row["id"]
+    keep, duplicates = await drop_duplicates(pool, [a for a in arts if a["freshrss_id"] not in known], None)
+    inserted = 0
+    if keep:
+        langs = [FEED_LANGS.get(a.get("feed_source") or "") for a in keep]
+        status = ["pending" if (lang or needs_translation(a.get("title", ""))) else "done" for a, lang in zip(keep, langs)]
+        inserted = len(await pool.fetch("""
+            INSERT INTO articles (freshrss_id, feed_source, category, title, url, published_at,
+                                  content_raw, image_url, translation_status, original_lang)
+            SELECT * FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::timestamptz[],
+                                 $7::text[], $8::text[], $9::text[], $10::text[])
+            ON CONFLICT (freshrss_id) DO NOTHING
+            RETURNING id""",
+            [a["freshrss_id"] for a in keep], [a["feed_source"] for a in keep], [a["category"] for a in keep],
+            [a["title"] for a in keep], [a["url"] for a in keep], [a["published_at"] for a in keep],
+            [a["content_raw"] for a in keep], [a["image_url"] for a in keep], status, langs))
+    return {"inserted": inserted, "updated": updated, "duplicates": duplicates}
 
 # Who may see an article: everyone if it came from the shared feeds
 # (owner_user_id IS NULL), only its owner if it came from their own sources.

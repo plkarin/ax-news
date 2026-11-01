@@ -33,7 +33,7 @@ LANG_NAMES = {
 }
 
 # Feed title → language, for the shared FreshRSS feeds that are not in
-# English: db.upsert_article sends their stories to translation.
+# English: db.store_shared sends their stories to translation.
 FEED_LANGS: dict[str, str] = {}
 
 

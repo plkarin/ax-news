@@ -4,6 +4,26 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.7 — 2026-11-01
+
+### Storing stories
+- Duplicates no longer come back. The sync reads FreshRSS's last 15,000
+  items every ten minutes and inserted again, each time, the copies that
+  `dedup-worker.sh` had deleted: the same CrowdStrike post under two feed
+  names, the same paper in several arXiv lists. That was about 1,450 at all
+  times, visible some 56 minutes an hour, and 35,600 deletions a day. The
+  sync and the sources now leave out a new story whose address, or whose
+  title from the same source within 12 hours, their owner already has
+  (`db.drop_duplicates`, the rule of `dedup-worker.sh`).
+- A story already stored is updated only when its feed changed it, in one
+  query per sync. The sync used to rewrite all 15,000 rows every ten
+  minutes, and to take a number from `articles_id_seq` for each of them:
+  2.2 million a day, toward the ceiling of the `integer` id (2.1 billion,
+  reached early in 2029). Only new stories take one now: on a run with
+  nothing new, none instead of 15,000.
+- `migrations/005_articles_lookups.sql`: hash indexes on the address and
+  the title, for those lookups (built without stopping the site).
+
 ## v1.3.6 — 2026-10-29
 
 ### Posts

@@ -321,9 +321,13 @@ def _entry_html(e) -> str:
 
 async def store_entries(pool, feed: dict, entries) -> tuple[int, int]:
     """Insert a source's new entries as its owner's articles. Returns
-    (new, total) for the source."""
+    (new, total) for the source. An entry already stored only gets the
+    picture it lacked; a new one that duplicates a story its owner already
+    has (db.drop_duplicates) is left out. Only inserts take a number from
+    articles_id_seq."""
     from translation import needs_translation
-    new = 0
+    from db import drop_duplicates
+    items = []
     for e in list(entries)[:MAX_ENTRIES]:
         title = re.sub(r"\s+", " ", (e.get("title") or "").strip())[:500] or "(untitled)"
         link = e.get("link") or ""
@@ -340,19 +344,40 @@ async def store_entries(pool, feed: dict, entries) -> tuple[int, int]:
         # stories are translated even when a title reads like English.
         lang = (feed.get("lang") or "").lower() or None
         status = "pending" if needs_translation(title, lang) else "done"
-        inserted = await pool.fetchval("""
+        items.append({"freshrss_id": key, "feed_source": feed["name"], "title": title, "url": link,
+                      "published_at": _entry_time(e), "content_raw": _entry_html(e)[:20000], "image_url": image,
+                      "translation_status": status, "original_lang": lang if status == "pending" else None})
+    by_key = {}
+    for it in items:
+        by_key.setdefault(it["freshrss_id"], it)
+    items = list(by_key.values())
+    known = {r["freshrss_id"]: r["image_url"] for r in await pool.fetch(
+        "SELECT freshrss_id, image_url FROM articles WHERE freshrss_id = ANY($1::text[])", list(by_key))}
+    pictures = [(it["freshrss_id"], it["image_url"]) for it in items
+                if it["freshrss_id"] in known and known[it["freshrss_id"]] is None and it["image_url"]]
+    if pictures:
+        await pool.executemany(
+            "UPDATE articles SET image_url = $2 WHERE freshrss_id = $1 AND image_url IS NULL", pictures)
+    owner = feed.get("user_id")
+    keep, _ = await drop_duplicates(pool, [it for it in items if it["freshrss_id"] not in known], owner)
+    new = 0
+    if keep:
+        new = len(await pool.fetch("""
             INSERT INTO articles
-              (freshrss_id, feed_source, category, title, url, published_at,
-               content_raw, image_url, translation_status, owner_user_id, user_feed_id,
-               original_lang)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-            ON CONFLICT (freshrss_id) DO UPDATE
-              SET image_url = COALESCE(articles.image_url, EXCLUDED.image_url)
-            RETURNING (xmax = 0) AS inserted
-        """, key, feed["name"], feed.get("category") or "My_Sources", title, link,
-            _entry_time(e), _entry_html(e)[:20000], image, status,
-            feed.get("user_id"), feed["id"], lang if status == "pending" else None)
-        new += 1 if inserted else 0
+              (freshrss_id, feed_source, category, title, url, published_at, content_raw, image_url,
+               translation_status, owner_user_id, user_feed_id, original_lang)
+            SELECT u.fid, u.feed_source, $1, u.title, u.url, u.published_at, u.content_raw, u.image_url,
+                   u.status, $2, $3, u.lang
+              FROM unnest($4::text[], $5::text[], $6::text[], $7::text[], $8::timestamptz[], $9::text[],
+                          $10::text[], $11::text[], $12::text[])
+                   AS u(fid, feed_source, title, url, published_at, content_raw, image_url, status, lang)
+            ON CONFLICT (freshrss_id) DO NOTHING
+            RETURNING id""",
+            feed.get("category") or "My_Sources", owner, feed["id"],
+            [it["freshrss_id"] for it in keep], [it["feed_source"] for it in keep], [it["title"] for it in keep],
+            [it["url"] for it in keep], [it["published_at"] for it in keep], [it["content_raw"] for it in keep],
+            [it["image_url"] for it in keep], [it["translation_status"] for it in keep],
+            [it["original_lang"] for it in keep]))
     total = await pool.fetchval(
         "SELECT count(*) FROM articles WHERE user_feed_id = $1", feed["id"])
     return new, total

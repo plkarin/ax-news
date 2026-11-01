@@ -7,7 +7,7 @@ production database is never emptied by mistake. Without it, they are
 skipped and the others run.
 
     createdb ax_news_test
-    for m in 001_schema 003_personal_sources 004_catalog_tv; do psql ax_news_test -f migrations/$m.sql; done
+    for m in 001_schema 003_personal_sources 004_catalog_tv 005_articles_lookups; do psql ax_news_test -f migrations/$m.sql; done
     AXNEWS_TEST_DATABASE_URL=postgresql:///ax_news_test python -m pytest tests
 """
 import asyncio

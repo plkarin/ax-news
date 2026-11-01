@@ -285,16 +285,12 @@ async def tv_refresh(request: Request, admin: dict = Depends(require_admin_or_in
             items = await freshrss.fetch_articles(client, token, n=500)
         except Exception as e:
             return {"synced": 0, "error": str(e)}
-    count = 0
-    for item in items:
-        art = freshrss.parse_article(item)
-        if art["freshrss_id"]:
-            await database.upsert_article(pool, art)
-            count += 1
+    stored = await database.store_shared(pool, [freshrss.parse_article(i) for i in items])
+    count = len(items)
     translated = 0  # Translation moved to standalone worker
     from keyword_analysis import enrich_batch_static
     enriched = await enrich_batch_static(pool, limit=500)
-    return {"synced": count, "translated": translated, "enriched": enriched}
+    return {"synced": count, **stored, "translated": translated, "enriched": enriched}
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
@@ -365,21 +361,16 @@ async def sync_articles(admin: dict = Depends(require_admin_or_internal)):
         except Exception as e:
             logger.error(f"FreshRSS sync error: {e}")
             raise HTTPException(502, f"FreshRSS error: {e}")
-    count = 0
-    for item in items:
-        art = freshrss.parse_article(item)
-        if art["freshrss_id"]:
-            await database.upsert_article(pool, art)
-            count += 1
-    logger.info(f"Synced {count} articles")
+    stored = await database.store_shared(pool, [freshrss.parse_article(i) for i in items])
+    count = len(items)
     # Translations are checked, and bad ones sent back, by the translation
     # worker (translation.requeue_bad). The reset that stood here erased the
     # language of any translated story whose title kept one CJK sign.
     translated = 0  # Translation moved to standalone worker
     # Static keyword enrichment — fast, no AI calls
     enriched = await enrich_batch_static(pool, limit=500)
-    logger.info(f"Synced {count}, translated {translated}, enriched {enriched}")
-    return {"synced": count, "translated": translated, "enriched": enriched}
+    logger.info(f"Synced {count}: {stored}, enriched {enriched}")
+    return {"synced": count, **stored, "translated": translated, "enriched": enriched}
 
 # ── Auth endpoints ────────────────────────────────────────────────────────────
 
