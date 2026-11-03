@@ -85,6 +85,8 @@ def import_feeds():
             return
         feeds = [l.split("|") for l in (APP / "catalog" / "sources" / "active.txt").read_text().splitlines()
                  if l.strip() and not l.startswith("#") and l.count("|") >= 4]
+        if os.getenv("AXNEWS_FEEDS_LIMIT"):            # the CI's quick run
+            feeds = feeds[:int(os.environ["AXNEWS_FEEDS_LIMIT"])]
         token = c.get(FRESHRSS + "/reader/api/0/token", headers=h).text.strip()
         done = 0
         for category, _lang, _region, title, url, *_ in feeds:
