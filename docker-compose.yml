@@ -1,0 +1,81 @@
+# AX-NEWS with Docker Compose (README, "Docker"):
+#   cp .env.docker.example .env   # then set the passwords and APP_URL
+#   docker compose up -d          # http://localhost:8080
+# Put your own reverse proxy (Caddy, Traefik, nginx) in front for HTTPS.
+name: ax-news
+
+services:
+  db:
+    image: postgres:16.14-alpine3.23
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ax_news
+      POSTGRES_USER: ax_news
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./migrations:/migrations:ro
+      - ./deploy/docker/initdb.sh:/docker-entrypoint-initdb.d/10-ax-news.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ax_news -d ax_news"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  freshrss:
+    image: freshrss/freshrss:1.30.2
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      CRON_MIN: "*/15"          # fetch the feeds every 15 minutes
+      FRESHRSS_INSTALL: >-
+        --api-enabled --base-url ${APP_URL:-http://localhost:8080}/news
+        --db-type sqlite --default-user ${FRESHRSS_USER:-axnews} --language en
+      FRESHRSS_USER: >-
+        --user ${FRESHRSS_USER:-axnews} --password ${FRESHRSS_PASSWORD:?set FRESHRSS_PASSWORD in .env}
+        --api-password ${FRESHRSS_API_PASS:?set FRESHRSS_API_PASS in .env} --language en
+    volumes:
+      - freshrss:/var/www/FreshRSS/data
+
+  backend:
+    build: .
+    image: ax-news:local
+    restart: unless-stopped
+    env_file: .env
+    environment: &env
+      DATABASE_URL: postgresql://ax_news:${POSTGRES_PASSWORD}@db:5432/ax_news
+      FRESHRSS_BASE_URL: http://freshrss
+      FRESHRSS_USER: ${FRESHRSS_USER:-axnews}
+      AXNEWS_LOCAL_URL: http://backend:8000
+      LOG_FILE: /var/log/ax-news/backend.log
+    ports:
+      - "${AXNEWS_PORT:-8080}:8000"
+    volumes:
+      - argos:/data/argos
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  worker:
+    image: ax-news:local
+    restart: unless-stopped
+    env_file: .env
+    environment: *env
+    command: ["python", "deploy/docker/scheduler.py"]
+    volumes:
+      - argos:/data/argos
+    depends_on:
+      backend:
+        condition: service_healthy
+      freshrss:
+        condition: service_started
+
+volumes:
+  db:
+  freshrss:
+  argos:

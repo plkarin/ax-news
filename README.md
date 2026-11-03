@@ -17,6 +17,8 @@ Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
 Latest release: **[v1.3.9](https://github.com/plkarin/ax-news/releases/tag/v1.3.9)** ([changes](CHANGELOG.md))
 
+[![tests](https://github.com/plkarin/ax-news/actions/workflows/ci.yml/badge.svg)](https://github.com/plkarin/ax-news/actions/workflows/ci.yml)
+
 <p align="center">
   <a href="docs/SCREENSHOTS.md"><img src="docs/screenshots/tv-spotlight.jpg" alt="AX-NEWS on a TV: Spotlight layout, a story full screen with its QR code and country flag, the next stories, and the CVE watch band with Impacted if and a QR code to the official record" width="100%"></a>
 </p>
@@ -29,6 +31,7 @@ Latest release: **[v1.3.9](https://github.com/plkarin/ax-news/releases/tag/v1.3.
 - [Features](#features)
 - [Releases](#releases)
 - [Architecture](#architecture)
+- [Docker](#docker)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Operations](#operations)
@@ -188,6 +191,34 @@ nginx serves `frontend/` by file extension and sends every page (`/`,
 `*.html`, `/tv/…`) and `/api/` to FastAPI. The `frontend/*.html` files are
 symlinks to `backend/templates/`, which are the pages' source.
 
+## Docker
+
+The quickest way: PostgreSQL, FreshRSS, the backend (which serves the site)
+and a worker that does the timers' work, in four containers. Tested by
+GitHub Actions on every push.
+
+```bash
+git clone https://github.com/plkarin/ax-news.git && cd ax-news
+cp .env.docker.example .env        # set the three passwords, INTERNAL_SYNC_TOKEN and APP_URL
+docker compose up -d               # http://localhost:8080
+docker compose exec backend python tools/create_admin.py <name>     # your administrator account
+```
+
+- On its first start the worker subscribes FreshRSS to the shared feeds of
+  the catalog, about 200 of them (a few minutes); stories come in at the next
+  FreshRSS refresh, every 15 minutes.
+- Translation into English needs its models, about 2.5 GB, downloaded once
+  into a volume: `docker compose exec worker deploy/install-argos-models.sh`
+  (or name some languages: `… install-argos-models.sh ja ko zh`). Without
+  them, stories in other languages wait, out of sight.
+- Put your own reverse proxy (Caddy, Traefik, nginx) in front for HTTPS, and
+  set `APP_URL` to the public address.
+- FreshRSS's own interface is not published; add a port to its service in
+  `docker-compose.yml` to reach it.
+- Update: `git pull && docker compose up -d --build`. The migrations run on
+  the first start only: for a new one, run it with
+  `docker compose exec -T db psql -U ax_news ax_news < migrations/<file>.sql`.
+
 ## Installation
 
 Ubuntu 24.04 with PostgreSQL 16, Python 3.12, nginx and PHP 8.3 (for
@@ -208,6 +239,7 @@ psql "$DATABASE_URL" -f migrations/001_schema.sql
 psql "$DATABASE_URL" -f migrations/003_personal_sources.sql
 psql "$DATABASE_URL" -f migrations/004_catalog_tv.sql
 psql "$DATABASE_URL" -f migrations/005_articles_lookups.sql
+backend/venv/bin/python tools/create_admin.py <name>   # the first administrator account
 
 # Translation models into English: about 2.5 GB for the 13 default languages, downloaded once
 deploy/install-argos-models.sh

@@ -1,0 +1,10 @@
+.git
+.github
+**/__pycache__
+**/*.pyc
+backend/venv
+backend/.env
+.env
+.argos-home
+docs/screenshots
+tests

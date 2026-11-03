@@ -11,7 +11,9 @@ set -euo pipefail
 APP=$(cd "$(dirname "$0")/.." && pwd)
 export HOME="${ARGOS_HOME:-$APP/.argos-home}"
 mkdir -p "$HOME"
+# The venv of a native install, else the one on the PATH (Docker).
 ARGOSPM="$APP/backend/venv/bin/argospm"
+[ -x "$ARGOSPM" ] || ARGOSPM=$(command -v argospm)
 LANGS=("$@")
 [ ${#LANGS[@]} -gt 0 ] || LANGS=(ar de es fr it ja ko nl pt ru tr vi zh)
 "$ARGOSPM" update

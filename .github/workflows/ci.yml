@@ -25,8 +25,8 @@ jobs:
     env:
       AXNEWS_TEST_DATABASE_URL: postgresql://ax_news:ax_news@localhost:5432/ax_news_test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -42,3 +42,38 @@ jobs:
       - name: Every shell script parses
         run: for f in *.sh deploy/*.sh; do bash -n "$f"; done
       - run: python -m pytest -q tests
+
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: A .env with fresh secrets
+        run: |
+          cp .env.docker.example .env
+          for k in POSTGRES_PASSWORD FRESHRSS_PASSWORD FRESHRSS_API_PASS INTERNAL_SYNC_TOKEN; do
+            sed -i "s/^$k=.*/$k=$(openssl rand -hex 16)/" .env
+          done
+          echo AXNEWS_IMPORT_FEEDS=0 >> .env
+      - name: docker compose up (README, Docker)
+        run: docker compose up -d --build --wait --wait-timeout 900
+      - name: The site answers
+        run: |
+          for u in / /topics /cve /digest /feeds /tv.html /tv-screens /api/health "/api/cve/watch?tz=Europe/Paris" /robots.txt /sitemap.xml /assets/css/app.css; do
+            curl -sf -o /dev/null -w "%{http_code} $u\n" "http://localhost:8080$u"
+          done
+      - name: An administrator, and a sync from FreshRSS
+        run: |
+          docker compose exec -T -e AXNEWS_ADMIN_PASSWORD=ci-password-1 backend python tools/create_admin.py admin
+          token=$(grep ^INTERNAL_SYNC_TOKEN= .env | cut -d= -f2)
+          for i in $(seq 1 30); do
+            r=$(curl -s -X POST -H "X-Internal-Token: $token" http://localhost:8080/api/tv/refresh || true)
+            echo "$r"; echo "$r" | grep -q '"synced"' && exit 0; sleep 10
+          done
+          exit 1
+      - name: The worker runs its jobs
+        run: |
+          sleep 60
+          docker compose logs worker | tee /dev/stderr | grep -E "sync: HTTP 200"
+      - name: Logs
+        if: always()
+        run: docker compose logs --tail 60
