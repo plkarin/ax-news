@@ -4,6 +4,37 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.4.0 — 2026-11-03
+
+### Docker
+- `docker compose up -d`: PostgreSQL, FreshRSS, the backend (it serves the
+  site) and a worker, `deploy/docker/scheduler.py`, which does the systemd
+  timers' work, one loop per job (README, Docker). On its first start the
+  worker subscribes FreshRSS to the catalog's shared feeds, with their
+  titles and topics. The image has torch without CUDA. The translation
+  models go into a volume: `docker compose exec worker
+  deploy/install-argos-models.sh`.
+- `tools/create_admin.py`: the first administrator of a new install, with
+  Docker or without. Sign-up is closed, and a Google account waits for an
+  administrator.
+- The internal token is also taken from the hosts in
+  `AXNEWS_INTERNAL_HOSTS`, looked up at each request: in Docker, the
+  worker's container. A request through the published port is still
+  refused.
+
+### Tests
+- GitHub Actions on every push. They run the tests on a PostgreSQL
+  migrated like a new install, then build the Docker stack and check it:
+  - the site answers;
+  - the internal token is refused from outside;
+  - an administrator can be created;
+  - the worker subscribes FreshRSS to the feeds;
+  - a sync stores their stories.
+
+### Site
+- `/digest` on a new install, before any story, is an empty page instead of
+  a 404.
+
 ## v1.3.9 — 2026-11-03
 
 - KEV posts: a CVE CISA lists before its record is out (no score yet) is
