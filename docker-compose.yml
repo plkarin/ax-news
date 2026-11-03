@@ -33,7 +33,7 @@ services:
         --db-type sqlite --default-user ${FRESHRSS_USER:-axnews} --language en
       FRESHRSS_USER: >-
         --user ${FRESHRSS_USER:-axnews} --password ${FRESHRSS_PASSWORD:?set FRESHRSS_PASSWORD in .env}
-        --api-password ${FRESHRSS_API_PASS:?set FRESHRSS_API_PASS in .env} --language en
+        --api-password ${FRESHRSS_API_PASS:?set FRESHRSS_API_PASS in .env} --language en --no-default-feeds
     volumes:
       - freshrss:/var/www/FreshRSS/data
 
@@ -62,7 +62,8 @@ services:
       retries: 30
 
   worker:
-    image: ax-news:local
+    image: ax-news:local      # built by `backend`
+    pull_policy: never
     restart: unless-stopped
     env_file: .env
     environment: *env

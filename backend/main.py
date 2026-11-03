@@ -1814,7 +1814,7 @@ async def digest_today(request: Request):
 async def digest_page(request: Request, day: str, latest: bool = False):
     d = _day(day)
     data = await seo.digest(pool, d)
-    if not data["total"]:
+    if not data["total"] and not latest:
         raise HTTPException(404, "Nothing on this day")
     today = latest
     heading = "The latest in tech, science and the world" if today else f"The news of {d.strftime('%A %d %B %Y')}"
@@ -1824,7 +1824,8 @@ async def digest_page(request: Request, day: str, latest: bool = False):
                 [("AX-NEWS", "/"), ("Digest", "/digest")] + ([] if today else [(d.isoformat(), path)]),
                 f"{data['total']} stories from {data['sources']} sources on {d.strftime('%d %B %Y')}, topic by topic, in English.",
                 items=flat, kind="digest", kicker=d.strftime('%A %d %B %Y'), data=data,
-                lead=f"{data['total']} stories from {data['sources']} sources, topic by topic. Every title links to its publisher.",
+                lead=(f"{data['total']} stories from {data['sources']} sources, topic by topic. Every title links to its publisher."
+                      if data["total"] else "No stories yet: they come in with the first fetch of the feeds."),
                 days=await seo.digest_days(pool), art="world")
 
 
