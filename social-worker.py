@@ -46,6 +46,8 @@ LOCAL = os.getenv("AXNEWS_LOCAL_URL", "http://127.0.0.1:8000")
 PER_HOUR = 3
 DIGEST_HOURS = 3.5      # the daily post's window: 08:30 to 12:00
 KEV_AFTER_BREAKING = 24 * 3600
+KEV_RECENT = 2 * 86400       # a KEV addition is news for two days…
+KEV_WAIT = 24 * 3600         # …and waits a day at most for its score and products
 
 
 def _now() -> datetime:
@@ -216,8 +218,22 @@ async def main():
             if os.getenv("SOCIAL_KEV", "1") != "0":
                 for k in watch.get("kev_added") or []:
                     key = "kev:" + k["label"]
-                    if "skipped" in posts.get(key, {}) or not k.get("ready", True):
+                    if "skipped" in posts.get(key, {}):
                         continue
+                    # News: added in the last two days, or its record just made
+                    # public (CISA may list a CVE before its record is out).
+                    dates = [d for d in (k.get("kev_added"), k.get("published")) if d]
+                    recent = any((now - datetime.fromisoformat(d[:10]).replace(tzinfo=timezone.utc)).total_seconds()
+                                 < KEV_RECENT for d in dates)
+                    waiting = posts.get(key, {}).get("waiting")
+                    if not recent and not waiting:
+                        continue
+                    if not k.get("ready", True):
+                        if not waiting:
+                            posts[key] = {"waiting": now.isoformat()}
+                            continue
+                        if (now - datetime.fromisoformat(waiting)).total_seconds() < KEV_WAIT:
+                            continue        # its score and products are being read
                     if key not in posts and recently_breaking(k["label"]):
                         posts[key] = {"skipped": now.isoformat()}   # said already, as breaking news
                         continue

@@ -4,6 +4,18 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.3.9 — 2026-11-03
+
+- KEV posts: a CVE CISA lists before its record is out (no score yet) is
+  no longer lost. It is posted once its score and products are known, or a
+  day later as it is. A CVE whose record has just been made public counts
+  as news, even when CISA listed it earlier. CVE-2026-118527, listed on 30
+  October and published on 3 November, had dropped out of the two-day
+  window while it waited.
+- Catalog: "Robotics Business Review" is gone. Its feed has long been The
+  Robot Report's, so FreshRSS fetched the same stories twice under two
+  names. "IT Home (EN Mirror)" becomes "IT Home": the feed is in Chinese.
+
 ## v1.3.8 — 2026-11-01
 
 - Breaking CVEs: a round of detection no longer fails when a CVE first seen

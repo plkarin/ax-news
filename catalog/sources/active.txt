@@ -115,7 +115,7 @@ Hardware|en|global|Ars Technica Hardware|https://arstechnica.com/gadgets/feed/|h
 Hardware|en|global|Engadget|https://www.engadget.com/rss.xml|https://www.engadget.com/
 Hardware|en|global|Gizmodo|https://gizmodo.com/feed|https://gizmodo.com/
 Hardware|en|global|GSMArena|https://www.gsmarena.com/rss-news-reviews.php3|https://www.gsmarena.com/
-Hardware|zh|CN|IT Home (EN Mirror)|https://www.ithome.com/rss/|https://www.ithome.com/
+Hardware|zh|CN|IT Home|https://www.ithome.com/rss/|https://www.ithome.com/
 Hardware|en|global|MyDrivers (via RSS)|https://www.mydrivers.com/rss/rss.aspx|
 Hardware|en|global|NotebookCheck|https://www.notebookcheck.net/News.37.0.html?no_cache=1&type=rss|
 Hardware|en|global|The Verge Hardware|https://www.theverge.com/rss/index.xml|https://www.theverge.com/
@@ -140,7 +140,6 @@ Robotics_Automation|en|global|Automation World|https://www.automationworld.com/r
 Robotics_Automation|en|global|Boston Dynamics Blog|https://bostondynamics.com/blog/feed/|
 Robotics_Automation|en|global|IEEE Spectrum Robotics|https://spectrum.ieee.org/feeds/topic/robotics.rss|https://spectrum.ieee.org/
 Robotics_Automation|en|global|MIT News Robotics|https://news.mit.edu/topic/robotics/rss|
-Robotics_Automation|en|global|Robotics Business Review|http://www.therobotreport.com/feed/|https://www.therobotreport.com/
 Robotics_Automation|en|global|The Robot Report|https://www.therobotreport.com/feed/|https://www.therobotreport.com/
 Semiconductors|en|global|AnandTech|https://www.anandtech.com/rss/|
 Semiconductors|en|global|arXiv cs.AR (Architecture)|https://rss.arxiv.org/rss/cs.AR|http://rss.arxiv.org/rss/cs.AR

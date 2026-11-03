@@ -620,9 +620,10 @@ def short_name(k: dict | None, n: dict | None, title: str | None = None) -> str:
     return (title or "")[:40]
 
 
-async def kev_added(pool, days: int = 2) -> list[dict]:
+async def kev_added(pool, days: int = 7) -> list[dict]:
     """The CVEs CISA added to its catalog of Known Exploited Vulnerabilities
-    in the last `days` days: exploited in the wild. Newest first."""
+    in the last `days` days: exploited in the wild. Newest first. The worker
+    posts those of the last two days, and those it is waiting for."""
     kev = await _kev_catalog()
     nvd = await _nvd_cache(pool)
     since = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
@@ -638,6 +639,7 @@ async def kev_added(pool, days: int = 2) -> list[dict]:
         out.append({"label": cid, "kev": True, "ready": ready, "kev_added": k.get("dateAdded"), "name": k.get("vulnerabilityName"),
                     "product": short_name(k, n), "ransomware": (k.get("knownRansomwareCampaignUse") or "").lower() == "known",
                     "due": k.get("dueDate"), "cvss": n.get("score"), "base_severity": n.get("severity"),
+                    "published": n.get("published"),
                     "impact": n.get("impact") or [], "theme": n.get("theme"), "record": RECORD_URL + cid})
     out.sort(key=lambda x: (x["kev_added"] or "", x["cvss"] or 0), reverse=True)
     return out

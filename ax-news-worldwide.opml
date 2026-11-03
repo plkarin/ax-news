@@ -175,7 +175,7 @@
   <outline type="rss" text="GSMArena" xmlUrl="https://www.gsmarena.com/rss-news-reviews.php3"/>
   <outline type="rss" text="NotebookCheck" xmlUrl="https://www.notebookcheck.net/News.37.0.html?no_cache=1&amp;type=rss"/>
   <!-- Asia hardware news -->
-  <outline type="rss" text="IT Home (EN Mirror)" xmlUrl="https://www.ithome.com/rss/"/>
+  <outline type="rss" text="IT Home" xmlUrl="https://www.ithome.com/rss/"/>
   <outline type="rss" text="MyDrivers (via RSS)" xmlUrl="https://www.mydrivers.com/rss/rss.aspx"/>
 </outline>
 
@@ -185,7 +185,6 @@
 <outline text="Robotics_Automation" title="Robotics_Automation">
   <outline type="rss" text="IEEE Spectrum Robotics" xmlUrl="https://spectrum.ieee.org/feeds/topic/robotics.rss"/>
   <outline type="rss" text="MIT News Robotics" xmlUrl="https://news.mit.edu/topic/robotics/rss"/>
-  <outline type="rss" text="Robotics Business Review" xmlUrl="https://www.roboticsbusinessreview.com/feed/"/>
   <outline type="rss" text="The Robot Report" xmlUrl="https://www.therobotreport.com/feed/"/>
   <outline type="rss" text="Automation World" xmlUrl="https://www.automationworld.com/rss.xml"/>
   <outline type="rss" text="Boston Dynamics Blog" xmlUrl="https://bostondynamics.com/blog/feed/"/>

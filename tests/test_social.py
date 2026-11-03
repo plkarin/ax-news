@@ -138,6 +138,22 @@ def test_kev_additions(worker):
     with_db(t)
 
 
+def test_kev_waits_a_day_for_its_data(worker):
+    async def t(pool):
+        late = {**kev(26), "ready": False, "cvss": None, "impact": []}
+        assert await run(worker, [], [late]) == []                       # waits
+        await age(pool, worker, 23 * 60)
+        assert await run(worker, [], [late]) == []
+        await age(pool, worker, 2 * 60)                                  # a day on: posted as it is
+        calls = await run(worker, [], [late])
+        assert calls[1] == ("bluesky", "kev:CVE-2026-00026")
+        # Added five days ago and never seen: old news. Unless its record just came out.
+        assert await run(worker, [], [kev(27, added="2026-10-25")]) == []
+        calls = await run(worker, [], [{**kev(28, added="2026-10-25"), "published": worker.clock[0].isoformat()}])
+        assert calls[1] == ("bluesky", "kev:CVE-2026-00028")
+    with_db(t)
+
+
 def test_kev_off(worker, monkeypatch):
     monkeypatch.setenv("SOCIAL_KEV", "0")
 

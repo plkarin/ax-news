@@ -1371,7 +1371,7 @@
 },
 {
 "url": "https://www.ithome.com/rss/",
-"title": "IT Home (EN Mirror)",
+"title": "IT Home",
 "site_url": "https://www.ithome.com/",
 "category": "Hardware",
 "domain": "technology",
@@ -1668,18 +1668,6 @@
 "active": true,
 "items": 0,
 "newest": null
-},
-{
-"url": "http://www.therobotreport.com/feed/",
-"title": "Robotics Business Review",
-"site_url": "https://www.therobotreport.com/",
-"category": "Robotics_Automation",
-"domain": "technology",
-"lang": "en",
-"region": "global",
-"active": true,
-"items": 15,
-"newest": "2026-10-25T12:35:33+00:00"
 },
 {
 "url": "https://www.therobotreport.com/feed/",

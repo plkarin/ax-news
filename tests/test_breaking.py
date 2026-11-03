@@ -90,7 +90,7 @@ def test_kev_added(monkeypatch):
     asked = []
     monkeypatch.setattr(cve, "want", lambda pool, cid: asked.append(cid))
     today = NOW.date().isoformat()
-    old = (NOW - timedelta(days=5)).date().isoformat()
+    old = (NOW - timedelta(days=10)).date().isoformat()
     monkeypatch.setitem(cve._kev, "at", time.time())
     monkeypatch.setitem(cve._kev, "data", {
         "CVE-2026-0001": {"cveID": "CVE-2026-0001", "vendorProject": "Citrix", "product": "NetScaler",
