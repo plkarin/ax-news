@@ -261,12 +261,32 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
         raise HTTPException(403, "Accès réservé aux administrateurs")
     return user
 
+# Hosts besides localhost whose requests may carry the internal token: in
+# Docker, the worker's container (docker-compose.yml). Their addresses are
+# looked up at each request, so a request through the published port, which
+# comes from the Docker gateway, is still refused.
+INTERNAL_HOSTS = [h.strip() for h in os.getenv("AXNEWS_INTERNAL_HOSTS", "").split(",") if h.strip()]
+
+
+def _internal_client(ip: str) -> bool:
+    if ip in ("127.0.0.1", "::1"):
+        return True
+    import socket
+    for host in INTERNAL_HOSTS:
+        try:
+            if ip in {a[4][0] for a in socket.getaddrinfo(host, None)}:
+                return True
+        except OSError:
+            pass
+    return False
+
+
 async def require_admin_or_internal(request: Request) -> dict:
-    """Admin session OR internal token from localhost (systemd timers)."""
+    """Admin session OR internal token from localhost (systemd timers), or
+    from AXNEWS_INTERNAL_HOSTS (the Docker worker)."""
     token = request.headers.get("x-internal-token", "")
     if INTERNAL_SYNC_TOKEN and token == INTERNAL_SYNC_TOKEN:
-        client_ip = request.client.host if request.client else ""
-        if client_ip in ("127.0.0.1", "::1"):
+        if _internal_client(request.client.host if request.client else ""):
             return {"id": 0, "username": "internal", "is_admin": True}
     user = await get_current_user(request)  # raises 401 if no/invalid session
     if not user.get("is_admin"):

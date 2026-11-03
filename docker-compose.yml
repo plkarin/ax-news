@@ -47,6 +47,7 @@ services:
       FRESHRSS_BASE_URL: http://freshrss
       FRESHRSS_USER: ${FRESHRSS_USER:-axnews}
       AXNEWS_LOCAL_URL: http://backend:8000
+      AXNEWS_INTERNAL_HOSTS: worker      # the internal token is taken from it, not from outside
       LOG_FILE: /var/log/ax-news/backend.log
     ports:
       - "${AXNEWS_PORT:-8080}:8000"

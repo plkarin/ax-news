@@ -61,12 +61,16 @@ jobs:
           for u in / /topics /cve /digest /feeds /tv.html /tv-screens /api/health "/api/cve/watch?tz=Europe/Paris" /robots.txt /sitemap.xml /assets/css/app.css; do
             curl -sf -o /dev/null -w "%{http_code} $u\n" "http://localhost:8080$u"
           done
+      - name: The internal token is refused from outside
+        run: |
+          token=$(grep ^INTERNAL_SYNC_TOKEN= .env | cut -d= -f2)
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "X-Internal-Token: $token" http://localhost:8080/api/tv/refresh)" = 401
       - name: An administrator, and a sync from FreshRSS
         run: |
           docker compose exec -T -e AXNEWS_ADMIN_PASSWORD=ci-password-1 backend python tools/create_admin.py admin
           token=$(grep ^INTERNAL_SYNC_TOKEN= .env | cut -d= -f2)
           for i in $(seq 1 30); do
-            r=$(curl -s -X POST -H "X-Internal-Token: $token" http://localhost:8080/api/tv/refresh || true)
+            r=$(docker compose exec -T worker curl -s -X POST -H "X-Internal-Token: $token" http://backend:8000/api/tv/refresh || true)
             echo "$r"; echo "$r" | grep -q '"synced"' && exit 0; sleep 10
           done
           exit 1
