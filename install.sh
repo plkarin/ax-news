@@ -138,7 +138,8 @@ main() {
       say "Updating the code"
       git -C "$DIR" fetch --quiet --tags origin
       if [ -n "$REF" ]; then git -C "$DIR" checkout --quiet "$REF"
-      elif git -C "$DIR" symbolic-ref -q HEAD >/dev/null; then git -C "$DIR" pull --quiet --ff-only
+      elif git -C "$DIR" symbolic-ref -q HEAD >/dev/null; then
+        git -C "$DIR" pull --quiet --ff-only || die "$DIR cannot move to the last commit of its branch: local commits?"
       else release=$(latest_tag "$DIR"); git -C "$DIR" checkout --quiet "$release"; fi
     fi
   else
@@ -182,8 +183,14 @@ main() {
   fi
 
   # ── The containers, the database ───────────────────────────────────────────
-  say "Building and starting the containers (the first time: 5 to 15 minutes)"
-  compose up -d --build --wait --wait-timeout 900 \
+  # The image is built the first time and on an update; a mere re-run
+  # leaves the site running.
+  local build=() note=""
+  if [ "$UPDATE" = 1 ] || [ -n "$REF" ] || ! docker image inspect ax-news:local >/dev/null 2>&1; then
+    build=(--build) note=", with a new image (the first time: a few minutes)"
+  fi
+  say "Starting the containers$note"
+  compose up -d "${build[@]}" --wait --wait-timeout 900 \
     || die "the containers did not start: see docker compose -f $DIR/docker-compose.yml logs --tail 50"
   say "Applying the migrations"
   local m

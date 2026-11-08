@@ -24,8 +24,8 @@ of ax-news.com: systemd, nginx, PostgreSQL ([Install without Docker](#install-wi
 | System | Linux on x86_64 | Ubuntu 24.04 or later, Debian 12 or later, or any distribution Docker runs on; Windows in WSL2. ARM64 should work but is not tested. |
 | Docker | Docker Engine and the **Compose plugin 2.20 or later** | `docker compose version` answers, and the account that installs may use Docker (the `docker` group). |
 | Tools | `git`, `curl`, `openssl` | |
-| Memory | 2 GB | 4 GB advised, and needed to translate. |
-| Disk | 8 GB free for Docker | 3 GB more for all the translation models. The database reaches about 1 GB with 90 days of stories, where the purge holds it. |
+| Memory | 2 GB | 4 GB advised, and needed to translate: the translation alone takes up to 1 GB. A new install uses some 350 MB. |
+| Disk | 8 GB free for Docker | The images take 2.2 GB; the database reaches about 1 GB with 90 days of stories, where the purge holds it; all the translation models, 3 GB more. |
 | Network | Outbound HTTPS | The feeds, their pictures, NVD and CISA for the CVE watch; to build the image, Docker Hub, PyPI and download.pytorch.org. |
 | Port | One free port | 8080 unless you choose another. |
 
@@ -66,14 +66,16 @@ The script:
 4. builds the image and starts four containers — PostgreSQL, FreshRSS, the
    backend, which serves the site, and the worker, which does the
    background work — and waits until they are healthy. The first build
-   downloads the Python packages and takes 5 to 15 minutes;
+   downloads the Python packages and takes a few minutes;
 5. applies the database migrations;
 6. creates the administrator `admin` with a random password, shown once at
    the end;
 7. with `--languages`, installs translation models.
 
-Run again, it keeps `.env`, the data and the accounts, and creates an
-administrator only when there is none.
+Run again, it keeps `.env`, the data and the accounts, creates an
+administrator only when there is none, and leaves the site running: only
+`--update` and `--ref` build a new image and restart the backend and the
+worker.
 
 | Option | | Default |
 |---|---|---|
