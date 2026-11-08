@@ -1,4 +1,5 @@
-# AX-NEWS with Docker Compose (README, "Docker"):
+# AX-NEWS with Docker Compose (docs/INSTALL.md). ./install.sh does it all;
+# by hand:
 #   cp .env.docker.example .env   # then set the passwords and APP_URL
 #   docker compose up -d          # http://localhost:8080
 # Put your own reverse proxy (Caddy, Traefik, nginx) in front for HTTPS.

@@ -4,6 +4,28 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.4.1 — 2026-11-08
+
+### Installation
+- `install.sh`: AX-NEWS on one machine in one command,
+  `curl -fsSL https://raw.githubusercontent.com/plkarin/ax-news/main/install.sh | bash`.
+  It checks the prerequisites (Linux, Docker with Compose 2.20 or later,
+  memory, disk, the port), gets the latest release, writes `.env` with
+  fresh secrets, starts the containers, applies the migrations and creates
+  the first administrator, its password shown once. Options: `--url`,
+  `--port` (`127.0.0.1:8080` behind a reverse proxy), `--admin`,
+  `--languages`, `--ref`. Run again, it keeps `.env`, the data and the
+  accounts; `--update` moves to the latest release.
+- `docs/INSTALL.md`, the complete guide: prerequisites, the script, HTTPS
+  with Caddy or nginx, backups, updates, the configuration, an installation
+  without Docker, troubleshooting. The README keeps the prerequisites and
+  the command.
+
+### Tests
+- The Docker job installs with `install.sh`, signs in with the
+  administrator it created, then runs `install.sh --update` and checks that
+  `.env`, the data and the accounts are kept. shellcheck reads the script.
+
 ## v1.4.0 — 2026-11-03
 
 ### Docker

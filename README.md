@@ -15,7 +15,8 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.4.0](https://github.com/plkarin/ax-news/releases/tag/v1.4.0)** ([changes](CHANGELOG.md))
+Latest release: **[v1.4.1](https://github.com/plkarin/ax-news/releases/tag/v1.4.1)** ([changes](CHANGELOG.md)) ·
+**[Install](#installation)** in one command
 
 [![tests](https://github.com/plkarin/ax-news/actions/workflows/ci.yml/badge.svg)](https://github.com/plkarin/ax-news/actions/workflows/ci.yml)
 
@@ -29,12 +30,9 @@ Latest release: **[v1.4.0](https://github.com/plkarin/ax-news/releases/tag/v1.4.
 
 - [Screenshots](#screenshots)
 - [Features](#features)
+- [Installation](#installation)
 - [Releases](#releases)
 - [Architecture](#architecture)
-- [Docker](#docker)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Operations](#operations)
 - [Development](#development)
 - [Licence](#licence)
 
@@ -154,15 +152,53 @@ Every screen — the six TV layouts, the sign-in page, the phone — is in
   guard on every fetch of an outside address, rate limits, HttpOnly
   sessions; A+ on SSL Labs.
 
+## Installation
+
+On one machine, with Docker. The script checks the prerequisites, gets the
+latest release, writes its configuration with fresh secrets, starts the four
+containers — PostgreSQL, FreshRSS, the backend, a worker — and creates your
+administrator account.
+
+**Prerequisites**
+
+- Linux on x86_64 (Ubuntu 24.04+, Debian 12+, WSL2…), 2 GB of memory (4 GB
+  to translate), 8 GB free for Docker, outbound HTTPS, a free port (8080).
+- Docker Engine with the **Compose plugin 2.20 or later**, usable by your
+  account, and `git`, `curl`, `openssl`. On Ubuntu:
+  ```bash
+  sudo apt install -y docker.io docker-compose-v2 git curl openssl
+  sudo usermod -aG docker "$USER"      # then log out and in again
+  ```
+
+**Install**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/plkarin/ax-news/main/install.sh | bash
+```
+
+Open http://localhost:8080 and sign in with the administrator the script
+shows at the end, with its password; the first stories come in within half
+an hour. Some options (`./install.sh --help`):
+
+```bash
+# a public address behind your reverse proxy, the models for the Korean and Chinese feeds
+curl -fsSL https://raw.githubusercontent.com/plkarin/ax-news/main/install.sh \
+  | bash -s -- --url https://news.example.com --port 127.0.0.1:8080 --languages "ko zh"
+
+cd ax-news && ./install.sh --update    # later: the latest release, .env and data kept
+```
+
+**[docs/INSTALL.md](docs/INSTALL.md)** is the complete guide: what the
+script does and its options, HTTPS, backups and updates, the configuration,
+an installation without Docker (systemd, nginx), troubleshooting.
+
 ## Releases
 
 AX-NEWS follows [semantic versioning](https://semver.org): `vMAJOR.MINOR.PATCH`.
 Each release is a git tag and a GitHub release; [CHANGELOG.md](CHANGELOG.md)
-lists what each one changes. Production runs a tagged release:
-
-```bash
-cd /opt/ax-news && git fetch --tags origin && git checkout v1.4.0
-```
+lists what each one changes. An install runs a tagged release:
+`./install.sh --update` moves a Docker install to the latest one; without
+Docker, see [docs/INSTALL.md](docs/INSTALL.md#operations-without-docker).
 
 ## Architecture
 
@@ -189,140 +225,9 @@ Internet → Cloudflare → HAProxy (TLS) → nginx ─┬─ frontend/ (CSS, JS
 
 nginx serves `frontend/` by file extension and sends every page (`/`,
 `*.html`, `/tv/…`) and `/api/` to FastAPI. The `frontend/*.html` files are
-symlinks to `backend/templates/`, which are the pages' source.
-
-## Docker
-
-The quickest way: PostgreSQL, FreshRSS, the backend (which serves the site)
-and a worker that does the timers' work, in four containers. Tested by
-GitHub Actions on every push.
-
-```bash
-git clone https://github.com/plkarin/ax-news.git && cd ax-news
-cp .env.docker.example .env        # set the three passwords, INTERNAL_SYNC_TOKEN and APP_URL
-docker compose up -d               # http://localhost:8080
-docker compose exec backend python tools/create_admin.py <name>     # your administrator account
-```
-
-- On its first start the worker subscribes FreshRSS to the shared feeds of
-  the catalog, about 200 of them (a few minutes); stories come in at the next
-  FreshRSS refresh, every 15 minutes.
-- Translation into English needs its models, about 2.5 GB, downloaded once
-  into a volume: `docker compose exec worker deploy/install-argos-models.sh`
-  (or name some languages: `… install-argos-models.sh ja ko zh`). Without
-  them, stories in other languages wait, out of sight.
-- Put your own reverse proxy (Caddy, Traefik, nginx) in front for HTTPS, and
-  set `APP_URL` to the public address.
-- FreshRSS's own interface is not published; add a port to its service in
-  `docker-compose.yml` to reach it.
-- Update: `git pull && docker compose up -d --build`. The migrations run on
-  the first start only: for a new one, run it with
-  `docker compose exec -T db psql -U ax_news ax_news < migrations/<file>.sql`.
-
-## Installation
-
-Ubuntu 24.04 with PostgreSQL 16, Python 3.12, nginx and PHP 8.3 (for
-FreshRSS). The units expect the checkout at `/opt/ax-news`, run as the
-user `cbrain`.
-
-```bash
-sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
-sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.4.0
-python3 -m venv backend/venv
-backend/venv/bin/pip install -r backend/requirements.txt
-
-cp backend/.env.example backend/.env          # then fill it in: see Configuration
-
-# Database: an empty PostgreSQL database owned by the application user
-psql "$DATABASE_URL" -f migrations/001_schema.sql
-psql "$DATABASE_URL" -f migrations/003_personal_sources.sql
-psql "$DATABASE_URL" -f migrations/004_catalog_tv.sql
-psql "$DATABASE_URL" -f migrations/005_articles_lookups.sql
-backend/venv/bin/python tools/create_admin.py <name>   # the first administrator account
-
-# Translation models into English: about 2.5 GB for the 13 default languages, downloaded once
-deploy/install-argos-models.sh
-
-sudo mkdir -p /var/log/ax-news && sudo chown cbrain:cbrain /var/log/ax-news
-sudo cp deploy/systemd/*.service deploy/systemd/*.timer /etc/systemd/system/
-sudo cp deploy/nginx/ax-news /etc/nginx/sites-available/
-sudo ln -s /etc/nginx/sites-available/ax-news /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-
-sudo systemctl daemon-reload
-sudo systemctl enable --now ax-news-backend
-sudo systemctl enable --now ax-news-sync.timer ax-news-translate.timer \
-  ax-news-images.timer ax-news-sources.timer ax-news-dedup.timer ax-news-purge.timer
-
-# FreshRSS and its 208 feeds; its interface at https://<host>/news
-sudo FRESHRSS_USER=<user> FRESHRSS_PASS=<password> deploy/install-freshrss.sh
-```
-
-Ubuntu's `apparmor-profiles` confines php-fpm without naming any site, which
-leaves `/news` in 502 or 403: `deploy/install-freshrss.sh` installs
-`deploy/apparmor/php-fpm.local` as `/etc/apparmor.d/local/php-fpm`. It lets
-php-fpm tell systemd it is ready and read FreshRSS, and write only its data.
-
-(`migrations/002_audio_columns.sql` belongs to the audio summaries, removed
-before v1.0.0: a new database does not need it.)
-
-## Configuration
-
-`backend/.env` (template: `backend/.env.example`):
-
-| Variable | Use |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection |
-| `HOME` | Where the Argos models are installed (`/opt/ax-news/.argos-home`) |
-| `FRESHRSS_BASE_URL`, `FRESHRSS_USER`, `FRESHRSS_API_PASS` | The FreshRSS API |
-| `APP_URL` | Public address (links, QR codes, cookies' `Secure` flag) |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in |
-| `SMTP_*` | Mail (address verification) |
-| `INTERNAL_SYNC_TOKEN` | Sent by the timers from localhost to start work (sync, images, purge); `openssl rand -hex 32` |
-| `MAX_SOURCES_PER_USER` | Own sources per account (default 150) |
-| `PURGE_DAYS` | Days of stories kept by `ax-news-purge` (default 90, at least 70: the CVE watch reads 60 days, its week pages nine weeks); saved stories are kept |
-| `MASTODON_BASE_URL`, `MASTODON_TOKEN` | Account `social-worker.py` posts breaking CVEs to (token scope `write:statuses`); empty: no post |
-| `MASTODON_VISIBILITY` | `public` (default): one public post an hour at most, the next two of the hour `unlisted`; `unlisted`: all of them |
-| `SOCIAL_DIGEST_AT`, `SOCIAL_TZ` | When the daily post goes out (default `08:30`, `Europe/Paris`; window until 12:00); `SOCIAL_DIGEST_AT=off`: no daily post |
-| `SOCIAL_KEV` | `0`: no post for CISA's KEV additions (default `1`) |
-| `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | Same on Bluesky, with an app password; empty: no post |
-| `AXNEWS_LOCAL_URL` | Where the workers reach the backend (default `http://127.0.0.1:8000`) |
-
-## Operations
-
-| Timer | Runs | Enabled by default |
-|---|---|---|
-| `ax-news-sync` | FreshRSS → database, every 10 min | yes |
-| `ax-news-translate` | Translation, 8 min of work every 10 min | yes |
-| `ax-news-sources` | Accounts' and shared catalog sources, every 5 min | yes |
-| `ax-news-images` | Pictures for stories without one, hourly | yes |
-| `freshrss-refresh` | FreshRSS fetches its feeds, every 15 min | yes |
-| `ax-news-seo` | IndexNow: the sitemaps' new pages to Bing and others, hourly | no — enable once the site is verified |
-| `ax-news-social` | The CVE watch to Mastodon/Bluesky (breaking CVEs, KEV additions, a daily post), every 5 min | no — enable once an account is set |
-| `ax-news-dedup` | Removes duplicates, hourly: a later copy of the same address, or of the same title from the same source within 12 hours; dates in the future become the arrival time | yes |
-| `ax-news-purge` | Deletes stories older than `PURGE_DAYS` (90), except saved ones, Mondays 03:00 | yes |
-
-**Update** to a release: `git fetch --tags origin && git checkout vX.Y.Z`,
-then `backend/venv/bin/pip install -r backend/requirements.txt`, the new
-`migrations/` files if any (they are additive), and
-`sudo systemctl restart ax-news-backend`. Back up first:
-`pg_dump -Fc "$DATABASE_URL" -f ax-news-$(date +%F).dump`.
-**Roll back**: check out the previous tag and restart; migrations never
-remove what an older release reads.
-
-**FreshRSS** (`/news`) is behind a password of nginx, before its own login:
-user `freshrss`, password in `/etc/nginx/ax-news-freshrss.htpasswd` (hashed).
-Set one with `printf 'freshrss:%s\n' "$(openssl passwd -6)" | sudo tee
-/etc/nginx/ax-news-freshrss.htpasswd`, then `sudo systemctl reload nginx`.
-
-**Search engines**: declare `https://ax-news.com/sitemap.xml` in Google
-Search Console and Bing Webmaster Tools. IndexNow needs no account: its key
-is derived from `INTERNAL_SYNC_TOKEN` and served at `/<key>.txt`.
-
-**More languages**: `deploy/install-argos-models.sh pl sv da nb fi cs el ro hu uk he fa hi id th`
-installs the models the catalog's other languages need; their feeds then
-become available.
+symlinks to `backend/templates/`, which are the pages' source. With Docker
+(`docker-compose.yml`), the backend serves `frontend/` itself and the
+worker container does the timers' work (`deploy/docker/scheduler.py`).
 
 ## Development
 

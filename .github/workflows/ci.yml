@@ -32,7 +32,7 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-test.txt
       - run: pip install -r requirements-test.txt
-      - name: The database of a new install (README, Installation)
+      - name: The database of a new install (docs/INSTALL.md)
         run: |
           for m in 001_schema 003_personal_sources 004_catalog_tv 005_articles_lookups; do
             psql "$AXNEWS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "migrations/$m.sql"
@@ -40,22 +40,20 @@ jobs:
       - name: Every Python file compiles
         run: python -m compileall -q backend tools *.py
       - name: Every shell script parses
-        run: for f in *.sh deploy/*.sh; do bash -n "$f"; done
+        run: for f in *.sh deploy/*.sh deploy/docker/*.sh; do bash -n "$f"; done
+      - name: install.sh passes shellcheck
+        run: shellcheck -S warning install.sh
       - run: python -m pytest -q tests
 
   docker:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - name: A .env with fresh secrets
-        run: |
-          cp .env.docker.example .env
-          for k in POSTGRES_PASSWORD FRESHRSS_PASSWORD FRESHRSS_API_PASS INTERNAL_SYNC_TOKEN; do
-            sed -i "s/^$k=.*/$k=$(openssl rand -hex 16)/" .env
-          done
-          echo AXNEWS_FEEDS_LIMIT=3 >> .env
-      - name: docker compose up (README, Docker)
-        run: docker compose up -d --build --wait --wait-timeout 900
+      - name: install.sh, a first install (README, Installation)
+        env:
+          AXNEWS_FEEDS_LIMIT: "3"
+          AXNEWS_ADMIN_PASSWORD: ci-password-1
+        run: ./install.sh --url http://localhost:8080
       - name: The site answers
         run: |
           for u in / /topics /cve /digest /feeds /tv.html /tv-screens /api/health "/api/cve/watch?tz=Europe/Paris" /robots.txt /sitemap.xml /assets/css/app.css; do
@@ -65,9 +63,12 @@ jobs:
         run: |
           token=$(grep ^INTERNAL_SYNC_TOKEN= .env | cut -d= -f2)
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "X-Internal-Token: $token" http://localhost:8080/api/tv/refresh)" = 401
-      - name: An administrator, and a sync from FreshRSS
+      - name: The administrator install.sh made signs in
         run: |
-          docker compose exec -T -e AXNEWS_ADMIN_PASSWORD=ci-password-1 backend python tools/create_admin.py admin
+          curl -sf -H 'Content-Type: application/json' -d '{"username": "admin", "password": "ci-password-1"}' \
+            http://localhost:8080/api/auth/login | tee /dev/stderr | grep -q '"is_admin":true'
+      - name: A sync from FreshRSS
+        run: |
           token=$(grep ^INTERNAL_SYNC_TOKEN= .env | cut -d= -f2)
           for i in $(seq 1 30); do
             r=$(docker compose exec -T worker curl -s -X POST -H "X-Internal-Token: $token" http://backend:8000/api/tv/refresh || true)
@@ -79,6 +80,23 @@ jobs:
           sleep 60
           docker compose logs worker | tee /dev/stderr | grep -E "sync: HTTP 200"
           docker compose logs worker | grep -E "freshrss: subscribed to 3 of 3 shared feeds"
+      - name: install.sh --update keeps .env, the data and the accounts
+        run: |
+          before=$(sha256sum .env)
+          ./install.sh --update --ref "$GITHUB_SHA"
+          test "$(sha256sum .env)" = "$before"
+          curl -sf -H 'Content-Type: application/json' -d '{"username": "admin", "password": "ci-password-1"}' \
+            http://localhost:8080/api/auth/login | grep -q '"is_admin":true'
+      - name: What it takes (docs/INSTALL.md, Prerequisites)
+        if: always()
+        run: |
+          docker image ls --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}'
+          docker system df
+          docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}'
+          for c in $(docker compose ps -q); do
+            peak=$(docker exec "$c" cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo 0)
+            echo "$(docker inspect -f '{{.Name}}' "$c"): peak $((peak / 1048576)) MB"
+          done
       - name: Logs
         if: always()
         run: docker compose logs --tail 60
