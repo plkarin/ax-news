@@ -4,6 +4,25 @@ Every release of AX-NEWS, newest first. Versions follow
 [semantic versioning](https://semver.org); each is a git tag and a
 [GitHub release](https://github.com/plkarin/ax-news/releases).
 
+## v1.4.2 — 2026-11-09
+
+### Search engines
+- A topic without a story in the last 48 hours shows its latest stories,
+  from the last 30 days, instead of an empty page, which Google counted as
+  a "soft 404". A topic with none at all is a 404.
+- A day page (`/topic/<topic>/<date>`, `/digest/<date>`) older than the 30
+  days the site keeps answers 410 Gone instead of 404, so that search
+  engines let it go. A date in the future, or not written YYYY-MM-DD, is a
+  404.
+- An empty digest, translated or topics page carries `noindex`: a new
+  install, before its first stories.
+- "Open in the live feed" (`/?topic=…`, whose canonical address is the home
+  page) is `nofollow`.
+
+### Tests
+- The status of day pages, the latest stories of a quiet topic, and every
+  template parses.
+
 ## v1.4.1 — 2026-11-08
 
 ### Installation

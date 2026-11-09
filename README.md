@@ -15,7 +15,7 @@ FastAPI, PostgreSQL, a vanilla JavaScript front end, offline translation.
 
 Live at **[ax-news.com](https://ax-news.com)** · TV at
 **[ax-news.com/tv.html](https://ax-news.com/tv.html)** ·
-Latest release: **[v1.4.1](https://github.com/plkarin/ax-news/releases/tag/v1.4.1)** ([changes](CHANGELOG.md)) ·
+Latest release: **[v1.4.2](https://github.com/plkarin/ax-news/releases/tag/v1.4.2)** ([changes](CHANGELOG.md)) ·
 **[Install](#installation)** in one command
 
 [![tests](https://github.com/plkarin/ax-news/actions/workflows/ci.yml/badge.svg)](https://github.com/plkarin/ax-news/actions/workflows/ci.yml)

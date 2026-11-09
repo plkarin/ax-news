@@ -40,3 +40,42 @@ def test_json_ld():
     assert page["@type"] == "CollectionPage" and page["url"].endswith("/topic/Cybersecurity")
     assert page["mainEntity"]["itemListElement"][0]["url"].endswith("/go/7")
     assert [c["position"] for c in crumbs["itemListElement"]] == [1, 2, 3]
+
+
+def test_day_pages_that_never_were_or_are_gone():
+    today = date(2026, 11, 9)
+    assert seo.parse_day("2026-11-09", today) == (today, 200)
+    assert seo.parse_day("2026-10-10", today) == (date(2026, 10, 10), 200)        # 30 days: still kept
+    assert seo.parse_day("2026-10-09", today) == (None, 410)                      # older: gone
+    assert seo.parse_day("2026-11-10", today) == (None, 404)                      # the future
+    assert seo.parse_day("2026-02-30", today) == (None, 404)
+    assert seo.parse_day("20261012", today) == (None, 404)                        # only the canonical form
+
+
+def test_every_template_parses():
+    from pathlib import Path
+    from jinja2 import Environment, FileSystemLoader
+    folder = Path(seo.__file__).parent / "templates"
+    env = Environment(loader=FileSystemLoader(folder))
+    for t in folder.glob("*.html"):
+        env.get_template(t.name)
+
+
+def test_a_quiet_topic_shows_its_latest_stories():
+    from conftest import add_story, with_db
+
+    async def t(pool):
+        seo._cache.clear()
+        await add_story(pool, "Four days old", hours_ago=96)
+        data = await seo.topic_page(pool, "Cybersecurity")
+        assert not data["recent"] and [s["title"] for s in data["items"]] == ["Four days old"]
+
+        seo._cache.clear()
+        await add_story(pool, "An hour old", hours_ago=1)
+        data = await seo.topic_page(pool, "Cybersecurity")
+        assert data["recent"] and [s["title"] for s in data["items"]] == ["An hour old"]
+
+        seo._cache.clear()
+        await pool.execute("UPDATE articles SET published_at = now() - interval '40 days'")
+        assert await seo.topic_page(pool, "Cybersecurity") is None                # nothing left: a 404
+    with_db(t)

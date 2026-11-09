@@ -191,7 +191,7 @@ What the script does, step by step:
 
 ```bash
 git clone https://github.com/plkarin/ax-news.git && cd ax-news
-git checkout v1.4.1
+git checkout v1.4.2
 cp .env.docker.example .env && chmod 600 .env
 # in .env: the four secrets (openssl rand -hex 24 for each), APP_URL, AXNEWS_PORT
 docker compose up -d --build --wait
@@ -215,7 +215,7 @@ user `cbrain`: for another account, change `User=` in
 ```bash
 sudo git clone https://github.com/plkarin/ax-news.git /opt/ax-news
 sudo chown -R cbrain:cbrain /opt/ax-news && cd /opt/ax-news
-git checkout v1.4.1
+git checkout v1.4.2
 python3 -m venv backend/venv
 backend/venv/bin/pip install -r backend/requirements.txt
 

@@ -1737,13 +1737,9 @@ def _xml(body: str, media: str = "application/xml", cache: int = 900) -> Respons
 
 
 def _day(text: str) -> _date:
-    try:
-        d = _date.fromisoformat(text)
-    except ValueError:
-        raise HTTPException(404, "No such day")
-    today = datetime.utcnow().date()
-    if d > today or (today - d).days > 31:
-        raise HTTPException(404, "No such day")
+    d, status = seo.parse_day(text, datetime.utcnow().date())
+    if d is None:
+        raise HTTPException(status, "This day is no longer kept" if status == 410 else "No such day")
     return d
 
 
@@ -1775,7 +1771,7 @@ async def topics_page(request: Request):
                 [("AX-NEWS", "/"), ("Topics", "/topics")],
                 f"{len(topics)} topics from technology to health, science and world news, from 200+ sources translated into English.",
                 kind="topics", kicker="Topics", lead="Every topic AX-NEWS follows, with how many stories it had in the last 48 hours and this month.",
-                domains=by_domain, art="research")
+                domains=by_domain, art="research", noindex=not topics)
 
 
 @app.get("/topic/{key}/feed.xml")
@@ -1794,15 +1790,19 @@ async def topic_feed(key: str):
 async def topic_today(request: Request, key: str):
     key = _topic_key(key)
     data = await seo.topic_page(pool, key)
-    if not data:
+    if not data or not data["items"]:
         raise HTTPException(404, "Nothing on this topic yet")
     label = data["topic"]["label"]
-    heading = f"{label} news today"
     items = data["items"]
-    first = f" — {items[0]['title'][:110]}" if items else ""
+    if data["recent"]:
+        heading = f"{label} news today"
+        description = f"{label} news: {len(items)} stories from {_n_sources(items)} sources in the last 48 hours, in English"
+    else:
+        heading = f"{label}: the latest news"
+        description = f"{label} news: the latest {len(items)} stories from {_n_sources(items)} sources, in English"
     return _seo(request, "seo_topic.html", heading, f"/topic/{key}",
                 [("AX-NEWS", "/"), ("Topics", "/topics"), (label, f"/topic/{key}")],
-                f"{label} news: {len(items)} stories from {_n_sources(items)} sources in the last 48 hours, in English{first}.",
+                f"{description} — {items[0]['title'][:110]}.",
                 items=items, data=data, nsources=_n_sources(items))
 
 
@@ -1846,7 +1846,7 @@ async def digest_page(request: Request, day: str, latest: bool = False):
                 items=flat, kind="digest", kicker=d.strftime('%A %d %B %Y'), data=data,
                 lead=(f"{data['total']} stories from {data['sources']} sources, topic by topic. Every title links to its publisher."
                       if data["total"] else "No stories yet: they come in with the first fetch of the feeds."),
-                days=await seo.digest_days(pool), art="world")
+                days=await seo.digest_days(pool), art="world", noindex=not data["total"])
 
 
 def _country_name(cc: str) -> str:
@@ -1899,7 +1899,7 @@ async def translated_page(request: Request):
                 [("AX-NEWS", "/"), ("Translated", "/translated")],
                 f"{len(items)} stories from {langs or 'other languages'} outlets in the last 72 hours, translated into English offline.",
                 items=items, kicker="Translated", lead=f"Stories AX-NEWS translated into English in the last 72 hours — from {langs or 'other languages'}. Each links to its original.",
-                languages=data["languages"], art="world")
+                languages=data["languages"], art="world", noindex=not items)
 
 
 @app.get("/api/cve/watch")

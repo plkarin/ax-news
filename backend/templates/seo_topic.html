@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% import "_seo.html" as seo %}
 {% set t = data.topic %}
-{% block title %}{{ heading }} — {{ data["items"]|length }} stories | AX-NEWS{% endblock %}
+{% set n = data["items"]|length %}
+{% block title %}{{ heading }} — {{ n }} stor{{ 'y' if n == 1 else 'ies' }} | AX-NEWS{% endblock %}
 {% block description %}{{ description }}{% endblock %}
 {% block head %}
   <link rel="canonical" href="https://ax-news.com{{ path }}">
@@ -19,8 +20,9 @@
     <div>
       <p class="seo-kicker">{{ t.label }}</p>
       <h1>{{ heading }}</h1>
-      <p>{{ data["items"]|length }} stories from {{ nsources }} sources{% if not data.day %} in the last 48 hours{% endif %}, every one in English. Each links to its publisher.</p>
-      <p class="seo-actions"><a class="btn sm primary" href="/?topic={{ t.key }}">Open in the live feed</a><a class="btn sm" href="/topic/{{ t.key }}/feed.xml">RSS feed</a><a class="btn sm" href="/tv.html?topics={{ t.key }}" rel="nofollow">On a TV</a></p>
+      {% set srcs = nsources ~ (' source' if nsources == 1 else ' sources') %}
+      <p>{% if data.day or data.recent %}{{ n }} stor{{ 'y' if n == 1 else 'ies' }} from {{ srcs }}{% if not data.day %} in the last 48 hours{% endif %}, every one in English.{% else %}No story in the last 48 hours: the latest {{ n }}, from {{ srcs }}, every one in English.{% endif %} Each links to its publisher.</p>
+      <p class="seo-actions"><a class="btn sm primary" href="/?topic={{ t.key }}" rel="nofollow">Open in the live feed</a><a class="btn sm" href="/topic/{{ t.key }}/feed.xml">RSS feed</a><a class="btn sm" href="/tv.html?topics={{ t.key }}" rel="nofollow">On a TV</a></p>
     </div>
   </header>
   <div class="seo-grid">

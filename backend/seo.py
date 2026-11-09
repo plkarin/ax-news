@@ -85,6 +85,26 @@ async def stories(pool, where: str, params: list, limit: int = 80, order: str = 
 
 # ── Topics and days ───────────────────────────────────────────────────────────
 
+DAYS_KEPT = 30          # the days db.VISIBLE shows
+
+
+def parse_day(text: str, today: date) -> tuple[date | None, int]:
+    """The date of a day page, else why there is none: 404 for a day that
+    never was (not a YYYY-MM-DD date, or in the future), 410 for one the
+    site no longer keeps, so that search engines let it go."""
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+        return None, 404
+    try:
+        d = date.fromisoformat(text)
+    except ValueError:
+        return None, 404
+    if d > today:
+        return None, 404
+    if (today - d).days > DAYS_KEPT:
+        return None, 410
+    return d, 200
+
+
 async def topics_overview(pool) -> list[dict]:
     async def go():
         rows = await pool.fetch(f"""
@@ -104,16 +124,22 @@ async def topics_overview(pool) -> list[dict]:
 
 async def topic_page(pool, key: str, day: date | None = None) -> dict | None:
     async def go():
+        recent = True
         if day:
             start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
             items = await stories(pool, "a.category = $1 AND a.published_at >= $2 AND a.published_at < $3",
                                   [key, start, start + timedelta(days=1)], limit=150)
         else:
             items = await stories(pool, "a.category = $1 AND a.published_at > now() - interval '48 hours'", [key], limit=80)
+            if not items:
+                # A quiet topic: its latest stories, not an empty page (which
+                # a search engine takes for a missing one, a "soft 404").
+                recent = False
+                items = await stories(pool, "a.category = $1", [key], limit=40)
         days = await topic_days(pool, key)
         if not items and not days:
             return None
-        return {"topic": topic_meta(key), "items": items, "days": days, "day": day}
+        return {"topic": topic_meta(key), "items": items, "days": days, "day": day, "recent": recent}
     return await cached(f"topic:{key}:{day}", 300, go)
 
 
